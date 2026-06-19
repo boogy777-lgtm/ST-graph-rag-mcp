@@ -43,3 +43,6 @@ package/
 build-trust-lsp.ps1
 cleanup-dev-artifacts.ps1
 obsidian-vault/
+
+# External trust-platform copies (not part of our test suite)
+trust-platform-main/

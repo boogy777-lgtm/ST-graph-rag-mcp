@@ -1,0 +1,11 @@
+[test]
+# Exclude external projects that contain their own test suites.
+# trust-platform-main = local copy of trust-lsp reference (VS Code extension tests)
+# trust-platform       = git submodule (lsp tests, not checked out by default)
+# .opencode/node_modules = duplicated node_modules (defense-in-depth;
+#   Bun skips hidden dirs by default, but explicit exclusion is safer)
+pathIgnorePatterns = [
+  "trust-platform-main/**",
+  "trust-platform/**",
+  ".opencode/node_modules/**",
+]
