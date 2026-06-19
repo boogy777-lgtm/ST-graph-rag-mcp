@@ -1,0 +1,23 @@
+---
+source: crates/trust-syntax/tests/parser_pous.rs
+expression: "snapshot_parse(r#\"NAMESPACE Company.Project\n    FUNCTION Helper : INT\n    END_FUNCTION\nEND_NAMESPACE\"#)"
+---
+SourceFile@0..82
+  Namespace@0..82
+    KwNamespace@0..9 "NAMESPACE"
+    QualifiedName@9..30
+      Name@9..17
+        Ident@10..17 "Company"
+      Dot@17..18 "."
+      Name@18..30
+        Ident@18..25 "Project"
+    Function@30..69
+      KwFunction@30..38 "FUNCTION"
+      Name@38..46
+        Ident@39..45 "Helper"
+      Colon@46..47 ":"
+      TypeRef@47..56
+        KwInt@48..51 "INT"
+      StmtList@56..56
+      KwEndFunction@56..68 "END_FUNCTION"
+    KwEndNamespace@69..82 "END_NAMESPACE"

@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.pyc
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+
+# Database files (generated)
+.code-graph-rag/
+*.db
+*.db-shm
+*.db-wal
+
+# Logs
+logs_llm/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Archives
+*.7z
+*.zip
+*.tar.gz
+
+# Release copies (not needed in repo)
+git-release/
+package/
+
+# Build script (generated)
+build-trust-lsp.ps1
+cleanup-dev-artifacts.ps1
+obsidian-vault/

@@ -1,0 +1,23 @@
+---
+source: crates/trust-syntax/tests/parser_pous.rs
+expression: "snapshot_parse(r#\"INTERFACE IMotor\n    METHOD Start : BOOL\n    END_METHOD\n    METHOD Stop\n    END_METHOD\nEND_INTERFACE\"#)"
+---
+SourceFile@0..100
+  Interface@0..100
+    KwInterface@0..9 "INTERFACE"
+    Name@9..21
+      Ident@10..16 "IMotor"
+    Method@21..60
+      KwMethod@21..27 "METHOD"
+      Name@27..34
+        Ident@28..33 "Start"
+      Colon@34..35 ":"
+      TypeRef@35..45
+        KwBool@36..40 "BOOL"
+      KwEndMethod@45..55 "END_METHOD"
+    Method@60..87
+      KwMethod@60..66 "METHOD"
+      Name@66..76
+        Ident@67..71 "Stop"
+      KwEndMethod@76..86 "END_METHOD"
+    KwEndInterface@87..100 "END_INTERFACE"

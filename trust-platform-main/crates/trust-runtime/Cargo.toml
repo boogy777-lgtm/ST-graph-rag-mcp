@@ -1,0 +1,73 @@
+[package]
+name = "trust-runtime"
+description = "Runtime for IEC 61131-3 Structured Text"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+trust-syntax.workspace = true
+trust-hir.workspace = true
+trust-ide.workspace = true
+trust-plcopen.workspace = true
+trust-runtime-core = { workspace = true, features = ["hir"] }
+trust-wasm-analysis.workspace = true
+smol_str.workspace = true
+rustc-hash.workspace = true
+text-size.workspace = true
+indexmap = { workspace = true, features = ["serde"] }
+tracing.workspace = true
+crc32fast.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+toml.workspace = true
+clap.workspace = true
+clap_complete.workspace = true
+qrcode.workspace = true
+urlencoding.workspace = true
+roxmltree.workspace = true
+anyhow.workspace = true
+glob.workspace = true
+ratatui.workspace = true
+crossterm.workspace = true
+dialoguer.workspace = true
+indicatif.workspace = true
+owo-colors.workspace = true
+rumqttc.workspace = true
+native-tls.workspace = true
+time.workspace = true
+scena.workspace = true
+rapier3d.workspace = true
+urdf-rs.workspace = true
+k.workspace = true
+notify = "8"
+tiny_http = { version = "0.12", features = ["ssl-rustls"] }
+tungstenite = "0.28"
+mdns-sd = "0.18"
+zenoh = { version = "=1.7.2", default-features = false, features = ["transport_tcp"] }
+base64 = "0.22"
+rand = "0.10"
+ureq = "3"
+sha2 = "0.10"
+rustls = "0.23"
+tiverse-mmap = "1.0"
+region = "3.0"
+opcua = { version = "0.12", default-features = false, features = ["server", "client", "vendored-openssl"], optional = true }
+tokio = { workspace = true, optional = true }
+
+[target.'cfg(unix)'.dependencies]
+ethercrab = { version = "0.6", optional = true }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+rustix = { version = "1.1.4", features = ["mm", "thread"] }
+
+[features]
+default = ["debug", "ethercat-wire"]
+debug = []
+opcua-wire = ["dep:opcua"]
+ethercat-wire = ["dep:ethercrab", "dep:tokio"]
+
+[dev-dependencies]
+trust-twin-compiler.workspace = true

@@ -1,0 +1,55 @@
+@startuml debug-breakpoint-after-launch-actual-observed
+!theme plain
+skinparam sequenceMessageAlign center
+
+title Breakpoint/Pause Set After Launch - Actual Observed (from /tmp/trust-debug-dap.log)
+
+actor "VS Code" as vscode
+participant "trust-debug\nDAP Adapter" as adapter
+participant "DebugControl\n(trust-runtime)" as control
+participant "Runner Thread" as runner
+participant "on_statement_inner()\nDebugHook" as hook
+participant "StopCoordinator" as stop
+
+== Session Already Running ==
+note over adapter,runner
+Runner started; IO polling events continue.
+end note
+
+== Breakpoint Added While Running ==
+vscode -> adapter : setBreakpoints(Main.st:14)
+adapter -> control : set_breakpoints_for_file(...)
+adapter --> vscode : breakpoint verified + resolved\n(line 14 range 221..263)
+
+note over runner,hook #FFEEEE
+Observed in log:
+  - No DebugStop emitted
+  - No [trust-debug][stop] trace
+  - No DAP stopped event
+end note
+
+== Pause Requested ==
+vscode -> adapter : pause(threadId=1)
+adapter -> control : pause()
+note right of control
+Observed trace:
+  action=Pause(None) outcome=Applied mode=Running->Paused
+end note
+adapter --> vscode : pause response(success=true)
+
+note over runner,hook #FFEEEE
+Expected next-cycle boundary stop did not occur.
+No emit_stop(Pause) observed in log.
+end note
+
+== User Terminates ==
+vscode -> adapter : terminate
+adapter -> control : continue (shutdown path)
+note right of control
+Observed trace:
+  action=Continue outcome=Applied mode=Paused->Running
+end note
+adapter --> vscode : terminated
+
+@enduml
+

@@ -1,0 +1,52 @@
+@startuml debug-breakpoint-after-launch-intended
+!theme plain
+skinparam sequenceMessageAlign center
+
+title Breakpoint/Pause Set After Launch - Intended Flow
+
+actor "VS Code" as vscode
+participant "trust-debug\nDAP Adapter" as adapter
+participant "DebugControl\n(trust-runtime)" as control
+participant "Runner Thread" as runner
+participant "on_statement_inner()\nDebugHook" as hook
+participant "StopCoordinator" as stop
+
+== Session Already Running ==
+note over adapter,runner
+Debug session is launched and runner is cycling.
+end note
+
+== Breakpoint Added While Running ==
+vscode -> adapter : setBreakpoints(Main.st:14)
+adapter -> control : set_breakpoints_for_file(file_id, bp@14)
+adapter --> vscode : verified breakpoint
+
+runner -> hook : next statement boundary
+hook -> hook : matches_breakpoint(location)
+alt overlap / exact location matches
+  hook -> hook : emit_stop(Breakpoint)
+  hook -> stop : DebugStop{reason=Breakpoint}
+  stop -> vscode : stopped(reason="breakpoint")
+else not this statement
+  hook --> runner : continue cycle
+end
+
+== Pause Requested While Running ==
+vscode -> adapter : pause(threadId=1)
+adapter -> control : pause()  'global pause request
+adapter --> vscode : pause response(success=true)
+
+runner -> hook : next statement boundary
+hook -> hook : mode == Paused && pending_stop == Pause
+hook -> hook : emit_stop(Pause)
+hook -> stop : DebugStop{reason=Pause}
+stop -> vscode : stopped(reason="pause")
+
+note over vscode,stop
+Expected user-visible behavior:
+  - line highlight / paused state
+  - continue/step controls become meaningful
+end note
+
+@enduml
+

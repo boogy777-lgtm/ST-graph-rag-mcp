@@ -1,0 +1,63 @@
+[bundle]
+version = 1
+
+[resource]
+name = "runtime-plant"
+cycle_interval_ms = 100
+
+[runtime.control]
+endpoint = "unix:///tmp/trust-runtime-plant.sock"
+mode = "production"
+debug_enabled = false
+auth_token = "REPLACE_WITH_LONG_RANDOM_TOKEN"
+
+[runtime.web]
+enabled = true
+listen = "0.0.0.0:18443"
+auth = "token"
+tls = true
+
+[runtime.tls]
+mode = "self-managed"
+cert_path = "./certs/runtime.crt"
+key_path = "./certs/runtime.key"
+require_remote = true
+
+[runtime.discovery]
+enabled = true
+service_name = "site-a/runtime-plant"
+advertise = true
+interfaces = ["eth0"]
+
+[runtime.mesh]
+enabled = true
+role = "peer"
+listen = "0.0.0.0:5200"
+connect = []
+tls = true
+auth_token = "REPLACE_WITH_LONG_RANDOM_TOKEN"
+zenohd_version = "1.7.2"
+plugin_versions = {}
+publish = []
+subscribe = {}
+
+[runtime.cloud]
+profile = "plant"
+
+[runtime.cloud.wan]
+allow_write = []
+
+[runtime.log]
+level = "info"
+
+[runtime.retain]
+mode = "none"
+save_interval_ms = 1000
+
+[runtime.watchdog]
+enabled = false
+timeout_ms = 5000
+action = "halt"
+
+[runtime.fault]
+policy = "halt"

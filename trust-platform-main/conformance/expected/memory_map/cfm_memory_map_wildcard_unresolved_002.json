@@ -1,0 +1,9 @@
+{
+  "case_id": "cfm_memory_map_wildcard_unresolved_002",
+  "category": "memory_map",
+  "compiled": false,
+  "description": "Unresolved wildcard direct address is rejected",
+  "error": "error[E202]: direct address '%M*' requires VAR_CONFIG mapping (at 21..24)",
+  "kind": "compile_error",
+  "version": 1
+}

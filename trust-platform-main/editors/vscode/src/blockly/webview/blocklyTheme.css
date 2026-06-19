@@ -1,0 +1,145 @@
+/* Override Blockly default styles for better contrast in VS Code */
+
+/* Toolbox categories - better text contrast */
+.blocklyToolboxCategory {
+  color: #ffffff !important;
+  font-weight: 500 !important;
+  font-size: 14px !important;
+}
+
+/* Category label text */
+.blocklyTreeLabel {
+  color: #ffffff !important;
+  font-weight: 500 !important;
+}
+
+/* Flyout background */
+.blocklyFlyoutBackground {
+  fill: var(--vscode-sideBar-background) !important;
+  fill-opacity: 0.95 !important;
+}
+
+/* Toolbox background */
+.blocklyToolboxDiv {
+  background-color: var(--vscode-sideBar-background) !important;
+  border-right: 1px solid var(--vscode-panel-border) !important;
+}
+
+/* Main workspace background */
+.blocklyMainBackground {
+  stroke-width: 0 !important;
+  fill: var(--vscode-editor-background) !important;
+}
+
+/* Grid lines */
+.blocklyMainWorkspaceScrollbar {
+  opacity: 0.5;
+}
+
+/* Scrollbar */
+.blocklyScrollbarHandle {
+  fill: var(--vscode-scrollbarSlider-background) !important;
+}
+
+.blocklyScrollbarBackground {
+  fill: var(--vscode-scrollbarSlider-background) !important;
+  opacity: 0.3 !important;
+}
+
+/* Trash can */
+.blocklyTrash {
+  opacity: 0.7;
+}
+
+/* Block shadows */
+.blocklyDraggable {
+  cursor: move;
+}
+
+/* Selected block highlight */
+.blocklySelected > .blocklyPath {
+  stroke: var(--vscode-focusBorder) !important;
+  stroke-width: 3px !important;
+}
+
+/* Executing block highlight - bright yellow/orange */
+.blocklyHighlight > .blocklyPath {
+  stroke: #ffa500 !important;
+  stroke-width: 4px !important;
+  fill-opacity: 0.9 !important;
+  animation: pulse-highlight 0.5s ease-in-out infinite;
+}
+
+@keyframes pulse-highlight {
+  0%, 100% {
+    stroke-width: 4px;
+    stroke: #ffa500;
+  }
+  50% {
+    stroke-width: 5px;
+    stroke: #ff8c00;
+  }
+}
+
+/* Comments */
+.blocklyCommentText {
+  fill: var(--vscode-editor-foreground) !important;
+}
+
+/* Field text - make it more visible */
+.blocklyEditableText > text,
+.blocklyNonEditableText > text {
+  fill: #ffffff !important;
+  font-weight: 500 !important;
+}
+
+/* Dropdown fields */
+.blocklyDropdownText {
+  fill: #ffffff !important;
+}
+
+/* Make category rows more visible */
+.blocklyTreeRow {
+  min-height: 32px;
+  line-height: 32px;
+  padding: 4px 8px !important;
+  border-radius: 4px;
+  margin: 2px 4px;
+}
+
+.blocklyTreeRow:hover {
+  background-color: var(--vscode-list-hoverBackground) !important;
+}
+
+.blocklyTreeRowContentContainer {
+  display: flex;
+  align-items: center;
+}
+
+/* Selected category */
+.blocklyTreeSelected > .blocklyTreeRow {
+  background-color: var(--vscode-list-activeSelectionBackground) !important;
+}
+
+/* Ensure text is readable on all block colors */
+.blocklyText {
+  fill: #ffffff !important;
+  font-family: var(--vscode-font-family, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif) !important;
+  font-size: 12pt !important;
+  font-weight: 500 !important;
+}
+
+/* Widget background for better readability */
+.blocklyWidgetDiv {
+  background-color: var(--vscode-dropdown-background) !important;
+  border: 1px solid var(--vscode-dropdown-border) !important;
+  color: var(--vscode-dropdown-foreground) !important;
+}
+
+/* Input fields */
+.blocklyHtmlInput {
+  background-color: var(--vscode-input-background) !important;
+  color: var(--vscode-input-foreground) !important;
+  border: 1px solid var(--vscode-input-border) !important;
+  font-family: var(--vscode-editor-font-family) !important;
+}

@@ -1,0 +1,40 @@
+---
+source: crates/trust-syntax/tests/parser_pous.rs
+expression: "snapshot_parse(r#\"FUNCTION_BLOCK FB_Timer\nVAR_INPUT\n    enable : BOOL;\nEND_VAR\nVAR_OUTPUT\n    done : BOOL;\nEND_VAR\nVAR\n    counter : INT;\nEND_VAR\nEND_FUNCTION_BLOCK\"#)"
+---
+SourceFile@0..146
+  FunctionBlock@0..146
+    KwFunctionBlock@0..14 "FUNCTION_BLOCK"
+    Name@14..24
+      Ident@15..23 "FB_Timer"
+    VarBlock@24..61
+      KwVarInput@24..33 "VAR_INPUT"
+      VarDecl@33..53
+        Name@33..45
+          Ident@38..44 "enable"
+        Colon@45..46 ":"
+        TypeRef@46..51
+          KwBool@47..51 "BOOL"
+        Semicolon@51..52 ";"
+      KwEndVar@53..60 "END_VAR"
+    VarBlock@61..97
+      KwVarOutput@61..71 "VAR_OUTPUT"
+      VarDecl@71..89
+        Name@71..81
+          Ident@76..80 "done"
+        Colon@81..82 ":"
+        TypeRef@82..87
+          KwBool@83..87 "BOOL"
+        Semicolon@87..88 ";"
+      KwEndVar@89..96 "END_VAR"
+    VarBlock@97..128
+      KwVar@97..100 "VAR"
+      VarDecl@100..120
+        Name@100..113
+          Ident@105..112 "counter"
+        Colon@113..114 ":"
+        TypeRef@114..118
+          KwInt@115..118 "INT"
+        Semicolon@118..119 ";"
+      KwEndVar@120..127 "END_VAR"
+    KwEndFunctionBlock@128..146 "END_FUNCTION_BLOCK"

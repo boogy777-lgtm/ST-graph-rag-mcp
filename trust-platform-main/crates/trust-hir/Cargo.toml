@@ -1,0 +1,23 @@
+[package]
+name = "trust-hir"
+description = "High-level IR and semantic analysis for IEC 61131-3 Structured Text"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+trust-syntax.workspace = true
+salsa.workspace = true
+smol_str.workspace = true
+rustc-hash.workspace = true
+tracing.workspace = true
+text-size.workspace = true
+rowan.workspace = true
+parking_lot.workspace = true
+
+[dev-dependencies]
+insta.workspace = true
+serde.workspace = true
+toml.workspace = true

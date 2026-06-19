@@ -1,0 +1,53 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+"instructions": [
+      "AGENTS.md",
+      ".opencode/rules/mcp-tool-definition.md",
+      ".opencode/rules/mcp-input-validation.md",
+      ".opencode/rules/mcp-error-handling.md",
+      ".opencode/rules/st-pou-types.md",
+      ".opencode/rules/st-indexing-strategy.md",
+      ".opencode/rules/sqlite-bun.md",
+      ".opencode/rules/sqlite-connection-lifecycle.md",
+      ".opencode/rules/sqlite-schema-migrations.md"
+    ],
+    "mcp": {
+      "code-graph-rag-st": {
+        "type": "local",
+        "command": ["bun", "D:\\ST-graph-rag-mcp\\dist\\index.js"],
+        "environment": {
+          "TRUST_LSP_PATH": "D:\\ST-graph-rag-mcp\\bin\\trust-lsp.exe"
+        },
+        "enabled": true
+      }
+    },
+  "lsp": {
+    "trust-lsp": {
+      "command": [
+        "D:\\ST-graph-rag-mcp\\bin\\trust-lsp.exe"
+      ],
+      "extensions": [
+        ".st",
+        ".pou"
+      ],
+      "env": {
+        "RUST_LOG": "info"
+      }
+    }
+  },
+  "agent": {
+    "parser-devil-advocate": {
+      "mode": "subagent",
+      "hidden": false,
+      "description": "Critical analyst of parser/LSP architecture: clangd vs rust-analyzer vs truST trade-offs with file:line evidence.",
+      "model": "minimax-coding-plan/MiniMax-M3"
+    },
+    "ts-architect": {
+      "mode": "all",
+      "hidden": false,
+      "prompt": "{file:./.opencode/agents/ts-architect/agent.md}",
+      "model": "minimax-coding-plan/MiniMax-M3",
+      "variant": "high"
+    }
+  }
+}

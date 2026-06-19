@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://www.plcopen.org/xml/tc6_0200">
+  <fileHeader companyName="Schneider Electric" productName="EcoStruxure Machine Expert" />
+  <types>
+    <dataTypes>
+      <dataType name="CUSTOM_WORD" />
+    </dataTypes>
+    <pous>
+      <pou name="Main" pouType="PROGRAM">
+        <body>
+          <ST><![CDATA[
+PROGRAM Main
+VAR
+    Ready : BOOL := TRUE;
+END_VAR
+END_PROGRAM
+]]></ST>
+        </body>
+      </pou>
+      <pou name="MotorFb" pouType="FUNCTION_BLOCK">
+        <interface />
+      </pou>
+    </pous>
+  </types>
+</project>

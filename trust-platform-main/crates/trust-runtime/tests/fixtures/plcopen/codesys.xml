@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://www.plcopen.org/xml/tc6_0200">
+  <fileHeader companyName="3S-Smart Software Solutions GmbH" productName="CODESYS V3.5" />
+  <types>
+    <dataTypes>
+      <dataType name="T_Custom" />
+    </dataTypes>
+    <pous>
+      <pou name="Main" pouType="PROGRAM">
+        <body>
+          <ST><![CDATA[
+PROGRAM Main
+VAR
+    Counter : INT := 0;
+END_VAR
+END_PROGRAM
+]]></ST>
+        </body>
+      </pou>
+      <pou name="Clamp" pouType="function_block">
+        <body>
+          <st><![CDATA[
+FUNCTION_BLOCK Clamp
+VAR_INPUT
+    X : INT;
+END_VAR
+END_FUNCTION_BLOCK
+]]></st>
+        </body>
+      </pou>
+      <pou name="LegacyAction" pouType="ACTION">
+        <body>
+          <ST><![CDATA[
+A := 1;
+]]></ST>
+        </body>
+      </pou>
+    </pous>
+  </types>
+  <addData>
+    <data name="codesys.extension"><text><![CDATA[<codesys:attr id="x"/>]]></text></data>
+  </addData>
+</project>

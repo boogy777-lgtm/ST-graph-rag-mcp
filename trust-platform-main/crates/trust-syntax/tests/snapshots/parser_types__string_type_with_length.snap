@@ -1,0 +1,38 @@
+---
+source: crates/trust-syntax/tests/parser_types.rs
+expression: "snapshot_parse(r#\"PROGRAM Test\nVAR\n    s1 : STRING[50];\n    s2 : WSTRING[100];\nEND_VAR\nEND_PROGRAM\"#)"
+---
+SourceFile@0..80
+  Program@0..80
+    KwProgram@0..7 "PROGRAM"
+    Name@7..13
+      Ident@8..12 "Test"
+    VarBlock@13..69
+      KwVar@13..16 "VAR"
+      VarDecl@16..42
+        Name@16..24
+          Ident@21..23 "s1"
+        Colon@24..25 ":"
+        TypeRef@25..36
+          StringType@25..36
+            KwString@26..32 "STRING"
+            LBracket@32..33 "["
+            Literal@33..35
+              IntLiteral@33..35 "50"
+            RBracket@35..36 "]"
+        Semicolon@36..37 ";"
+      VarDecl@42..61
+        Name@42..45
+          Ident@42..44 "s2"
+        Colon@45..46 ":"
+        TypeRef@46..59
+          StringType@46..59
+            KwWString@47..54 "WSTRING"
+            LBracket@54..55 "["
+            Literal@55..58
+              IntLiteral@55..58 "100"
+            RBracket@58..59 "]"
+        Semicolon@59..60 ";"
+      KwEndVar@61..68 "END_VAR"
+    StmtList@69..69
+    KwEndProgram@69..80 "END_PROGRAM"

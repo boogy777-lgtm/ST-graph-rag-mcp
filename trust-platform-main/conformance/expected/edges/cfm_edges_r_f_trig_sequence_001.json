@@ -1,0 +1,106 @@
+{
+  "case_id": "cfm_edges_r_f_trig_sequence_001",
+  "category": "edges",
+  "cycles": 6,
+  "description": "R_TRIG and F_TRIG edge pulse behavior",
+  "kind": "runtime",
+  "trace": [
+    {
+      "cycle": 1,
+      "direct": {},
+      "errors": [],
+      "globals": {
+        "q_f": {
+          "type": "BOOL",
+          "value": true
+        },
+        "q_r": {
+          "type": "BOOL",
+          "value": false
+        }
+      },
+      "runtime_time_nanos": 0
+    },
+    {
+      "cycle": 2,
+      "direct": {},
+      "errors": [],
+      "globals": {
+        "q_f": {
+          "type": "BOOL",
+          "value": false
+        },
+        "q_r": {
+          "type": "BOOL",
+          "value": false
+        }
+      },
+      "runtime_time_nanos": 0
+    },
+    {
+      "cycle": 3,
+      "direct": {},
+      "errors": [],
+      "globals": {
+        "q_f": {
+          "type": "BOOL",
+          "value": false
+        },
+        "q_r": {
+          "type": "BOOL",
+          "value": true
+        }
+      },
+      "runtime_time_nanos": 0
+    },
+    {
+      "cycle": 4,
+      "direct": {},
+      "errors": [],
+      "globals": {
+        "q_f": {
+          "type": "BOOL",
+          "value": false
+        },
+        "q_r": {
+          "type": "BOOL",
+          "value": false
+        }
+      },
+      "runtime_time_nanos": 0
+    },
+    {
+      "cycle": 5,
+      "direct": {},
+      "errors": [],
+      "globals": {
+        "q_f": {
+          "type": "BOOL",
+          "value": true
+        },
+        "q_r": {
+          "type": "BOOL",
+          "value": false
+        }
+      },
+      "runtime_time_nanos": 0
+    },
+    {
+      "cycle": 6,
+      "direct": {},
+      "errors": [],
+      "globals": {
+        "q_f": {
+          "type": "BOOL",
+          "value": false
+        },
+        "q_r": {
+          "type": "BOOL",
+          "value": false
+        }
+      },
+      "runtime_time_nanos": 0
+    }
+  ],
+  "version": 1
+}

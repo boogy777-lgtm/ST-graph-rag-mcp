@@ -1,0 +1,39 @@
+---
+source: crates/trust-syntax/tests/parser_statements.rs
+assertion_line: 121
+expression: "snapshot_parse(r#\"PROGRAM Test\n    VAR\n        x : INT;\n    END_VAR\n    Start: x := 1;\n    JMP Start;\nEND_PROGRAM\"#)"
+---
+SourceFile@0..95
+  Program@0..95
+    KwProgram@0..7 "PROGRAM"
+    Name@7..17
+      Ident@8..12 "Test"
+    VarBlock@17..54
+      KwVar@17..20 "VAR"
+      VarDecl@20..42
+        Name@20..31
+          Ident@29..30 "x"
+        Colon@31..32 ":"
+        TypeRef@32..36
+          KwInt@33..36 "INT"
+        Semicolon@36..37 ";"
+      KwEndVar@42..49 "END_VAR"
+    StmtList@54..84
+      LabelStmt@54..73
+        Name@54..59
+          Ident@54..59 "Start"
+        Colon@59..60 ":"
+        AssignStmt@60..73
+          BinaryExpr@60..67
+            NameRef@60..63
+              Ident@61..62 "x"
+            Assign@63..65 ":="
+            Literal@65..67
+              IntLiteral@66..67 "1"
+          Semicolon@67..68 ";"
+      JmpStmt@73..84
+        KwJmp@73..76 "JMP"
+        Name@76..82
+          Ident@77..82 "Start"
+        Semicolon@82..83 ";"
+    KwEndProgram@84..95 "END_PROGRAM"

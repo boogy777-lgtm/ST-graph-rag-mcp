@@ -1,0 +1,200 @@
+fn expected_size_for_type(value_type: TypeId) -> Option<IoSize> {
+    match value_type {
+        TypeId::BOOL => Some(IoSize::Bit),
+        TypeId::SINT | TypeId::USINT | TypeId::BYTE | TypeId::CHAR => Some(IoSize::Byte),
+        TypeId::INT | TypeId::UINT | TypeId::WORD | TypeId::WCHAR => Some(IoSize::Word),
+        TypeId::DINT | TypeId::UDINT | TypeId::DWORD | TypeId::REAL => Some(IoSize::DWord),
+        TypeId::LINT | TypeId::ULINT | TypeId::LWORD | TypeId::LREAL => Some(IoSize::LWord),
+        _ => None,
+    }
+}
+
+fn coerce_from_io(value: Value, target: TypeId) -> Result<Value, RuntimeError> {
+    match target {
+        TypeId::BOOL => match value {
+            Value::Bool(flag) => Ok(Value::Bool(flag)),
+            _ => Err(RuntimeError::TypeMismatch),
+        },
+        TypeId::SINT => match value {
+            Value::Byte(byte) => Ok(Value::SInt(byte as i8)),
+            _ => Err(RuntimeError::TypeMismatch),
+        },
+        TypeId::USINT => match value {
+            Value::Byte(byte) => Ok(Value::USInt(byte)),
+            _ => Err(RuntimeError::TypeMismatch),
+        },
+        TypeId::BYTE => match value {
+            Value::Byte(byte) => Ok(Value::Byte(byte)),
+            _ => Err(RuntimeError::TypeMismatch),
+        },
+        TypeId::CHAR => match value {
+            Value::Byte(byte) => Ok(Value::Char(byte)),
+            _ => Err(RuntimeError::TypeMismatch),
+        },
+        TypeId::INT => match value {
+            Value::Word(word) => Ok(Value::Int(word as i16)),
+            _ => Err(RuntimeError::TypeMismatch),
+        },
+        TypeId::UINT => match value {
+            Value::Word(word) => Ok(Value::UInt(word)),
+            _ => Err(RuntimeError::TypeMismatch),
+        },
+        TypeId::WORD => match value {
+            Value::Word(word) => Ok(Value::Word(word)),
+            _ => Err(RuntimeError::TypeMismatch),
+        },
+        TypeId::WCHAR => match value {
+            Value::Word(word) => Ok(Value::WChar(word)),
+            _ => Err(RuntimeError::TypeMismatch),
+        },
+        TypeId::DINT => match value {
+            Value::DWord(word) => Ok(Value::DInt(word as i32)),
+            _ => Err(RuntimeError::TypeMismatch),
+        },
+        TypeId::UDINT => match value {
+            Value::DWord(word) => Ok(Value::UDInt(word)),
+            _ => Err(RuntimeError::TypeMismatch),
+        },
+        TypeId::DWORD => match value {
+            Value::DWord(word) => Ok(Value::DWord(word)),
+            _ => Err(RuntimeError::TypeMismatch),
+        },
+        TypeId::REAL => match value {
+            Value::DWord(word) => Ok(Value::Real(f32::from_bits(word))),
+            _ => Err(RuntimeError::TypeMismatch),
+        },
+        TypeId::LINT => match value {
+            Value::LWord(word) => Ok(Value::LInt(word as i64)),
+            _ => Err(RuntimeError::TypeMismatch),
+        },
+        TypeId::ULINT => match value {
+            Value::LWord(word) => Ok(Value::ULInt(word)),
+            _ => Err(RuntimeError::TypeMismatch),
+        },
+        TypeId::LWORD => match value {
+            Value::LWord(word) => Ok(Value::LWord(word)),
+            _ => Err(RuntimeError::TypeMismatch),
+        },
+        TypeId::LREAL => match value {
+            Value::LWord(word) => Ok(Value::LReal(f64::from_bits(word))),
+            _ => Err(RuntimeError::TypeMismatch),
+        },
+        _ => Err(RuntimeError::TypeMismatch),
+    }
+}
+
+fn coerce_to_io(value: Value, target: TypeId, size: IoSize) -> Result<Value, RuntimeError> {
+    let Some(expected) = expected_size_for_type(target) else {
+        return Err(RuntimeError::TypeMismatch);
+    };
+    if expected != size {
+        return Err(RuntimeError::TypeMismatch);
+    }
+    match target {
+        TypeId::BOOL => match value {
+            Value::Bool(flag) => Ok(Value::Bool(flag)),
+            _ => Err(RuntimeError::TypeMismatch),
+        },
+        TypeId::SINT => {
+            let val = match value {
+                Value::SInt(val) => val,
+                _ => i8::try_from(crate::numeric::to_i64(&value)?)
+                    .map_err(|_| RuntimeError::Overflow)?,
+            };
+            Ok(Value::Byte(val as u8))
+        }
+        TypeId::USINT => {
+            let val = match value {
+                Value::USInt(val) => val,
+                _ => u8::try_from(crate::numeric::to_u64(&value)?)
+                    .map_err(|_| RuntimeError::Overflow)?,
+            };
+            Ok(Value::Byte(val))
+        }
+        TypeId::BYTE => match value {
+            Value::Byte(val) => Ok(Value::Byte(val)),
+            _ => Err(RuntimeError::TypeMismatch),
+        },
+        TypeId::CHAR => match value {
+            Value::Char(val) => Ok(Value::Byte(val)),
+            _ => Err(RuntimeError::TypeMismatch),
+        },
+        TypeId::INT => {
+            let val = match value {
+                Value::Int(val) => val,
+                _ => i16::try_from(crate::numeric::to_i64(&value)?)
+                    .map_err(|_| RuntimeError::Overflow)?,
+            };
+            Ok(Value::Word(val as u16))
+        }
+        TypeId::UINT => {
+            let val = match value {
+                Value::UInt(val) => val,
+                _ => u16::try_from(crate::numeric::to_u64(&value)?)
+                    .map_err(|_| RuntimeError::Overflow)?,
+            };
+            Ok(Value::Word(val))
+        }
+        TypeId::WORD => match value {
+            Value::Word(val) => Ok(Value::Word(val)),
+            _ => Err(RuntimeError::TypeMismatch),
+        },
+        TypeId::WCHAR => match value {
+            Value::WChar(val) => Ok(Value::Word(val)),
+            _ => Err(RuntimeError::TypeMismatch),
+        },
+        TypeId::DINT => {
+            let val = match value {
+                Value::DInt(val) => val,
+                _ => i32::try_from(crate::numeric::to_i64(&value)?)
+                    .map_err(|_| RuntimeError::Overflow)?,
+            };
+            Ok(Value::DWord(val as u32))
+        }
+        TypeId::UDINT => {
+            let val = match value {
+                Value::UDInt(val) => val,
+                _ => u32::try_from(crate::numeric::to_u64(&value)?)
+                    .map_err(|_| RuntimeError::Overflow)?,
+            };
+            Ok(Value::DWord(val))
+        }
+        TypeId::DWORD => match value {
+            Value::DWord(val) => Ok(Value::DWord(val)),
+            _ => Err(RuntimeError::TypeMismatch),
+        },
+        TypeId::REAL => {
+            let val = match value {
+                Value::Real(val) => val,
+                _ => crate::numeric::to_f64(&value)? as f32,
+            };
+            Ok(Value::DWord(val.to_bits()))
+        }
+        TypeId::LINT => {
+            let val = match value {
+                Value::LInt(val) => val,
+                _ => crate::numeric::to_i64(&value)?,
+            };
+            Ok(Value::LWord(val as u64))
+        }
+        TypeId::ULINT => {
+            let val = match value {
+                Value::ULInt(val) => val,
+                _ => crate::numeric::to_u64(&value)?,
+            };
+            Ok(Value::LWord(val))
+        }
+        TypeId::LWORD => match value {
+            Value::LWord(val) => Ok(Value::LWord(val)),
+            _ => Err(RuntimeError::TypeMismatch),
+        },
+        TypeId::LREAL => {
+            let val = match value {
+                Value::LReal(val) => val,
+                _ => crate::numeric::to_f64(&value)?,
+            };
+            Ok(Value::LWord(val.to_bits()))
+        }
+        _ => Err(RuntimeError::TypeMismatch),
+    }
+}

@@ -1,0 +1,525 @@
+.st-runtime-panel {
+  --bg: var(--vscode-sideBar-background);
+  --text: var(--vscode-sideBar-foreground);
+  --muted: var(--vscode-descriptionForeground);
+  --border: var(--vscode-sideBar-border, var(--vscode-panel-border));
+  --panel: var(--vscode-editor-background);
+  --row-hover: var(--vscode-list-hoverBackground);
+  --row-alt: var(--vscode-list-inactiveSelectionBackground);
+  --button-bg: var(--vscode-button-background);
+  --button-fg: var(--vscode-button-foreground);
+  --button-hover: var(--vscode-button-hoverBackground);
+  --input-bg: var(--vscode-input-background);
+  --input-fg: var(--vscode-input-foreground);
+  --input-border: var(--vscode-input-border);
+  --error: var(--vscode-errorForeground, #f14c4c);
+  --warning: var(--vscode-editorWarning-foreground, #cca700);
+
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.st-runtime-panel * {
+  box-sizing: border-box;
+}
+
+.st-runtime-panel header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.st-runtime-panel .header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.st-runtime-panel .header-search {
+  display: flex;
+}
+
+.st-runtime-panel .runtime-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--muted);
+  flex-wrap: wrap;
+}
+
+.st-runtime-panel .mode-toggle {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.st-runtime-panel .mode-button {
+  background: transparent;
+  border: none;
+  color: var(--text);
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.st-runtime-panel .mode-button.active {
+  background: var(--button-bg);
+  color: var(--button-fg);
+}
+
+.st-runtime-panel .mode-button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.st-runtime-panel .status-pill {
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--row-alt);
+  color: var(--text);
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.st-runtime-panel .status-pill.running {
+  background: var(--button-bg);
+  color: var(--button-fg);
+  border-color: transparent;
+}
+
+.st-runtime-panel .status-pill.connected {
+  border-color: var(--button-bg);
+}
+
+.st-runtime-panel .status-pill.disconnected {
+  opacity: 0.7;
+}
+
+.st-runtime-panel input[data-st-runtime-id="filter"] {
+  width: 100%;
+  padding: 4px 8px;
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  background: var(--input-bg);
+  color: var(--input-fg);
+}
+
+.st-runtime-panel button {
+  background: var(--button-bg);
+  border: none;
+  color: var(--button-fg);
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.st-runtime-panel button:hover {
+  background: var(--button-hover);
+}
+
+.st-runtime-panel .panel {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 8px;
+  flex: 1;
+  overflow: auto;
+  min-height: 0;
+}
+
+.st-runtime-panel .toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.st-runtime-panel .icon-btn {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+}
+
+.st-runtime-panel .icon-btn:hover {
+  background: var(--row-hover);
+}
+
+.st-runtime-panel .icon-btn:active {
+  background: var(--row-alt);
+}
+
+.st-runtime-panel .icon-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.st-runtime-panel .tools-shortcut-btn {
+  width: auto;
+  min-width: 44px;
+  padding: 0 8px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.st-runtime-panel .tree {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.st-runtime-panel details.tree-node > summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.st-runtime-panel details.tree-node > summary:hover {
+  background: var(--row-hover);
+}
+
+.st-runtime-panel details.tree-node > summary::-webkit-details-marker {
+  display: none;
+}
+
+.st-runtime-panel details.tree-node > summary::before {
+  content: "▸";
+  display: inline-block;
+  width: 12px;
+  color: var(--muted);
+  transform: translateY(-1px);
+}
+
+.st-runtime-panel details.tree-node[open] > summary::before {
+  content: "▾";
+}
+
+.st-runtime-panel .tree-node.level-1 {
+  padding-left: 12px;
+}
+
+.st-runtime-panel .tree-node.level-2 {
+  padding-left: 22px;
+}
+
+.st-runtime-panel .tree-node.level-3 {
+  padding-left: 32px;
+}
+
+.st-runtime-panel .rows {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 2px 6px 2px 18px;
+}
+
+.st-runtime-panel .row {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.st-runtime-panel .row:hover {
+  background: var(--row-hover);
+}
+
+.st-runtime-panel .row.pending {
+  opacity: 0.85;
+}
+
+.st-runtime-panel .row.error {
+  outline: 1px solid var(--error);
+  background: color-mix(in srgb, var(--error) 12%, transparent);
+}
+
+.st-runtime-panel .row .name {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.st-runtime-panel .row .name .type,
+.st-runtime-panel .row .name .address {
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.st-runtime-panel .row .value {
+  color: var(--text);
+  font-family: var(--vscode-editor-font-family);
+  font-size: 11px;
+}
+
+.st-runtime-panel .row .actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.st-runtime-panel .value-input {
+  width: 70px;
+  padding: 2px 4px;
+  border: 1px solid var(--input-border);
+  border-radius: 3px;
+  background: var(--input-bg);
+  color: var(--input-fg);
+  font-family: var(--vscode-editor-font-family);
+  font-size: 11px;
+}
+
+.st-runtime-panel .value-input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.st-runtime-panel .mini-btn {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid var(--input-border);
+  background: var(--button-bg);
+  color: var(--button-fg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.st-runtime-panel .mini-btn:hover {
+  background: var(--button-hover);
+}
+
+.st-runtime-panel .mini-btn.active {
+  background: var(--vscode-testing-iconPassed, #1f8f4e);
+  color: #ffffff;
+  border-color: var(--vscode-testing-iconPassed, #1f8f4e);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+
+.st-runtime-panel .mini-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.st-runtime-panel .empty {
+  font-size: 11px;
+  color: var(--muted);
+  padding: 2px 6px 2px 24px;
+}
+
+.st-runtime-panel .status {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.st-runtime-panel .diagnostics {
+  margin-top: 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel);
+  padding: 8px;
+}
+
+.st-runtime-panel .diagnostics-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.st-runtime-panel .diagnostics-title {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.st-runtime-panel .diagnostics-summary,
+.st-runtime-panel .diagnostics-runtime {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.st-runtime-panel .diagnostics-runtime {
+  margin-bottom: 6px;
+}
+
+.st-runtime-panel .diagnostics-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.st-runtime-panel .diagnostic-item {
+  padding: 6px 8px;
+  border-radius: 4px;
+  background: var(--row-alt);
+  border-left: 3px solid transparent;
+}
+
+.st-runtime-panel .diagnostic-item.error {
+  border-left-color: var(--error);
+}
+
+.st-runtime-panel .diagnostic-item.warning {
+  border-left-color: var(--warning);
+}
+
+.st-runtime-panel .diagnostic-message {
+  font-size: 12px;
+}
+
+.st-runtime-panel .diagnostic-meta {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.st-runtime-panel .runtime-view.hidden {
+  display: none;
+}
+
+.st-runtime-panel .settings-panel {
+  display: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  padding: 12px;
+}
+
+.st-runtime-panel .settings-panel.open {
+  display: block;
+}
+
+.st-runtime-panel .settings-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.st-runtime-panel .settings-title {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.st-runtime-panel .settings-subtitle {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.st-runtime-panel .settings-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.st-runtime-panel .settings-section {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px;
+  background: var(--row-alt);
+}
+
+.st-runtime-panel .settings-section h2 {
+  margin: 0 0 8px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--muted);
+}
+
+.st-runtime-panel .settings-row {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.st-runtime-panel .settings-row:last-child {
+  margin-bottom: 0;
+}
+
+.st-runtime-panel .settings-row label {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.st-runtime-panel .settings-row input,
+.st-runtime-panel .settings-row textarea,
+.st-runtime-panel .settings-row select {
+  width: 100%;
+  padding: 4px 6px;
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  background: var(--input-bg);
+  color: var(--input-fg);
+  font-family: var(--vscode-editor-font-family);
+  font-size: 12px;
+}
+
+.st-runtime-panel .settings-row textarea {
+  min-height: 56px;
+  resize: vertical;
+}
+
+.st-runtime-panel .settings-help {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.st-runtime-panel .settings-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.st-runtime-panel .button-ghost {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.st-runtime-panel .button-ghost:hover {
+  background: var(--row-hover);
+}

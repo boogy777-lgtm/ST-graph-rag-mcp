@@ -1,0 +1,54 @@
+[graph]
+all-features = false
+
+[advisories]
+ignore = [
+    { id = "RUSTSEC-2024-0421", reason = "owner=runtime/opcua; rationale=optional opcua-wire depends on opcua 0.12 -> url 1.7 -> idna 0.1 and the opcua crate has no newer patched release; review=2026-05-03; removal=migrate opcua-wire to async-opcua or another maintained OPC UA stack and prove cargo tree -i idna no longer reaches trust-runtime" },
+    { id = "RUSTSEC-2024-0388", reason = "owner=runtime/opcua; rationale=optional opcua-wire depends on opcua 0.12 -> derivative 2.2 and the opcua crate has no newer patched release; review=2026-05-03; removal=migrate opcua-wire to async-opcua or another maintained OPC UA stack and prove cargo tree -i derivative no longer reaches trust-runtime" },
+    { id = "RUSTSEC-2025-0009", reason = "owner=runtime/web; rationale=tiny_http 0.12 ssl-rustls pulls rustls 0.20/ring 0.16 for the existing HTTPS server and no tiny_http rustls 0.23 release is available; review=2026-05-03; removal=remove when HTTPS hosting moves off tiny_http ssl-rustls or tiny_http upgrades rustls" },
+    { id = "RUSTSEC-2025-0010", reason = "owner=runtime/web; rationale=tiny_http 0.12 ssl-rustls pulls unmaintained ring 0.16 for the existing HTTPS server and no tiny_http rustls 0.23 release is available; review=2026-05-03; removal=remove when HTTPS hosting moves off tiny_http ssl-rustls or tiny_http upgrades rustls" },
+    { id = "RUSTSEC-2024-0336", reason = "owner=runtime/web; rationale=tiny_http 0.12 ssl-rustls pulls rustls 0.20 for the existing HTTPS server and no tiny_http rustls 0.23 release is available; review=2026-05-03; removal=remove when HTTPS hosting moves off tiny_http ssl-rustls or tiny_http upgrades rustls" },
+    { id = "RUSTSEC-2025-0134", reason = "owner=runtime/web; rationale=direct TLS parsing now uses rustls pki_types PemObject, but tiny_http 0.12 ssl-rustls still pulls rustls-pemfile 0.2.1; review=2026-05-03; removal=remove when HTTPS hosting moves off tiny_http ssl-rustls or tiny_http upgrades rustls-pemfile" },
+    { id = "RUSTSEC-2024-0436", reason = "owner=runtime/mesh; rationale=zenoh 1.7.2 still pulls paste through token-cell/zenoh-keyexpr even after narrowing features to the TCP transport and removing the rsa path; review=2026-05-03; removal=remove when the Zenoh baseline moves to a version or patch stack that no longer pulls paste" },
+]
+
+[licenses]
+allow = [
+    "0BSD",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "BSL-1.0",
+    "CC0-1.0",
+    "CDLA-Permissive-2.0",
+    "EPL-2.0",
+    "ISC",
+    "MIT",
+    "MPL-2.0",
+    "OpenSSL",
+    "Unicode-3.0",
+    "Zlib",
+]
+confidence-threshold = 0.8
+
+[licenses.private]
+ignore = false
+
+[[licenses.clarify]]
+crate = "ring"
+expression = "MIT AND ISC AND OpenSSL"
+license-files = [
+    { path = "LICENSE", hash = 0xbd0eed23 },
+]
+
+[bans]
+multiple-versions = "warn"
+wildcards = "allow"
+allow-workspace = true
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = []

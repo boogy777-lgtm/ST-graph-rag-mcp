@@ -1,0 +1,339 @@
+@startuml system-architecture
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam componentStyle uml2
+skinparam linetype ortho
+skinparam nodesep 60
+skinparam ranksep 40
+
+title truST LSP System Architecture
+
+' ============================================================
+' VS CODE EXTENSION (Client Layer)
+' ============================================================
+package "VS Code Extension" as vscode #LightBlue {
+    component "extension.ts" as extMain <<main entry>>
+    component "STLanguageClient" as langClient
+    component "DebugAdapterFactory" as debugFactory
+    component "Runtime Panel\n(Webview)" as runtimePanel <<ioPanel.ts + io-panel/*>>
+
+    extMain --> langClient : creates
+    extMain --> debugFactory : registers
+}
+
+note right of runtimePanel
+    Runtime panel sends custom DAP
+    requests (stIoState/stIoWrite/stReload)
+    and writes workspace settings that
+    override runtime control endpoints.
+end note
+
+' ============================================================
+' truST LSP CRATE (Protocol Layer)
+' ============================================================
+package "trust-lsp crate" as trustlsp #LightGreen {
+    component "StLanguageServer" as server <<main.rs>>
+    component "ServerState" as state <<state.rs>>
+
+    package "handlers/" as handlers {
+        component "sync.rs" as syncHandler <<did_open, did_change>>
+        component "features/mod.rs\n(core facade + core_impl/* request modules)" as featureHandler
+        component "diagnostics.rs + diagnostics/*" as diagHandler
+    }
+
+    server --> state : uses
+    server --> handlers : delegates
+}
+
+note right of state
+    **ServerState Fields:**
+    documents: RwLock<FxHashMap<Url, Document>>
+    project: RwLock<Project>
+    workspace_folders: RwLock<Vec<Url>>
+end note
+
+' ============================================================
+' truST IDE CRATE (IDE Features)
+' ============================================================
+package "trust-ide crate" as stide #Wheat {
+    component "completion.rs + completion/*" as completion <<complete()>>
+    component "hover.rs + hover/*" as hover <<hover()>>
+    component "goto_def.rs" as gotoDef <<goto_definition()>>
+    component "references.rs" as refs <<find_references()>>
+    component "rename.rs" as rename <<rename()>>
+    component "semantic_tokens.rs" as semTokens <<semantic_tokens()>>
+    component "implementation.rs" as impl <<goto_implementation()>>
+}
+
+note right of stide
+    All IDE features are
+    pure functions taking
+    Database + position
+end note
+
+' ============================================================
+' truST HIR CRATE (Semantic Analysis)
+' ============================================================
+package "trust-hir crate" as sthir #LightCoral {
+    component "Project" as project <<project.rs>>
+    component "SourceRegistry" as sourceRegistry <<project.rs>>
+    component "Database" as db <<db/queries.rs>>
+    component "SymbolTable" as symTable <<symbols/table.rs>>
+    component "SymbolCollector" as collector <<db/queries/collector/mod.rs>>
+    component "TypeChecker" as typeCheck <<type_check/mod.rs>>
+    component "HIR Initializer Catalog\n(SymbolTable-owned source metadata)" as hirInitCatalog <<types/defs.rs>>
+
+    package "types/" as types {
+        component "TypeId" as typeId <<types/defs.rs>>
+        component "Type" as typeEnum
+        component "TypeRegistry" as typeReg
+    }
+
+    package "symbols/" as symbols {
+        component "Symbol" as symbol
+        component "SymbolKind" as symKind <<symbols/defs.rs>>
+        component "ScopeId" as scopeId
+    }
+
+    project --> sourceRegistry : owns
+    project --> db : owns
+    db --> symTable : builds
+    db --> collector : uses
+    db --> typeCheck : uses
+    symTable --> symbols
+    symTable --> hirInitCatalog : owns
+    collector --> hirInitCatalog : records TYPE/member defaults
+    typeCheck --> types
+}
+
+note right of collector
+    **Collection Phases:**
+    1. phase_precollect()
+    2. phase_collect_symbols()
+    3. phase_access_and_config()
+    4. phase_resolve_types()
+    5. phase_global_links()
+    6. phase_var_validation()
+    7. phase_constants()
+end note
+
+' ============================================================
+' truST Syntax CRATE (Lexer/Parser)
+' ============================================================
+package "trust-syntax crate" as stsyntax #PaleGreen {
+    component "Lexer (logos)" as lexer <<lexer/tokens.rs:53>>
+    component "Parser" as parser <<parser/parser.rs:30-34>>
+    component "Sink" as sink <<parser/sink.rs:10-17>>
+
+    package "syntax/" as syntax {
+        component "SyntaxKind" as syntaxKind <<syntax/mod.rs:17>>
+        component "SyntaxNode (rowan)" as syntaxNode
+    }
+
+    lexer --> parser : Token[]
+    parser --> sink : Event[]
+    sink --> syntaxNode : GreenNode
+}
+
+' ============================================================
+' truST Runtime CRATE (Execution Engine)
+' ============================================================
+package "trust-runtime crate" as struntime #LightYellow {
+    component "Runtime" as runtime <<runtime/core.rs:22-44>>
+    component "RuntimeConfig" as runtimeConfig
+    component "VariableStorage" as varStorage <<memory.rs:63-71>>
+    component "Program Model + Helper Eval" as evalCtx
+    component "Runtime Initializer Catalog + Service\n(lowered Expr defaults, aggregates, FB overrides)" as initSvc
+    component "StandardLibrary" as stdlib <<stdlib/>>
+    component "Harness Facade\n(CompileSession)" as harness <<harness/api.rs>>
+    component "Runtime Launcher\n(trust-runtime CLI)" as launcher
+    component "Developer Workbench CLI\n(trust-dev)" as devCli
+    component "Project Commit Workflow\n(trust-dev commit)" as commitWorkflow
+    component "Agent JSON-RPC Workflow\n(trust-dev agent serve)" as agentWorkflow
+    component "ST Test + Docs Workflows\n(trust-dev test/docs)" as devTestDocs
+    component "Registry Workflows\n(trust-runtime registry)" as registryCli
+    component "BundleLoader" as bundleLoader
+    component "IoDriverRegistry" as ioRegistry
+    component "RetainManager" as retainMgr
+    component "Watchdog" as watchdog
+    component "Control Server\n(IPC)" as controlServer
+    component "Web UI Server\n(HTTP/HTTPS)" as webServer
+    component "Web UI Bundles\n(/modules/*.js by concern)" as webUiBundles
+    component "Web IDE State\n(Session + Versioning)" as webIde
+    component "Discovery\n(mDNS)" as discovery
+    component "Mesh Sync\n(Peer Data, TCP/TLS)" as meshSync
+    component "TLS Materials\n(cert/key/ca)" as tlsMaterials
+    component "Linux RT Posture\n(PREEMPT_RT verify + memlock + affinity)" as linuxRt
+    component "Historian Service\n(recording + alerts + hooks)" as historianSvc
+    component "HMI Persistence\n(trends + alarms JSONL)" as hmiPersistence
+    component "Prometheus Scrape\n(/metrics)" as promScrape
+    component "OPC UA Gateway\n(server + probe client)" as opcuaGateway
+    component "MQTT Driver\n(TCP/TLS/mTLS)" as mqttDriver
+
+    package "eval/" as eval {
+        component "Stmt" as stmtAst <<eval/stmt.rs:30-95>>
+        component "Expr" as exprAst <<eval/expr/ast.rs:6-36>>
+    }
+
+    package "bytecode/" as bytecode {
+        component "BytecodeModule" as bcModule <<bytecode/format.rs>>
+        component "Decoder" as decoder
+        component "Encoder" as encoder
+    }
+
+    package "debug/" as debug {
+        component "DebugControl" as debugCtrl <<debug/control/api.rs + debug/control/hook.rs>>
+        component "DebugHook" as debugHook <<debug/hook.rs>>
+    }
+
+    runtime --> varStorage
+    runtime --> evalCtx
+    runtime --> initSvc
+    runtime --> stdlib
+    runtime --> debug
+    runtime --> watchdog
+    harness --> runtime
+    harness --> hirInitCatalog : imports source/default handles
+    harness --> initSvc : lowers handles/CST to Expr records
+    harness --> bytecode
+    launcher --> bundleLoader
+    bundleLoader --> runtimeConfig
+    launcher --> harness : loads bytecode
+    launcher --> registryCli : delegates\nregistry subcommands
+    devCli --> commitWorkflow : owns workbench command
+    devCli --> agentWorkflow : owns agent command
+    devCli --> devTestDocs : owns test/docs commands
+    launcher ..> devCli : deprecated commit/agent/test/docs aliases\nforward during migration
+    registryCli --> bundleLoader : validates bundle
+    launcher --> ioRegistry
+    ioRegistry --> mqttDriver : mqtt
+    launcher --> retainMgr
+    launcher --> runtime
+    runtimeConfig --> runtime
+    runtimeConfig --> tlsMaterials : runtime.tls
+    runtimeConfig --> historianSvc : runtime.observability
+    runtimeConfig --> hmiPersistence : runtime.hmi_persistence
+    runtimeConfig --> opcuaGateway : runtime.opcua
+    runtimeConfig --> linuxRt : runtime.realtime
+    tlsMaterials --> webServer : runtime.web.tls
+    tlsMaterials --> meshSync : runtime.mesh.tls
+    launcher --> linuxRt : thread init hook\nbefore scan loop
+    linuxRt --> runtime : scheduler thread posture
+    launcher --> controlServer : starts
+    launcher --> webServer : starts (if enabled)
+    launcher --> discovery : advertises (if enabled)
+    launcher --> meshSync : starts (if enabled)
+    launcher --> historianSvc : starts sampler\n(if enabled)
+    launcher --> hmiPersistence : loads restart window\n(if enabled)
+    launcher --> opcuaGateway : starts (if enabled)
+    controlServer --> runtime : pause/step/io
+    controlServer --> historianSvc : historian.query/alerts
+    controlServer --> hmiPersistence : persist HMI\ntrends/alarms
+    runtime --> retainMgr : retain lifecycle
+    webServer --> controlServer : status/control
+    webServer --> webUiBundles : serves
+    webServer --> promScrape : GET /metrics
+    promScrape --> historianSvc : scrape data
+    promScrape --> runtime : metrics snapshot
+    webServer --> webIde : /api/ide/*
+    meshSync --> runtime : publish/subscribe
+    opcuaGateway --> runtime : snapshot poll / node updates
+}
+
+' ============================================================
+' truST Debug CRATE (Debug Adapter)
+' ============================================================
+package "trust-debug crate" as stdebug #Lavender {
+    component "DebugAdapter" as adapter <<adapter/mod.rs>>
+    component "DebugSession" as session <<session.rs + session/*>>
+    component "Protocol IO" as protocolIo
+
+    adapter --> session
+    adapter --> protocolIo
+}
+
+' ============================================================
+' DEPLOYMENT + IO
+' ============================================================
+package "Deployment" as deploy #LightGray {
+    artifact "Project Folder\n(Runtime Bundle Format)\nprogram.stbc, runtime.toml, io.toml" as bundle
+    artifact "Package Registry Root\n(index.json, packages/*)" as packageRegistry
+    artifact "Project Sources\n(sources/**/*.st)" as sourceFiles
+    artifact "System IO Config\n(/etc/trust/io.toml)" as systemIo
+    component "Retain Store\n(file/db)" as retainStore
+    component "Hardware I/O\n(PLCs, Fieldbus)" as hardwareIo
+    component "MQTT Broker\n(remote I/O)" as mqttBroker
+    component "Modbus TCP Driver" as modbusDriver
+    component "CLI Control Client\n(trust-runtime ctl)" as ctlClient
+    component "Browser UI\n(Local/Remote)" as browserUi
+    component "Peer Runtime\n(Other PLC)" as peerRuntime
+    component "OPC UA Clients\n(SCADA/MES/Historian)" as opcuaClients
+}
+
+' ============================================================
+' DATA FLOW CONNECTIONS
+' ============================================================
+
+' LSP path
+vscode -down-> trustlsp : JSON-RPC\n(stdin/stdout)
+trustlsp -down-> stide : IDE queries
+stide -down-> sthir : semantic info
+sthir -down-> stsyntax : parse tree
+
+runtimePanel -down-> stdebug : custom DAP\n(I/O + reload)
+
+' Handlers to IDE
+featureHandler --> completion
+featureHandler --> hover
+featureHandler --> gotoDef
+featureHandler --> refs
+featureHandler --> rename
+featureHandler --> semTokens
+featureHandler --> impl
+
+' Database flow
+handlers --> project : with_database()
+harness --> project : diagnostics
+
+' Execution path
+sthir --> harness : compile inputs
+harness --> struntime : runtime + bytecode
+stdebug --> struntime : runtime + debug control
+stdebug -up-> vscode : DAP events
+bundle --> launcher : load
+bundle --> registryCli : publish payload
+sourceFiles --> webIde : scoped read/write
+registryCli --> packageRegistry : publish/download/verify/index
+systemIo --> launcher : load (fallback)
+retainMgr --> retainStore : load/save
+runtime --> hardwareIo : drivers
+mqttDriver --> mqttBroker : MQTT\nplain local or TLS/mTLS remote
+ctlClient --> controlServer : JSON IPC
+browserUi --> webServer : HTTP/HTTPS (/hmi, /ide, /api/*)
+discovery --> browserUi : mDNS advertise
+meshSync --> peerRuntime : peer link (token + optional TLS)
+opcuaClients --> opcuaGateway : browse/read/write
+
+' ============================================================
+' LEGEND
+' ============================================================
+
+legend right
+    **Data Flow Paths:**
+
+    **IDE Path (Analysis):**
+    Source → trust-syntax → trust-hir → trust-ide → trust-lsp → Client
+
+    **Execution Path:**
+    Source → trust-hir → harness → trust-runtime → trust-debug → DAP Client
+
+    **Key Files:**
+    • trust-lsp/src/main.rs - LSP server entry
+    • trust-lsp/src/state.rs - Document management
+    • trust-hir/src/db/queries.rs - Semantic DB
+    • trust-syntax/src/parser/parser.rs - Parser
+    • trust-runtime/src/runtime/core.rs - Runtime
+    • trust-runtime/src/registry.rs - Registry contract/workflows
+end legend
+
+@enduml

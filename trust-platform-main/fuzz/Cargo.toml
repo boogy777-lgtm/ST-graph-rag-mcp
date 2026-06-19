@@ -1,0 +1,27 @@
+[package]
+name = "trust-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+trust-hir = { path = "../crates/trust-hir" }
+trust-syntax = { path = "../crates/trust-syntax" }
+
+[[bin]]
+name = "syntax_parse"
+path = "fuzz_targets/syntax_parse.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "hir_semantic"
+path = "fuzz_targets/hir_semantic.rs"
+test = false
+doc = false
+
+[workspace]

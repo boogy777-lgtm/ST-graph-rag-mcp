@@ -1,0 +1,40 @@
+---
+source: crates/trust-syntax/tests/parser_expressions.rs
+assertion_line: 101
+expression: "snapshot_parse(r#\"PROGRAM Test\n    x := obj.field;\n    y := obj.nested.deep;\nEND_PROGRAM\"#)"
+---
+SourceFile@0..70
+  Program@0..70
+    KwProgram@0..7 "PROGRAM"
+    Name@7..17
+      Ident@8..12 "Test"
+    StmtList@17..59
+      AssignStmt@17..37
+        BinaryExpr@17..31
+          NameRef@17..19
+            Ident@17..18 "x"
+          Assign@19..21 ":="
+          FieldExpr@21..31
+            NameRef@21..25
+              Ident@22..25 "obj"
+            Dot@25..26 "."
+            Name@26..31
+              Ident@26..31 "field"
+        Semicolon@31..32 ";"
+      AssignStmt@37..59
+        BinaryExpr@37..57
+          NameRef@37..39
+            Ident@37..38 "y"
+          Assign@39..41 ":="
+          FieldExpr@41..57
+            FieldExpr@41..52
+              NameRef@41..45
+                Ident@42..45 "obj"
+              Dot@45..46 "."
+              Name@46..52
+                Ident@46..52 "nested"
+            Dot@52..53 "."
+            Name@53..57
+              Ident@53..57 "deep"
+        Semicolon@57..58 ";"
+    KwEndProgram@59..70 "END_PROGRAM"

@@ -1,0 +1,33 @@
+---
+source: crates/trust-syntax/tests/parser_pous.rs
+expression: "snapshot_parse(r#\"CLASS Motor EXTENDS Company.Base IMPLEMENTS Lib.IDevice, Lib.IResettable\nEND_CLASS\"#)"
+---
+SourceFile@0..82
+  Class@0..82
+    KwClass@0..5 "CLASS"
+    Name@5..12
+      Ident@6..11 "Motor"
+    ExtendsClause@12..33
+      KwExtends@12..19 "EXTENDS"
+      QualifiedName@19..33
+        Name@19..27
+          Ident@20..27 "Company"
+        Dot@27..28 "."
+        Name@28..33
+          Ident@28..32 "Base"
+    ImplementsClause@33..73
+      KwImplements@33..43 "IMPLEMENTS"
+      QualifiedName@43..55
+        Name@43..47
+          Ident@44..47 "Lib"
+        Dot@47..48 "."
+        Name@48..55
+          Ident@48..55 "IDevice"
+      Comma@55..56 ","
+      QualifiedName@56..73
+        Name@56..60
+          Ident@57..60 "Lib"
+        Dot@60..61 "."
+        Name@61..73
+          Ident@61..72 "IResettable"
+    KwEndClass@73..82 "END_CLASS"

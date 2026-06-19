@@ -1,0 +1,31 @@
+{
+  "case_id": "cfm_memory_map_var_config_sync_001",
+  "category": "memory_map",
+  "cycles": 1,
+  "description": "Mapped %MW memory is synced with program storage",
+  "kind": "runtime",
+  "trace": [
+    {
+      "cycle": 1,
+      "direct": {
+        "%MW0": {
+          "type": "WORD",
+          "value": 42
+        }
+      },
+      "errors": [],
+      "globals": {
+        "counter": {
+          "type": "INT",
+          "value": 42
+        },
+        "observed": {
+          "type": "INT",
+          "value": 41
+        }
+      },
+      "runtime_time_nanos": 0
+    }
+  ],
+  "version": 1
+}

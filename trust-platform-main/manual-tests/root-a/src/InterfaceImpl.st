@@ -1,0 +1,15 @@
+INTERFACE IMotor
+    METHOD Start : BOOL
+    END_METHOD
+
+    PROPERTY Speed : DINT
+        GET
+        END_GET
+    END_PROPERTY
+END_INTERFACE
+
+CLASS Motor IMPLEMENTS IMotor
+VAR
+    speed : DINT;
+END_VAR
+END_CLASS

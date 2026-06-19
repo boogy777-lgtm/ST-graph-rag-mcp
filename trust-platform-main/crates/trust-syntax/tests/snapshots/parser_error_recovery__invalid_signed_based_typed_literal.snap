@@ -1,0 +1,26 @@
+---
+source: crates/trust-syntax/tests/parser_error_recovery.rs
+assertion_line: 7
+expression: "snapshot_parse(r#\"PROGRAM Test\n    x := INT#-16#FF;\nEND_PROGRAM\"#)"
+---
+SourceFile@0..45
+  Program@0..45
+    KwProgram@0..7 "PROGRAM"
+    Name@7..17
+      Ident@8..12 "Test"
+    StmtList@17..34
+      AssignStmt@17..34
+        BinaryExpr@17..32
+          NameRef@17..19
+            Ident@17..18 "x"
+          Assign@19..21 ":="
+          Literal@21..32
+            TypedLiteralPrefix@22..26 "INT#"
+            Minus@26..27 "-"
+            IntLiteral@27..32 "16#FF"
+        Semicolon@32..33 ";"
+    KwEndProgram@34..45 "END_PROGRAM"
+
+---
+Errors:
+  - based numeric literals cannot use leading sign at 27..32

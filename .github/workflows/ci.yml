@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main", "migration/*", "v3.*" ]
+  pull_request:
+    branches: [ "main", "v3.*" ]
+
+jobs:
+  build-and-test:
+    name: Build & Test on Windows
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install Dependencies
+        run: bun install
+
+      - name: Type Check
+        run: bun run typecheck
+
+      - name: Lint & Format Check
+        run: bun run lint
+
+      - name: Run Tests
+        run: bun run test
+
+      - name: Build
+        run: bun run build
+
+      - name: Smoke Test
+        run: bun run smoke

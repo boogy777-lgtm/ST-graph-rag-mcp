@@ -1,0 +1,306 @@
+{
+  "schemaVersion": 2,
+  "networks": [
+    {
+      "id": "rung_1",
+      "order": 0,
+      "nodes": [
+        {
+          "id": "contact_1",
+          "type": "contact",
+          "contactType": "NO",
+          "variable": "StartPB",
+          "position": {
+            "x": 100,
+            "y": 100
+          }
+        },
+        {
+          "id": "coil_1",
+          "type": "coil",
+          "coilType": "NORMAL",
+          "variable": "MotorRun",
+          "position": {
+            "x": 300,
+            "y": 100
+          }
+        },
+        {
+          "id": "contact_1772264175531_2621",
+          "type": "contact",
+          "contactType": "NO",
+          "variable": "dfg",
+          "position": {
+            "x": 100,
+            "y": 160
+          }
+        },
+        {
+          "id": "branchSplit_1772264175531_6089",
+          "type": "branchSplit",
+          "position": {
+            "x": 80,
+            "y": 100
+          }
+        },
+        {
+          "id": "branchMerge_1772264175531_3816",
+          "type": "branchMerge",
+          "position": {
+            "x": 200,
+            "y": 100
+          }
+        },
+        {
+          "id": "contact_1772288136865_8473",
+          "type": "contact",
+          "contactType": "NO",
+          "variable": "test",
+          "position": {
+            "x": 100,
+            "y": 220
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "edge_rung_1_1772264175531_0",
+          "fromNodeId": "branchSplit_1772264175531_6089",
+          "toNodeId": "contact_1",
+          "points": [
+            {
+              "x": 80,
+              "y": 100
+            },
+            {
+              "x": 80,
+              "y": 100
+            },
+            {
+              "x": 80,
+              "y": 100
+            },
+            {
+              "x": 80,
+              "y": 100
+            }
+          ]
+        },
+        {
+          "id": "edge_rung_1_1772264175531_1",
+          "fromNodeId": "branchSplit_1772264175531_6089",
+          "toNodeId": "contact_1772264175531_2621",
+          "points": [
+            {
+              "x": 80,
+              "y": 100
+            },
+            {
+              "x": 80,
+              "y": 100
+            },
+            {
+              "x": 80,
+              "y": 160
+            },
+            {
+              "x": 80,
+              "y": 160
+            }
+          ]
+        },
+        {
+          "id": "edge_rung_1_1772264175531_2",
+          "fromNodeId": "contact_1",
+          "toNodeId": "branchMerge_1772264175531_3816",
+          "points": [
+            {
+              "x": 160,
+              "y": 100
+            },
+            {
+              "x": 200,
+              "y": 100
+            },
+            {
+              "x": 200,
+              "y": 100
+            },
+            {
+              "x": 200,
+              "y": 100
+            }
+          ]
+        },
+        {
+          "id": "edge_rung_1_1772264175531_3",
+          "fromNodeId": "contact_1772264175531_2621",
+          "toNodeId": "branchMerge_1772264175531_3816",
+          "points": [
+            {
+              "x": 160,
+              "y": 160
+            },
+            {
+              "x": 200,
+              "y": 160
+            },
+            {
+              "x": 200,
+              "y": 100
+            },
+            {
+              "x": 200,
+              "y": 100
+            }
+          ]
+        },
+        {
+          "id": "edge_rung_1_1772264175531_4",
+          "fromNodeId": "branchMerge_1772264175531_3816",
+          "toNodeId": "coil_1",
+          "points": [
+            {
+              "x": 200,
+              "y": 100
+            },
+            {
+              "x": 240,
+              "y": 100
+            },
+            {
+              "x": 240,
+              "y": 100
+            },
+            {
+              "x": 280,
+              "y": 100
+            }
+          ]
+        },
+        {
+          "id": "edge_rung_1_1772288136865_5",
+          "fromNodeId": "branchSplit_1772264175531_6089",
+          "toNodeId": "contact_1772288136865_8473",
+          "points": [
+            {
+              "x": 80,
+              "y": 100
+            },
+            {
+              "x": 80,
+              "y": 100
+            },
+            {
+              "x": 80,
+              "y": 220
+            },
+            {
+              "x": 80,
+              "y": 220
+            }
+          ]
+        },
+        {
+          "id": "edge_rung_1_1772288136865_6",
+          "fromNodeId": "contact_1772288136865_8473",
+          "toNodeId": "branchMerge_1772264175531_3816",
+          "points": [
+            {
+              "x": 160,
+              "y": 220
+            },
+            {
+              "x": 200,
+              "y": 220
+            },
+            {
+              "x": 200,
+              "y": 100
+            },
+            {
+              "x": 200,
+              "y": 100
+            }
+          ]
+        }
+      ],
+      "layout": {
+        "y": 100
+      }
+    },
+    {
+      "id": "rung_2",
+      "order": 1,
+      "nodes": [
+        {
+          "id": "contact_2",
+          "type": "contact",
+          "contactType": "NC",
+          "variable": "StopPB",
+          "position": {
+            "x": 100,
+            "y": 300
+          }
+        },
+        {
+          "id": "coil_2",
+          "type": "coil",
+          "coilType": "NORMAL",
+          "variable": "AlarmLamp",
+          "position": {
+            "x": 300,
+            "y": 300
+          }
+        }
+      ],
+      "edges": [],
+      "layout": {
+        "y": 300
+      }
+    }
+  ],
+  "variables": [
+    {
+      "name": "StartPB",
+      "scope": "global",
+      "type": "BOOL",
+      "address": "%IX0.0"
+    },
+    {
+      "name": "StopPB",
+      "scope": "global",
+      "type": "BOOL",
+      "address": "%IX0.1"
+    },
+    {
+      "name": "MotorRun",
+      "scope": "global",
+      "type": "BOOL",
+      "address": "%QX0.0"
+    },
+    {
+      "name": "AlarmLamp",
+      "scope": "global",
+      "type": "BOOL",
+      "address": "%QX0.1"
+    },
+    {
+      "name": "dfg",
+      "scope": "local",
+      "type": "BOOL",
+      "initialValue": false
+    },
+    {
+      "name": "test",
+      "type": "BOOL",
+      "scope": "local",
+      "initialValue": false
+    }
+  ],
+  "metadata": {
+    "name": "simple-start-stop",
+    "description": "Simple start/stop ladder logic",
+    "modified": "2026-02-28T07:39:08.741Z"
+  }
+}

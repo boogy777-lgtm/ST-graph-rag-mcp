@@ -1,0 +1,32 @@
+INTERFACE IValve
+    METHOD Open : BOOL
+    END_METHOD
+
+    METHOD Close : BOOL
+    END_METHOD
+
+    PROPERTY IsOpen : BOOL
+        GET
+        END_GET
+    END_PROPERTY
+END_INTERFACE
+
+INTERFACE IPump
+    METHOD Start : BOOL
+    END_METHOD
+
+    METHOD Stop : BOOL
+    END_METHOD
+
+    PROPERTY IsRunning : BOOL
+        GET
+        END_GET
+    END_PROPERTY
+
+    PROPERTY Speed : INT
+        GET
+        END_GET
+        SET
+        END_SET
+    END_PROPERTY
+END_INTERFACE

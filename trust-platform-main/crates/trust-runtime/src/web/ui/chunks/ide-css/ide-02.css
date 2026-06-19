@@ -1,0 +1,280 @@
+}
+
+.ide-breadcrumbs .current {
+  color: var(--muted-strong);
+}
+
+/* ── Tabs ──────────────────────────────────────────── */
+
+.ide-tabs {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow: auto;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0;
+}
+
+.ide-tab {
+  border: 0;
+  border-right: 1px solid var(--border);
+  border-radius: 0;
+  background: var(--panel-2);
+  color: var(--text);
+  padding: 8px 12px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  font: 12px/1.2 var(--ide-font-ui);
+}
+
+.ide-tab.active {
+  background: var(--panel);
+  color: var(--text);
+  font-weight: 500;
+  border-bottom: 2px solid var(--accent);
+}
+
+.ide-tab .dirty-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--danger);
+  display: inline-block;
+}
+
+/* ── Shell (editor + output) ──────────────────────── */
+
+.ide-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 6px var(--ide-right-width, 320px);
+  gap: 10px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.ide-editor-card {
+  grid-column: 1;
+}
+
+.ide-side-card {
+  grid-column: 3;
+}
+
+.ide-resize-handle.secondary {
+  grid-column: 2;
+}
+
+.ide-editor-card,
+.ide-side-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: none;
+  min-height: 0;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.ide-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-bottom: 1px solid var(--border);
+  padding: 8px 10px;
+}
+
+.ide-card-head h2,
+.ide-card-head h3 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.ide-card-body {
+  min-height: 0;
+  overflow: auto;
+  padding: 8px 10px;
+}
+
+/* ── Editor ────────────────────────────────────────── */
+
+.editor-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+  gap: 10px;
+  min-height: 0;
+  height: 100%;
+}
+
+.editor-grid.split {
+  grid-template-columns: 1fr 1fr;
+}
+
+.editor-pane {
+  min-height: 0;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--panel);
+  transition: border-color 120ms ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.editor-pane-content {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ── Document Highlights (WASM-powered) ──────────── */
+
+.ide-document-highlight-read {
+  background: rgba(20, 184, 166, 0.18);
+  border: 1px solid rgba(20, 184, 166, 0.30);
+  border-radius: 2px;
+  box-sizing: border-box;
+}
+
+.ide-document-highlight-write {
+  background: rgba(20, 184, 166, 0.32);
+  border: 1px solid rgba(20, 184, 166, 0.50);
+  border-radius: 2px;
+  box-sizing: border-box;
+}
+
+[data-theme="light"] .ide-document-highlight-read {
+  background: rgba(15, 118, 110, 0.12);
+  border-color: rgba(15, 118, 110, 0.25);
+}
+
+[data-theme="light"] .ide-document-highlight-write {
+  background: rgba(15, 118, 110, 0.25);
+  border-color: rgba(15, 118, 110, 0.40);
+}
+
+.editor-grid.split .editor-pane.pane-active {
+  border-color: rgba(20, 184, 166, 0.4);
+  box-shadow: 0 0 20px 3px rgba(20, 184, 166, 0.35),
+              0 0 8px 1px rgba(20, 184, 166, 0.5);
+}
+
+/* ── Per-Pane Tab Bars ─────────────────────────────── */
+
+.ide-tab-bar {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel-2);
+  flex-shrink: 0;
+  min-height: 34px;
+}
+
+.ide-tab-bar .ide-tab {
+  border: 0;
+  border-right: 1px solid var(--border);
+  border-radius: 0;
+  background: var(--panel-2);
+  color: var(--muted);
+  padding: 6px 12px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  font: 12px/1.2 var(--ide-font-ui);
+  white-space: nowrap;
+  transition: all var(--ide-transition);
+}
+
+.ide-tab-bar .ide-tab:hover {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+.ide-tab-bar .ide-tab.active {
+  background: var(--panel);
+  color: var(--text);
+  font-weight: 500;
+  border-bottom: 2px solid var(--ide-accent);
+}
+
+.ide-tab-bar .ide-tab .dirty-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--danger);
+  display: inline-block;
+}
+
+.editor-grid.split .editor-pane.pane-active .ide-tab-bar {
+  background: color-mix(in srgb, var(--ide-accent) 8%, var(--panel-2));
+}
+
+.editor-grid.split .editor-pane:not(.pane-active) .ide-tab-bar {
+  opacity: 0.7;
+}
+
+.editor-pane .context-view,
+.context-view.fixed {
+  z-index: 1200 !important;
+}
+
+.editor-pane .monaco-editor,
+.editor-pane .monaco-editor .monaco-hover,
+.editor-pane .monaco-editor .suggest-widget {
+  --vscode-editorWidget-background: var(--panel-2);
+  --vscode-editorWidget-foreground: var(--text);
+  --vscode-editorWidget-border: rgba(20, 184, 166, 0.35);
+  --vscode-editorHoverWidget-background: var(--panel-2);
+  --vscode-editorHoverWidget-foreground: var(--text);
+  --vscode-editorHoverWidget-border: rgba(20, 184, 166, 0.35);
+  --vscode-editorSuggestWidget-background: var(--panel-2);
+  --vscode-editorSuggestWidget-foreground: var(--text);
+  --vscode-editorSuggestWidget-border: rgba(20, 184, 166, 0.35);
+  --vscode-editorSuggestWidget-selectedBackground: rgba(20, 184, 166, 0.22);
+  --vscode-editorSuggestWidget-highlightForeground: var(--accent-strong);
+}
+
+.cm-wrap {
+  min-height: 0;
+  overflow: auto;
+  padding: 0;
+}
+
+.cm-editor,
+.editor-pane .monaco-editor {
+  min-height: 0;
+  height: 100%;
+  font: 13px/1.45 var(--ide-font-mono);
+  background: transparent;
+  color: var(--text);
+}
+
+.cm-gutters {
+  background: var(--panel-2);
+  border-right: 1px solid var(--border);
+}
+
+.cm-tooltip {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+}
+
+.cm-tooltip-autocomplete {
+  max-width: min(420px, calc(100vw - 80px));
+}
+
+.cm-tooltip-autocomplete > ul {
+  margin: 0;

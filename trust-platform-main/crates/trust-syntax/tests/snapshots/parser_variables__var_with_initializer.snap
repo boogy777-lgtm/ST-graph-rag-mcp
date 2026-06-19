@@ -1,0 +1,45 @@
+---
+source: crates/trust-syntax/tests/parser_variables.rs
+expression: "snapshot_parse(r#\"PROGRAM Test\nVAR\n    x : INT := 10;\n    y : REAL := 3.14;\n    s : STRING := 'hello';\nEND_VAR\nEND_PROGRAM\"#)"
+---
+SourceFile@0..104
+  Program@0..104
+    KwProgram@0..7 "PROGRAM"
+    Name@7..13
+      Ident@8..12 "Test"
+    VarBlock@13..93
+      KwVar@13..16 "VAR"
+      VarDecl@16..40
+        Name@16..23
+          Ident@21..22 "x"
+        Colon@23..24 ":"
+        TypeRef@24..29
+          KwInt@25..28 "INT"
+        Assign@29..31 ":="
+        Literal@31..34
+          IntLiteral@32..34 "10"
+        Semicolon@34..35 ";"
+      VarDecl@40..62
+        Name@40..42
+          Ident@40..41 "y"
+        Colon@42..43 ":"
+        TypeRef@43..49
+          KwReal@44..48 "REAL"
+        Assign@49..51 ":="
+        Literal@51..56
+          RealLiteral@52..56 "3.14"
+        Semicolon@56..57 ";"
+      VarDecl@62..85
+        Name@62..64
+          Ident@62..63 "s"
+        Colon@64..65 ":"
+        TypeRef@65..73
+          StringType@65..73
+            KwString@66..72 "STRING"
+        Assign@73..75 ":="
+        Literal@75..83
+          StringLiteral@76..83 "'hello'"
+        Semicolon@83..84 ";"
+      KwEndVar@85..92 "END_VAR"
+    StmtList@93..93
+    KwEndProgram@93..104 "END_PROGRAM"

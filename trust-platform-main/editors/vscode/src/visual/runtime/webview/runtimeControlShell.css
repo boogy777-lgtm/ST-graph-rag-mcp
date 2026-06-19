@@ -1,0 +1,144 @@
+.runtime-shell {
+  --bg: var(--vscode-sideBar-background);
+  --text: var(--vscode-sideBar-foreground);
+  --muted: var(--vscode-descriptionForeground);
+  --border: var(--vscode-sideBar-border, var(--vscode-panel-border));
+  --row-hover: var(--vscode-list-hoverBackground);
+  --row-alt: var(--vscode-list-inactiveSelectionBackground);
+  --button-bg: var(--vscode-button-background);
+  --button-fg: var(--vscode-button-foreground);
+  --button-hover: var(--vscode-button-hoverBackground);
+
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+}
+
+.runtime-shell__header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.runtime-shell__toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.runtime-shell__runtime-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--muted);
+  flex-wrap: wrap;
+}
+
+.runtime-shell__mode-toggle {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.runtime-shell__mode-button {
+  background: transparent;
+  border: none;
+  color: var(--text);
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.runtime-shell__mode-button.active {
+  background: var(--button-bg);
+  color: var(--button-fg);
+}
+
+.runtime-shell__mode-button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.runtime-shell__start-button {
+  background: var(--button-bg);
+  border: none;
+  color: var(--button-fg);
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.runtime-shell__start-button:hover {
+  background: var(--button-hover);
+}
+
+.runtime-shell__icon-button {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.runtime-shell__icon-button:hover {
+  background: var(--row-hover);
+}
+
+.runtime-shell__icon-button:active {
+  background: var(--row-alt);
+}
+
+.runtime-shell__icon-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.runtime-shell__status-pill {
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--row-alt);
+  color: var(--text);
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.runtime-shell__status-pill.on,
+.runtime-shell__status-pill.running {
+  background: var(--button-bg);
+  color: var(--button-fg);
+  border-color: transparent;
+}
+
+.runtime-shell__status-pill.connected {
+  border-color: var(--button-bg);
+}
+
+.runtime-shell__status-pill.disconnected {
+  opacity: 0.7;
+}
+
+.runtime-shell__error {
+  font-size: 11px;
+  color: var(--vscode-testing-iconFailed, #d73a49);
+  white-space: pre-wrap;
+}

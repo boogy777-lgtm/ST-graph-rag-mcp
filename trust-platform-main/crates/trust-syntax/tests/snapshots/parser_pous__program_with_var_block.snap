@@ -1,0 +1,28 @@
+---
+source: crates/trust-syntax/tests/parser_pous.rs
+expression: "snapshot_parse(r#\"PROGRAM Test\nVAR\n    x : INT;\n    y : BOOL;\nEND_VAR\nEND_PROGRAM\"#)"
+---
+SourceFile@0..63
+  Program@0..63
+    KwProgram@0..7 "PROGRAM"
+    Name@7..13
+      Ident@8..12 "Test"
+    VarBlock@13..52
+      KwVar@13..16 "VAR"
+      VarDecl@16..34
+        Name@16..23
+          Ident@21..22 "x"
+        Colon@23..24 ":"
+        TypeRef@24..28
+          KwInt@25..28 "INT"
+        Semicolon@28..29 ";"
+      VarDecl@34..44
+        Name@34..36
+          Ident@34..35 "y"
+        Colon@36..37 ":"
+        TypeRef@37..42
+          KwBool@38..42 "BOOL"
+        Semicolon@42..43 ";"
+      KwEndVar@44..51 "END_VAR"
+    StmtList@52..52
+    KwEndProgram@52..63 "END_PROGRAM"

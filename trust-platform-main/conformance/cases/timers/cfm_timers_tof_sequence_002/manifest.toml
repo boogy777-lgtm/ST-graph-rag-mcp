@@ -1,0 +1,9 @@
+id = "cfm_timers_tof_sequence_002"
+category = "timers"
+description = "TOF deterministic off-delay sequence"
+cycles = 5
+watch_globals = ["q_tof", "et_tof"]
+advance_ms = [0, 5, 5, 5, 5]
+
+[input_series]
+in_tof = ["BOOL:false", "BOOL:true", "BOOL:false", "BOOL:false", "BOOL:false"]

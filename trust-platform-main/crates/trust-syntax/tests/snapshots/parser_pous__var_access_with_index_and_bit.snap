@@ -1,0 +1,66 @@
+---
+source: crates/trust-syntax/tests/parser_pous.rs
+expression: "snapshot_parse(r#\"CONFIGURATION Conf\nVAR_ACCESS\n    Acc1 : Station_1.P1.arr[1] : INT READ_ONLY;\n    Acc2 : Station_1.P1.word.0 : BOOL READ_WRITE;\nEND_VAR\nEND_CONFIGURATION\"#)"
+---
+SourceFile@0..153
+  Configuration@0..153
+    KwConfiguration@0..13 "CONFIGURATION"
+    Name@13..19
+      Ident@14..18 "Conf"
+    VarAccessBlock@19..136
+      KwVarAccess@19..29 "VAR_ACCESS"
+      AccessDecl@29..76
+        Name@29..39
+          Ident@34..38 "Acc1"
+        Colon@39..40 ":"
+        AccessPath@40..61
+          Name@40..50
+            Ident@41..50 "Station_1"
+          Dot@50..51 "."
+          Name@51..53
+            Ident@51..53 "P1"
+          Dot@53..54 "."
+          Name@54..57
+            Ident@54..57 "arr"
+          LBracket@57..58 "["
+          Literal@58..59
+            IntLiteral@58..59 "1"
+          RBracket@59..60 "]"
+        Colon@61..62 ":"
+        TypeRef@62..67
+          KwInt@63..66 "INT"
+        KwReadOnly@67..76 "READ_ONLY"
+      Semicolon@76..77 ";"
+      AccessDecl@77..102
+        Name@77..87
+          Ident@82..86 "Acc2"
+        Colon@87..88 ":"
+        AccessPath@88..102
+          Name@88..98
+            Ident@89..98 "Station_1"
+          Dot@98..99 "."
+          Name@99..101
+            Ident@99..101 "P1"
+          Dot@101..102 "."
+      KwWord@102..106 "word"
+      Dot@106..107 "."
+      IntLiteral@107..108 "0"
+      Colon@109..110 ":"
+      KwBool@111..115 "BOOL"
+      KwReadWrite@116..126 "READ_WRITE"
+      Semicolon@126..127 ";"
+      KwEndVar@128..135 "END_VAR"
+    KwEndConfiguration@136..153 "END_CONFIGURATION"
+
+---
+Errors:
+  - expected name, integer, or direct address after '.' at 102..106
+  - expected ':' before access type at 102..106
+  - expected ';' after VAR_ACCESS entry at 102..106
+  - expected access declaration at 102..106
+  - expected access declaration at 106..107
+  - expected access declaration at 107..108
+  - expected access declaration at 109..110
+  - expected access declaration at 111..115
+  - expected access declaration at 116..126
+  - expected access declaration at 126..127

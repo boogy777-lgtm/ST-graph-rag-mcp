@@ -1,0 +1,100 @@
+---
+source: crates/trust-syntax/tests/parser_literals.rs
+assertion_line: 84
+expression: "snapshot_parse(r#\"PROGRAM Test\n    d1 := D#2024-01-15;\n    d2 := LDATE#2012-02-29;\n    d3 := LD#1984-06-25;\n    tod1 := TOD#14:30:00;\n    tod2 := TIME_OF_DAY#15:36:55.36;\n    tod3 := LTOD#15:36:55.360_227_400;\n    tod4 := LTIME_OF_DAY#15:36:55.360_227_400;\n    dt1 := DT#2024-01-15-14:30:00;\n    dt2 := DATE_AND_TIME#1984-06-25-15:36:55.360227400;\n    dt3 := LDT#1984-06-25-15:36:55.360_227_400;\n    dt4 := LDATE_AND_TIME#1984-06-25-15:36:55.360_227_400;\nEND_PROGRAM\"#)"
+---
+SourceFile@0..448
+  Program@0..448
+    KwProgram@0..7 "PROGRAM"
+    Name@7..17
+      Ident@8..12 "Test"
+    StmtList@17..437
+      AssignStmt@17..41
+        BinaryExpr@17..35
+          NameRef@17..20
+            Ident@17..19 "d1"
+          Assign@20..22 ":="
+          Literal@22..35
+            DateLiteral@23..35 "D#2024-01-15"
+        Semicolon@35..36 ";"
+      AssignStmt@41..69
+        BinaryExpr@41..63
+          NameRef@41..44
+            Ident@41..43 "d2"
+          Assign@44..46 ":="
+          Literal@46..63
+            DateLiteral@47..63 "LDATE#2012-02-29"
+        Semicolon@63..64 ";"
+      AssignStmt@69..94
+        BinaryExpr@69..88
+          NameRef@69..72
+            Ident@69..71 "d3"
+          Assign@72..74 ":="
+          Literal@74..88
+            DateLiteral@75..88 "LD#1984-06-25"
+        Semicolon@88..89 ";"
+      AssignStmt@94..120
+        BinaryExpr@94..114
+          NameRef@94..99
+            Ident@94..98 "tod1"
+          Assign@99..101 ":="
+          Literal@101..114
+            TimeOfDayLiteral@102..114 "TOD#14:30:00"
+        Semicolon@114..115 ";"
+      AssignStmt@120..157
+        BinaryExpr@120..151
+          NameRef@120..125
+            Ident@120..124 "tod2"
+          Assign@125..127 ":="
+          Literal@127..151
+            TimeOfDayLiteral@128..151 "TIME_OF_DAY#15:36:55.36"
+        Semicolon@151..152 ";"
+      AssignStmt@157..196
+        BinaryExpr@157..190
+          NameRef@157..162
+            Ident@157..161 "tod3"
+          Assign@162..164 ":="
+          Literal@164..190
+            TimeOfDayLiteral@165..190 "LTOD#15:36:55.360_227_400"
+        Semicolon@190..191 ";"
+      AssignStmt@196..243
+        BinaryExpr@196..237
+          NameRef@196..201
+            Ident@196..200 "tod4"
+          Assign@201..203 ":="
+          Literal@203..237
+            TimeOfDayLiteral@204..237 "LTIME_OF_DAY#15:36:55.360_227_400"
+        Semicolon@237..238 ";"
+      AssignStmt@243..278
+        BinaryExpr@243..272
+          NameRef@243..247
+            Ident@243..246 "dt1"
+          Assign@247..249 ":="
+          Literal@249..272
+            DateAndTimeLiteral@250..272 "DT#2024-01-15-14:30:00"
+        Semicolon@272..273 ";"
+      AssignStmt@278..334
+        BinaryExpr@278..328
+          NameRef@278..282
+            Ident@278..281 "dt2"
+          Assign@282..284 ":="
+          Literal@284..328
+            DateAndTimeLiteral@285..328 "DATE_AND_TIME#1984-06-25-15:36:55.360227400"
+        Semicolon@328..329 ";"
+      AssignStmt@334..382
+        BinaryExpr@334..376
+          NameRef@334..338
+            Ident@334..337 "dt3"
+          Assign@338..340 ":="
+          Literal@340..376
+            DateAndTimeLiteral@341..376 "LDT#1984-06-25-15:36:55.360_227_400"
+        Semicolon@376..377 ";"
+      AssignStmt@382..437
+        BinaryExpr@382..435
+          NameRef@382..386
+            Ident@382..385 "dt4"
+          Assign@386..388 ":="
+          Literal@388..435
+            DateAndTimeLiteral@389..435 "LDATE_AND_TIME#1984-06-25-15:36:55.360_227_400"
+        Semicolon@435..436 ";"
+    KwEndProgram@437..448 "END_PROGRAM"

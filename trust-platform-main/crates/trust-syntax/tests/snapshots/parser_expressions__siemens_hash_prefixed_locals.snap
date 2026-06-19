@@ -1,0 +1,51 @@
+---
+source: crates/trust-syntax/tests/parser_expressions.rs
+assertion_line: 234
+expression: "snapshot_parse(r#\"PROGRAM Test\n    #temp := #input + #fb.value;\n    #fb(Enable := #temp > 0);\nEND_PROGRAM\"#)"
+---
+SourceFile@0..87
+  Program@0..87
+    KwProgram@0..7 "PROGRAM"
+    Name@7..17
+      Ident@8..12 "Test"
+    StmtList@17..76
+      AssignStmt@17..50
+        BinaryExpr@17..44
+          NameRef@17..23
+            Hash@17..18 "#"
+            Ident@18..22 "temp"
+          Assign@23..25 ":="
+          BinaryExpr@25..44
+            NameRef@25..33
+              Hash@26..27 "#"
+              Ident@27..32 "input"
+            Plus@33..34 "+"
+            FieldExpr@34..44
+              NameRef@34..38
+                Hash@35..36 "#"
+                Ident@36..38 "fb"
+              Dot@38..39 "."
+              Name@39..44
+                Ident@39..44 "value"
+        Semicolon@44..45 ";"
+      ExprStmt@50..76
+        CallExpr@50..74
+          NameRef@50..53
+            Hash@50..51 "#"
+            Ident@51..53 "fb"
+          ArgList@53..74
+            LParen@53..54 "("
+            Arg@54..73
+              Name@54..61
+                Ident@54..60 "Enable"
+              Assign@61..63 ":="
+              BinaryExpr@63..73
+                NameRef@63..70
+                  Hash@64..65 "#"
+                  Ident@65..69 "temp"
+                Gt@70..71 ">"
+                Literal@71..73
+                  IntLiteral@72..73 "0"
+            RParen@73..74 ")"
+        Semicolon@74..75 ";"
+    KwEndProgram@76..87 "END_PROGRAM"

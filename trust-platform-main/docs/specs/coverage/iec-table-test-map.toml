@@ -1,0 +1,61 @@
+# IEC table coverage mapping (doc ↔ test references)
+
+[[table]]
+id = "Tables 5-9"
+spec = "docs/specs/01-lexical-elements.md"
+tests = ["iec_table5", "iec_tables6_7", "iec_tables8_9"]
+
+[[table]]
+id = "Table 11"
+spec = "docs/specs/02-data-types.md"
+tests = ["iec_table11", "test_type_level_defaults_cover_directly_derived_shapes"]
+
+[[table]]
+id = "Table 12"
+spec = "docs/specs/02-data-types.md"
+tests = ["iec_table12"]
+
+[[table]]
+id = "Table 17"
+spec = "docs/specs/02-data-types.md"
+tests = ["table17", "table17_fb"]
+
+[[table]]
+id = "Table 13"
+spec = "docs/specs/03-variables.md"
+tests = ["iec_table13", "multi_name_struct_initializer_values_are_independent"]
+
+[[table]]
+id = "Table 14"
+spec = "docs/specs/03-variables.md"
+tests = ["iec_table14", "named_struct_initializer_materializes_runtime_value", "function_block_instance_initializer_applies_allowed_member_overrides"]
+
+[[table]]
+id = "Table 41"
+spec = "docs/specs/04-pou-declarations.md"
+tests = ["function_block_instance_initializer_applies_allowed_member_overrides", "function_local_fb_initializer_applies_in_vm_local_init"]
+
+[[table]]
+id = "Table 15"
+spec = "docs/specs/03-variables.md"
+tests = ["iec_table15"]
+
+[[table]]
+id = "Table 62"
+spec = "docs/specs/09-semantic-rules.md"
+tests = [
+  "test_task_missing_priority_error",
+  "test_task_single_requires_bool_literal",
+  "test_task_interval_requires_time_literal",
+  "test_program_with_unknown_task_error",
+]
+
+[[table]]
+id = "Tables 64-66"
+spec = "docs/specs/09-semantic-rules.md"
+tests = ["iec_table64", "iec_table66"]
+
+[[table]]
+id = "Table 72"
+spec = "docs/specs/06-statements.md"
+tests = ["iec_table72"]

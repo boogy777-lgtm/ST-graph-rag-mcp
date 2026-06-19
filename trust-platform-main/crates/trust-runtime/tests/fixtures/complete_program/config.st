@@ -1,0 +1,7 @@
+CONFIGURATION DemoConfig
+VAR_GLOBAL
+    gCounter : DINT := 0;
+END_VAR
+TASK Fast (INTERVAL := T#20ms, PRIORITY := 1);
+PROGRAM Inst WITH Fast : MainProg;
+END_CONFIGURATION

@@ -1,0 +1,97 @@
+//! I/O subsystem composition for the runtime.
+
+use std::sync::{Arc, Mutex};
+
+use smol_str::SmolStr;
+
+use crate::error::RuntimeError;
+use crate::io::{IoDriver, IoDriverStatus, IoInterface, IoSafeState, IoSnapshot};
+
+pub(super) struct IoSubsystem {
+    interface: IoInterface,
+    drivers: Vec<IoDriverEntry>,
+    health_sink: Option<Arc<Mutex<Vec<IoDriverStatus>>>>,
+    safe_state: IoSafeState,
+}
+
+pub(super) struct IoDriverEntry {
+    pub(super) name: SmolStr,
+    pub(super) driver: Box<dyn IoDriver>,
+}
+
+impl IoSubsystem {
+    pub(super) fn new() -> Self {
+        Self {
+            interface: IoInterface::new(),
+            drivers: Vec::new(),
+            health_sink: None,
+            safe_state: IoSafeState::default(),
+        }
+    }
+
+    pub(super) fn interface(&self) -> &IoInterface {
+        &self.interface
+    }
+
+    pub(super) fn interface_mut(&mut self) -> &mut IoInterface {
+        &mut self.interface
+    }
+
+    pub(super) fn interface_and_drivers_mut(&mut self) -> (&mut IoInterface, &mut [IoDriverEntry]) {
+        let Self {
+            interface, drivers, ..
+        } = self;
+        (interface, drivers)
+    }
+
+    pub(super) fn resize(&mut self, inputs: usize, outputs: usize, memory: usize) {
+        self.interface.resize(inputs, outputs, memory);
+    }
+
+    pub(super) fn add_driver(&mut self, name: impl Into<SmolStr>, driver: Box<dyn IoDriver>) {
+        self.drivers.push(IoDriverEntry {
+            name: name.into(),
+            driver,
+        });
+    }
+
+    pub(super) fn clear_drivers(&mut self) {
+        self.drivers.clear();
+    }
+
+    pub(super) fn set_health_sink(&mut self, sink: Option<Arc<Mutex<Vec<IoDriverStatus>>>>) {
+        self.health_sink = sink;
+    }
+
+    pub(super) fn update_health(&self) {
+        let Some(sink) = &self.health_sink else {
+            return;
+        };
+        if let Ok(mut guard) = sink.lock() {
+            guard.clear();
+            for entry in &self.drivers {
+                guard.push(IoDriverStatus {
+                    name: entry.name.clone(),
+                    health: entry.driver.health(),
+                });
+            }
+        }
+    }
+
+    pub(super) fn set_safe_state(&mut self, safe_state: IoSafeState) {
+        self.safe_state = safe_state;
+    }
+
+    pub(super) fn apply_safe_state(&mut self) -> Result<(), RuntimeError> {
+        self.safe_state.apply(&mut self.interface)?;
+        for entry in &mut self.drivers {
+            entry.driver.write_outputs(self.interface.outputs())?;
+        }
+        self.update_health();
+        Ok(())
+    }
+
+    pub(super) fn snapshot(&self) -> IoSnapshot {
+        self.interface.snapshot()
+    }
+}

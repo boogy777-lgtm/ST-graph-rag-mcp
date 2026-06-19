@@ -1,0 +1,8 @@
+[io]
+drivers = [
+  { name = "ethercat", params = { adapter = "eth0", timeout_ms = 250, cycle_warn_ms = 5, on_error = "warn", modules = [ { model = "EK1100", slot = 0 }, { model = "EL1008", slot = 1, channels = 8 }, { model = "EL2008", slot = 2, channels = 8 } ] } }
+]
+
+[[io.safe_state]]
+address = "%QX0.0"
+value = "FALSE"

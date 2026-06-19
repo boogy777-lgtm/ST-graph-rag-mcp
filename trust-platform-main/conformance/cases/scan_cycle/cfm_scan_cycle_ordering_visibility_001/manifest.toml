@@ -1,0 +1,5 @@
+id = "cfm_scan_cycle_ordering_visibility_001"
+category = "scan_cycle"
+description = "Statement ordering and same-cycle visibility"
+cycles = 3
+watch_globals = ["a", "prev_a", "b", "c"]

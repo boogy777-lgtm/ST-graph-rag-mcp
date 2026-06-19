@@ -1,0 +1,165 @@
+name: Nightly Reliability
+
+on:
+  schedule:
+    - cron: '17 2 * * *'
+  workflow_dispatch:
+    inputs:
+      load_duration_seconds:
+        description: "Load test duration in seconds"
+        required: false
+        default: "300"
+      load_interval_seconds:
+        description: "Load test sample interval in seconds"
+        required: false
+        default: "1"
+      soak_duration_hours:
+        description: "Soak test duration in hours"
+        required: false
+        default: "1"
+      soak_duration_seconds:
+        description: "Manual smoke-only soak duration override in seconds (leave empty for scheduled/default hour-based runs)"
+        required: false
+        default: ""
+      soak_interval_seconds:
+        description: "Soak test sample interval in seconds"
+        required: false
+        default: "30"
+      load_max_cycle_ms:
+        description: "Load gate: worst max cycle time budget in ms"
+        required: false
+        default: "20"
+      load_max_jitter_ms:
+        description: "Load gate: worst jitter budget in ms"
+        required: false
+        default: "20"
+      soak_max_rss_kb:
+        description: "Soak gate: max RSS budget in KB"
+        required: false
+        default: "262144"
+      soak_max_cpu_pct:
+        description: "Soak gate: max CPU budget in percent"
+        required: false
+        default: "95"
+      flake_gate_enforce:
+        description: "Fail job when 14-day flake aggregate gate is pending/failing"
+        required: false
+        default: "false"
+
+env:
+  CARGO_TERM_COLOR: always
+  # GitHub runners do not guarantee sccache availability; disable wrapper in CI/nightly reliability.
+  RUSTC_WRAPPER: ""
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  reliability:
+    name: Runtime Reliability
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build runtime and dev CLIs
+        run: cargo build -p trust-runtime -p trust-dev
+
+      - name: Prepare artifact directory
+        run: mkdir -p artifacts/nightly
+
+      - name: Run load test
+        env:
+          ST_RUNTIME: ${{ github.workspace }}/target/debug/trust-runtime
+          LOAD_DURATION_SECONDS: ${{ github.event.inputs.load_duration_seconds || '300' }}
+          LOAD_INTERVAL_SECONDS: ${{ github.event.inputs.load_interval_seconds || '1' }}
+        run: |
+          OUT=artifacts/nightly/load.log \
+          DURATION="${LOAD_DURATION_SECONDS}" \
+          INTERVAL="${LOAD_INTERVAL_SECONDS}" \
+          scripts/runtime_load_test.sh tests/fixtures/runtime_reliability_bundle
+
+      - name: Run soak test
+        env:
+          ST_RUNTIME: ${{ github.workspace }}/target/debug/trust-runtime
+          SOAK_DURATION_HOURS: ${{ github.event.inputs.soak_duration_hours || '1' }}
+          SOAK_DURATION_SECONDS: ${{ github.event.inputs.soak_duration_seconds || '' }}
+          SOAK_INTERVAL_SECONDS: ${{ github.event.inputs.soak_interval_seconds || '30' }}
+        run: |
+          OUT=artifacts/nightly/soak.log \
+          DURATION_HOURS="${SOAK_DURATION_HOURS}" \
+          DURATION_SECONDS="${SOAK_DURATION_SECONDS}" \
+          INTERVAL_SEC="${SOAK_INTERVAL_SECONDS}" \
+          scripts/runtime_soak_test.sh tests/fixtures/runtime_reliability_bundle
+
+      - name: Probe ST test flake sample
+        env:
+          ST_TEST_BIN: ${{ github.workspace }}/target/debug/trust-dev
+        run: |
+          python3 scripts/probe_st_test_flake.py \
+            --test-bin "${ST_TEST_BIN}" \
+            --project crates/trust-runtime/tests/fixtures/ci/green \
+            --runs 20 \
+            --filter CI_Passes \
+            --output-json artifacts/nightly/st-test-flake-sample.json \
+            --output-md artifacts/nightly/st-test-flake-sample.md \
+            --max-failures 0
+
+      - name: Aggregate 14-day ST test flake trend
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FLAKE_GATE_ENFORCE: ${{ github.event.inputs.flake_gate_enforce || 'false' }}
+        run: |
+          ENFORCE_ARGS="--pending-ok"
+          if [ "${FLAKE_GATE_ENFORCE}" = "true" ]; then
+            ENFORCE_ARGS="--enforce-gate"
+          fi
+
+          python3 scripts/aggregate_st_test_flake_history.py \
+            --sample-file artifacts/nightly/st-test-flake-sample.json \
+            --github-repo "${{ github.repository }}" \
+            --github-token "${GITHUB_TOKEN}" \
+            --days 14 \
+            --min-samples 14 \
+            --max-aggregate-rate 0.0 \
+            --artifact-name-prefix nightly-reliability- \
+            --output-json artifacts/nightly/st-test-flake-14d.json \
+            --output-md artifacts/nightly/st-test-flake-14d.md \
+            ${ENFORCE_ARGS}
+
+      - name: Summarize reliability trends
+        env:
+          LOAD_MAX_CYCLE_MS: ${{ github.event.inputs.load_max_cycle_ms || '20' }}
+          LOAD_MAX_JITTER_MS: ${{ github.event.inputs.load_max_jitter_ms || '20' }}
+          SOAK_MAX_RSS_KB: ${{ github.event.inputs.soak_max_rss_kb || '262144' }}
+          SOAK_MAX_CPU_PCT: ${{ github.event.inputs.soak_max_cpu_pct || '95' }}
+        run: |
+          python3 scripts/summarize_runtime_reliability.py \
+            --load-log artifacts/nightly/load.log \
+            --soak-log artifacts/nightly/soak.log \
+            --output-json artifacts/nightly/reliability-summary.json \
+            --output-md artifacts/nightly/reliability-summary.md \
+            --enforce-gates \
+            --max-load-max-ms "${LOAD_MAX_CYCLE_MS}" \
+            --max-load-jitter-ms "${LOAD_MAX_JITTER_MS}" \
+            --max-soak-rss-kb "${SOAK_MAX_RSS_KB}" \
+            --max-soak-cpu-pct "${SOAK_MAX_CPU_PCT}"
+
+      - name: Run MP-060 VM determinism and reliability gate
+        run: |
+          OUT_DIR=artifacts/nightly/runtime-vm-determinism \
+          TRUST_VM_DETERMINISM_ITERATIONS=3 \
+          TRUST_VM_DETERMINISM_TEST_THREADS=1 \
+          ./scripts/runtime_vm_determinism_reliability_gate.sh
+
+      - name: Upload reliability artifacts
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: nightly-reliability-${{ github.run_id }}
+          path: artifacts/nightly/

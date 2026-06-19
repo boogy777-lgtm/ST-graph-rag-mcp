@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://www.plcopen.org/xml/tc6_0200">
+  <fileHeader companyName="Rockwell Automation" productName="Studio 5000 Logix Designer" />
+  <types>
+    <pous>
+      <pou name="Main" pouType="PROGRAM">
+        <body>
+          <ST><![CDATA[
+PROGRAM Main
+VAR
+    Counter : DINT := 1;
+END_VAR
+END_PROGRAM
+]]></ST>
+        </body>
+      </pou>
+      <pou name="PumpAoi" type="FB">
+        <body>
+          <text><![CDATA[
+FUNCTION_BLOCK PumpAoi
+VAR_INPUT
+    Enable : BOOL;
+END_VAR
+END_FUNCTION_BLOCK
+]]></text>
+        </body>
+      </pou>
+      <pou name="LegacyRoutine" pouType="ROUTINE">
+        <body>
+          <ST><![CDATA[
+ROUTINE LegacyRoutine
+END_ROUTINE
+]]></ST>
+        </body>
+      </pou>
+    </pous>
+  </types>
+  <addData>
+    <data name="rockwell.aoi"><text><![CDATA[<AddOnInstruction name="PumpAoi"/>]]></text></data>
+  </addData>
+</project>

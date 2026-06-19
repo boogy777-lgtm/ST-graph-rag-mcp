@@ -1,0 +1,5 @@
+id = "cfm_init_reset_var_initialization_001"
+category = "init_reset"
+description = "Initial values are applied deterministically"
+cycles = 1
+watch_globals = ["a", "b", "c"]

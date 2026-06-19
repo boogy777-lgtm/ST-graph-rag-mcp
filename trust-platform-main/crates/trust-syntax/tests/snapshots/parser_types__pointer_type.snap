@@ -1,0 +1,35 @@
+---
+source: crates/trust-syntax/tests/parser_types.rs
+expression: "snapshot_parse(r#\"PROGRAM Test\nVAR\n    ptr : POINTER TO INT;\n    ref_value : REF_TO REAL;\nEND_VAR\nEND_PROGRAM\"#)"
+---
+SourceFile@0..91
+  Program@0..91
+    KwProgram@0..7 "PROGRAM"
+    Name@7..13
+      Ident@8..12 "Test"
+    VarBlock@13..80
+      KwVar@13..16 "VAR"
+      VarDecl@16..47
+        Name@16..25
+          Ident@21..24 "ptr"
+        Colon@25..26 ":"
+        TypeRef@26..41
+          PointerType@26..41
+            KwPointer@27..34 "POINTER"
+            KwTo@35..37 "TO"
+            TypeRef@37..41
+              KwInt@38..41 "INT"
+        Semicolon@41..42 ";"
+      VarDecl@47..72
+        Name@47..57
+          Ident@47..56 "ref_value"
+        Colon@57..58 ":"
+        TypeRef@58..70
+          ReferenceType@58..70
+            KwRefTo@59..65 "REF_TO"
+            TypeRef@65..70
+              KwReal@66..70 "REAL"
+        Semicolon@70..71 ";"
+      KwEndVar@72..79 "END_VAR"
+    StmtList@80..80
+    KwEndProgram@80..91 "END_PROGRAM"

@@ -1,0 +1,69 @@
+fn apply_bundle_runtime_overrides(runtime: &mut Runtime, bundle: &RuntimeBundle) -> anyhow::Result<()> {
+    if bundle.runtime.bundle_version != 1 {
+        anyhow::bail!("unsupported bundle version {}", bundle.runtime.bundle_version);
+    }
+
+    runtime.set_watchdog_policy(bundle.runtime.watchdog);
+    runtime.set_fault_policy(bundle.runtime.fault_policy);
+    runtime.set_io_safe_state(bundle.io.safe_state.clone());
+
+    let registry = IoDriverRegistry::default_registry();
+    for driver in &bundle.io.drivers {
+        if let Some(spec) = registry
+            .build(driver.name.as_str(), &driver.params)
+            .map_err(anyhow::Error::from)?
+        {
+            runtime.add_io_driver(spec.name, spec.driver);
+        }
+    }
+
+    match bundle.runtime.retain_mode {
+        trust_runtime::watchdog::RetainMode::File => {
+            let store = bundle.runtime.retain_path.as_ref().map(|path| {
+                let path = if path.is_relative() {
+                    bundle.root.join(path)
+                } else {
+                    path.clone()
+                };
+                Box::new(FileRetainStore::new(path)) as _
+            });
+            runtime.set_retain_store(store, Some(bundle.runtime.retain_save_interval));
+        }
+        trust_runtime::watchdog::RetainMode::None => {
+            runtime.set_retain_store(None, None);
+        }
+    }
+
+    if let Err(err) = runtime.apply_bytecode_bytes(&bundle.bytecode, Some(&bundle.runtime.resource_name))
+    {
+        anyhow::bail!(
+            "failed to apply bytecode metadata: {err} (project folder may require sources)"
+        );
+    }
+
+    Ok(())
+}
+
+fn parse_control_endpoint(bundle: Option<&RuntimeBundle>) -> anyhow::Result<ControlEndpoint> {
+    if let Some(bundle) = bundle {
+        Ok(ControlEndpoint::parse(
+            bundle.runtime.control_endpoint.as_str(),
+        )?)
+    } else {
+        Ok(ControlEndpoint::parse("tcp://127.0.0.1:9000")?)
+    }
+}
+
+fn ensure_control_auth_requirements(
+    control_endpoint: &ControlEndpoint,
+    bundle: Option<&RuntimeBundle>,
+    ide_shell_mode: bool,
+) -> anyhow::Result<()> {
+    if matches!(control_endpoint, ControlEndpoint::Tcp(_)) {
+        let token = bundle.and_then(|bundle| bundle.runtime.control_auth_token.as_ref());
+        if token.is_none() && !ide_shell_mode {
+            anyhow::bail!("tcp control endpoint requires runtime.control.auth_token");
+        }
+    }
+    Ok(())
+}

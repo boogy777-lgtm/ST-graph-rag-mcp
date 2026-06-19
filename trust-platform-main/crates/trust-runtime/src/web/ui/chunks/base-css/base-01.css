@@ -1,0 +1,270 @@
+/* base-01.css — Shared design tokens, resets, and utility classes.
+   Extracted from styles-01/02/04/05 so both IDE shell and HMI can
+   reference a single token layer without pulling in fleet-specific CSS. */
+
+:root {
+  color-scheme: light;
+  font-family: "Sora", "Segoe UI", "Helvetica Neue", sans-serif;
+  --bg-1: #ffffff;
+  --bg-2: #f6f3ee;
+  --bg-3: #f0ebe4;
+  --glow-1: rgba(15, 118, 110, 0.12);
+  --glow-2: rgba(217, 119, 6, 0.10);
+  --panel: #ffffff;
+  --panel-2: #f4f2ef;
+  --text: #1b1a18;
+  --muted: #6a6a74;
+  --muted-strong: #4b4b55;
+  --accent: #0f766e;
+  --accent-strong: #0a4f4a;
+  --accent-soft: rgba(15, 118, 110, 0.12);
+  --danger: #b42318;
+  --border: rgba(27, 26, 24, 0.08);
+  --shadow: 0 20px 45px rgba(15, 14, 12, 0.08);
+  --success-bg: rgba(15, 118, 110, 0.12);
+  --warn-bg: rgba(217, 119, 6, 0.12);
+  --error-bg: rgba(180, 35, 24, 0.12);
+}
+
+body[data-theme="dark"] {
+  color-scheme: dark;
+  --bg-1: #0f1115;
+  --bg-2: #141821;
+  --bg-3: #11151d;
+  --glow-1: rgba(20, 184, 166, 0.16);
+  --glow-2: rgba(249, 115, 22, 0.12);
+  --panel: #171a21;
+  --panel-2: #1f2430;
+  --text: #f2f2f2;
+  --muted: #9ca3af;
+  --muted-strong: #cbd5f5;
+  --accent: #14b8a6;
+  --accent-strong: #0d9488;
+  --accent-soft: rgba(20, 184, 166, 0.18);
+  --danger: #f87171;
+  --border: rgba(255, 255, 255, 0.08);
+  --shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+  --success-bg: rgba(20, 184, 166, 0.2);
+  --warn-bg: rgba(249, 115, 22, 0.2);
+  --error-bg: rgba(248, 113, 113, 0.2);
+}
+
+* { box-sizing: border-box; }
+
+/* Preserve semantic hidden behavior even when component classes set display. */
+[hidden] { display: none !important; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  margin: 0;
+  background: radial-gradient(circle at top, var(--bg-1) 0%, var(--bg-2) 45%, var(--bg-3) 100%);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at 15% 15%, var(--glow-1), transparent 40%),
+    radial-gradient(circle at 80% 10%, var(--glow-2), transparent 35%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.skip-link {
+  position: absolute;
+  left: -999px;
+  top: 12px;
+  background: var(--accent);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  z-index: 10;
+}
+
+.skip-link:focus {
+  left: 12px;
+}
+
+/* ── Buttons ─────────────────────────────────────────── */
+
+.btn {
+  border: none;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 150ms ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  min-height: 44px;
+}
+
+.btn.primary { background: var(--accent); color: #fff; }
+.btn.primary:hover { background: var(--accent-strong); }
+.btn.secondary { background: var(--panel-2); color: var(--text); }
+.btn.ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
+.btn.danger { background: var(--danger); color: #fff; }
+.btn[disabled] { opacity: 0.6; cursor: not-allowed; }
+
+/* ── Layout utilities ────────────────────────────────── */
+
+main { display: block; }
+.page { display: grid; gap: 18px; }
+.page[hidden] { display: none; }
+.grid { display: grid; gap: 18px; }
+.grid.two { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.grid.three { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+
+/* ── Cards ───────────────────────────────────────────── */
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: var(--shadow);
+  animation: rise 400ms ease;
+}
+
+.card h3 {
+  margin: 0 0 12px 0;
+  font-size: 15px;
+}
+.card h4 {
+  margin: 0 0 10px 0;
+  font-size: 13px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+/* ── Typography helpers ──────────────────────────────── */
+
+.muted { color: var(--muted); font-size: 12px; }
+.row { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; }
+.list { display: grid; gap: 6px; }
+.stat { font-weight: 600; }
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--panel-2);
+  font-size: 12px;
+}
+
+/* ── Form elements ───────────────────────────────────── */
+
+input, select, textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  font-size: 13px;
+}
+
+textarea {
+  font-family: "JetBrains Mono", "Fira Code", "SFMono-Regular", monospace;
+  line-height: 1.4;
+  min-height: 120px;
+  resize: vertical;
+}
+
+.field { display: grid; gap: 6px; margin-bottom: 12px; }
+.field-input {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  color: var(--text);
+  font-size: 12px;
+}
+.note { font-size: 12px; color: var(--muted); margin-top: 8px; }
+.status { margin-top: 8px; padding: 10px 12px; border-radius: 10px; font-size: 12px; }
+.status.success { background: var(--success-bg); color: var(--accent-strong); }
+.status.error { background: var(--error-bg); color: var(--danger); }
+.status.warn { background: var(--warn-bg); color: #92400e; }
+.empty { color: var(--muted-strong); font-style: italic; }
+
+/* ── Tables ──────────────────────────────────────────── */
+
+.table { display: grid; gap: 8px; }
+.table-row { display: grid; grid-template-columns: 1.2fr 0.8fr 0.8fr 0.6fr; gap: 8px; font-size: 13px; }
+.table-head { font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); }
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.data-table th,
+.data-table td {
+  text-align: left;
+  padding: 6px 4px;
+  border-bottom: 1px solid var(--border);
+}
+.data-table thead th {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--muted);
+}
+
+/* ── Animations ──────────────────────────────────────── */
+
+@keyframes rise {
+  from { transform: translateY(6px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Reduced motion ──────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Logo ────────────────────────────────────────────── */
+
+.brand-logo {
+  width: 180px;
+  height: 90px;
+}
+
+.logo-text {
+  font-family: 'Sora', 'Inter', 'Helvetica Neue', system-ui, sans-serif;
+  font-size: 48px;
+  font-weight: 600;
+  letter-spacing: -1.5px;
+  fill: var(--text);
+}
+
+.logo-accent {
+  fill: var(--accent);
+  font-weight: 700;
+}
+
+.logo-tagline {
+  font-family: 'Sora', 'Inter', 'Helvetica Neue', system-ui, sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  fill: var(--muted);
+}

@@ -1,0 +1,9 @@
+id = "cfm_memory_map_var_config_sync_001"
+category = "memory_map"
+description = "Mapped %MW memory is synced with program storage"
+cycles = 1
+watch_globals = ["observed", "counter"]
+watch_direct = ["%MW0"]
+
+[direct_input_series]
+"%MW0" = ["WORD:41"]

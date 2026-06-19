@@ -1,0 +1,70 @@
+{
+  "case_id": "cfm_init_reset_retain_warm_cold_002",
+  "category": "init_reset",
+  "cycles": 3,
+  "description": "Warm restart retains RETAIN and cold restart reinitializes",
+  "kind": "runtime",
+  "trace": [
+    {
+      "cycle": 1,
+      "direct": {},
+      "errors": [],
+      "globals": {
+        "n": {
+          "type": "INT",
+          "value": 20
+        },
+        "r": {
+          "type": "INT",
+          "value": 10
+        },
+        "u": {
+          "type": "INT",
+          "value": 30
+        }
+      },
+      "runtime_time_nanos": 0
+    },
+    {
+      "cycle": 2,
+      "direct": {},
+      "errors": [],
+      "globals": {
+        "n": {
+          "type": "INT",
+          "value": 2
+        },
+        "r": {
+          "type": "INT",
+          "value": 10
+        },
+        "u": {
+          "type": "INT",
+          "value": 3
+        }
+      },
+      "runtime_time_nanos": 0
+    },
+    {
+      "cycle": 3,
+      "direct": {},
+      "errors": [],
+      "globals": {
+        "n": {
+          "type": "INT",
+          "value": 2
+        },
+        "r": {
+          "type": "INT",
+          "value": 1
+        },
+        "u": {
+          "type": "INT",
+          "value": 3
+        }
+      },
+      "runtime_time_nanos": 0
+    }
+  ],
+  "version": 1
+}

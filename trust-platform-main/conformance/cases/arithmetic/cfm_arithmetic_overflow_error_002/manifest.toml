@@ -1,0 +1,5 @@
+id = "cfm_arithmetic_overflow_error_002"
+category = "arithmetic"
+description = "Overflow behavior is deterministic and surfaced as runtime error"
+cycles = 1
+watch_globals = ["a", "b"]

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://www.plcopen.org/xml/tc6_0200">
+  <fileHeader companyName="Beckhoff Automation" productName="TwinCAT 3.1" />
+  <types>
+    <pous>
+      <pou Name="MainTc" PouType="PRG">
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"><![CDATA[
+PROGRAM MainTc
+VAR
+    Running : BOOL := TRUE;
+END_VAR
+END_PROGRAM
+]]></xhtml>
+          </ST>
+        </body>
+      </pou>
+      <pou name="PumpFb" type="FB">
+        <body>
+          <text><![CDATA[
+FUNCTION_BLOCK PumpFb
+VAR_INPUT
+    Enable : BOOL;
+END_VAR
+END_FUNCTION_BLOCK
+]]></text>
+        </body>
+      </pou>
+      <pou name="NoBody" pouType="FUNCTION_BLOCK">
+        <interface />
+      </pou>
+    </pous>
+  </types>
+  <addData>
+    <data name="TcPlcObject"><text><![CDATA[<TcSmProject/>]]></text></data>
+  </addData>
+</project>

@@ -1,0 +1,43 @@
+.sfc-editor {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: 100vh;
+  background-color: var(--vscode-editor-background);
+  color: var(--vscode-editor-foreground);
+  font-family: var(--vscode-font-family);
+}
+
+/* Keep controls/minimap placement consistent with other visual editors. */
+.sfc-editor .react-flow__controls {
+  bottom: 16px !important;
+  left: 16px !important;
+  border: 1px solid var(--vscode-panel-border) !important;
+  background: var(--vscode-editor-background) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24) !important;
+  z-index: 6 !important;
+}
+
+.sfc-editor .react-flow__controls button {
+  background: var(--vscode-button-secondaryBackground) !important;
+  color: var(--vscode-button-secondaryForeground) !important;
+  border-bottom: 1px solid var(--vscode-panel-border) !important;
+  width: 34px !important;
+  height: 34px !important;
+}
+
+.sfc-editor .react-flow__controls button:hover {
+  background: var(--vscode-button-secondaryHoverBackground) !important;
+}
+
+.sfc-editor .react-flow__minimap {
+  bottom: 16px !important;
+  right: 16px !important;
+  border: 1px solid var(--vscode-panel-border) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24) !important;
+  z-index: 6 !important;
+}
+
+.sfc-editor .react-flow__attribution {
+  display: none !important;
+}

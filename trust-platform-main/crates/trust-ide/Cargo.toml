@@ -1,0 +1,19 @@
+[package]
+name = "trust-ide"
+description = "IDE features for IEC 61131-3 Structured Text"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+trust-syntax.workspace = true
+trust-hir.workspace = true
+smol_str.workspace = true
+rustc-hash.workspace = true
+text-size.workspace = true
+once_cell.workspace = true
+
+[dev-dependencies]
+expect-test.workspace = true

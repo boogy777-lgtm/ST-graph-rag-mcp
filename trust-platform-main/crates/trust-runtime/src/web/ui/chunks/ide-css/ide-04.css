@@ -1,0 +1,280 @@
+}
+
+.ide-modal-card input {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--panel-2);
+}
+
+.ide-modal-card label {
+  font: 600 14px/1.3 var(--ide-font-ui);
+  color: var(--text);
+}
+
+.ide-modal-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.ide-input-modal,
+.ide-confirm-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: none;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 16vh;
+  z-index: 50;
+}
+
+.ide-input-modal.open,
+.ide-confirm-modal.open {
+  display: flex;
+}
+
+.ide-input-modal .ide-modal-card,
+.ide-confirm-modal .ide-modal-card {
+  display: grid;
+  gap: 12px;
+}
+
+/* ── Context Menu ──────────────────────────────────── */
+
+.ide-context {
+  position: fixed;
+  z-index: 80;
+  min-width: 160px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+  padding: 6px;
+  display: grid;
+  gap: 4px;
+}
+
+.ide-context button {
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  padding: 6px 8px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.ide-context button:hover {
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+  color: var(--accent-strong);
+}
+
+/* ── Command Palette ───────────────────────────────── */
+
+.ide-command-list {
+  display: grid;
+  gap: 6px;
+  max-height: 280px;
+  overflow: auto;
+}
+
+.ide-command {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel-2);
+  padding: 8px 10px;
+  cursor: pointer;
+  text-align: left;
+  color: var(--text);
+}
+
+.ide-command:hover,
+.ide-command.active {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+/* ── Open Project Panel ────────────────────────────── */
+
+.ide-open-project {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%) translateY(-10px);
+  transform-origin: top center;
+  z-index: 35;
+  width: min(780px, calc(100% - 20px));
+  background: color-mix(in srgb, var(--panel) 96%, transparent);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(6px);
+  padding: 14px 16px;
+  display: grid;
+  gap: 10px;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: max-height 200ms ease, opacity 150ms ease, padding 200ms ease, transform 180ms ease;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.ide-open-project.open {
+  max-height: min(78vh, 680px);
+  opacity: 1;
+  padding: 14px 16px;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+
+.ide-open-project input {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel-2);
+  color: var(--text);
+  padding: 10px 12px;
+  font: 14px/1.3 var(--ide-font-mono);
+}
+
+.ide-open-project input:focus {
+  outline: 2px solid var(--ide-accent);
+  outline-offset: -1px;
+}
+
+.ide-open-project-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+
+/* ── Browse Toolbar & List ─────────────────────────── */
+
+.ide-browse-toolbar {
+  display: flex;
+  gap: 8px;
+}
+
+.ide-browse-toolbar input {
+  flex: 1;
+}
+
+.ide-browse-list {
+  max-height: min(40vh, 320px);
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel-2);
+}
+
+.ide-browse-breadcrumbs {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--muted);
+  font-family: var(--ide-font-mono);
+}
+
+.ide-browse-entry {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font: 13px var(--ide-font-mono);
+  border: none;
+  background: none;
+  color: var(--text);
+  width: 100%;
+  text-align: left;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
+}
+
+.ide-browse-entry:hover {
+  background: var(--accent-soft);
+}
+
+.ide-browse-entry:last-child {
+  border-bottom: 0;
+}
+
+.ide-browse-entry.directory {
+  font-weight: 500;
+}
+
+.ide-browse-entry svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+}
+
+/* ── Recent Projects List ──────────────────────────── */
+
+.ide-recent-list {
+  display: grid;
+  gap: 4px;
+  max-height: 180px;
+  overflow: auto;
+}
+
+.ide-recent-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  padding: 8px 10px;
+  cursor: pointer;
+  font: 13px/1.3 var(--ide-font-mono);
+  width: 100%;
+  transition: all var(--ide-transition);
+}
+
+.ide-recent-item:hover,
+.ide-recent-item.active {
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+  color: var(--accent-strong);
+}
+
+.ide-recent-item .recent-ts {
+  margin-left: auto;
+  font: 11px/1.2 var(--ide-font-ui);
+  color: var(--muted);
+}
+
+.ide-recent-item svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+}
+
+/* ── Welcome Screen ────────────────────────────────── */
+
+.ide-welcome {

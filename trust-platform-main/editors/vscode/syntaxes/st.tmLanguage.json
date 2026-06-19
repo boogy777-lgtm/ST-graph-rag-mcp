@@ -1,0 +1,164 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Structured Text",
+  "scopeName": "source.st",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#strings" },
+    { "include": "#numbers" },
+    { "include": "#keywords" },
+    { "include": "#types" },
+    { "include": "#operators" },
+    { "include": "#constants" },
+    { "include": "#direct-addresses" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.st",
+          "match": "//.*$"
+        },
+        {
+          "name": "comment.block.st",
+          "begin": "\\(\\*",
+          "end": "\\*\\)"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.single.st",
+          "begin": "'",
+          "end": "'",
+          "patterns": [
+            {
+              "name": "constant.character.escape.st",
+              "match": "\\\\."
+            }
+          ]
+        },
+        {
+          "name": "string.quoted.double.st",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "name": "constant.character.escape.st",
+              "match": "\\\\."
+            }
+          ]
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.hex.st",
+          "match": "\\b16#[0-9A-Fa-f_]+\\b"
+        },
+        {
+          "name": "constant.numeric.binary.st",
+          "match": "\\b2#[01_]+\\b"
+        },
+        {
+          "name": "constant.numeric.octal.st",
+          "match": "\\b8#[0-7_]+\\b"
+        },
+        {
+          "name": "constant.numeric.float.st",
+          "match": "\\b[0-9][0-9_]*\\.[0-9][0-9_]*([eE][+-]?[0-9]+)?\\b"
+        },
+        {
+          "name": "constant.numeric.integer.st",
+          "match": "\\b[0-9][0-9_]*\\b"
+        },
+        {
+          "name": "constant.numeric.time.st",
+          "match": "\\b[Tt]#[0-9dhms_]+\\b"
+        },
+        {
+          "name": "constant.numeric.time.st",
+          "match": "\\bTIME#[0-9dhms_]+\\b"
+        },
+        {
+          "name": "constant.numeric.date.st",
+          "match": "\\b[Dd]#[0-9]{4}-[0-9]{2}-[0-9]{2}\\b"
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.st",
+          "match": "(?i)\\b(IF|THEN|ELSIF|ELSE|END_IF|CASE|OF|END_CASE|FOR|TO|BY|DO|END_FOR|WHILE|END_WHILE|REPEAT|UNTIL|END_REPEAT|RETURN|EXIT|CONTINUE)\\b"
+        },
+        {
+          "name": "keyword.declaration.st",
+          "match": "(?i)\\b(PROGRAM|END_PROGRAM|FUNCTION|END_FUNCTION|FUNCTION_BLOCK|END_FUNCTION_BLOCK|METHOD|END_METHOD|PROPERTY|END_PROPERTY|INTERFACE|END_INTERFACE|NAMESPACE|END_NAMESPACE|ACTION|END_ACTION|TYPE|END_TYPE|STRUCT|END_STRUCT|UNION|END_UNION)\\b"
+        },
+        {
+          "name": "keyword.variable.st",
+          "match": "(?i)\\b(VAR|VAR_INPUT|VAR_OUTPUT|VAR_IN_OUT|VAR_TEMP|VAR_GLOBAL|VAR_EXTERNAL|VAR_STAT|VAR_CONFIG|END_VAR)\\b"
+        },
+        {
+          "name": "keyword.modifier.st",
+          "match": "(?i)\\b(CONSTANT|RETAIN|NON_RETAIN|PERSISTENT|PUBLIC|PRIVATE|PROTECTED|INTERNAL|FINAL|ABSTRACT|OVERRIDE)\\b"
+        },
+        {
+          "name": "keyword.other.st",
+          "match": "(?i)\\b(EXTENDS|IMPLEMENTS|THIS|SUPER|ARRAY|OF|POINTER|REF|REF_TO|AT|GET|SET|END_GET|END_SET)\\b"
+        },
+        {
+          "name": "keyword.operator.logical.st",
+          "match": "(?i)\\b(AND|OR|XOR|NOT|MOD)\\b"
+        }
+      ]
+    },
+    "types": {
+      "patterns": [
+        {
+          "name": "storage.type.st",
+          "match": "(?i)\\b(BOOL|SINT|INT|DINT|LINT|USINT|UINT|UDINT|ULINT|REAL|LREAL|BYTE|WORD|DWORD|LWORD|TIME|LTIME|DATE|TIME_OF_DAY|TOD|DATE_AND_TIME|DT|STRING|WSTRING|ANY|ANY_INT|ANY_REAL|ANY_NUM|ANY_BIT|ANY_STRING|ANY_DATE)\\b"
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.assignment.st",
+          "match": ":=|\\?="
+        },
+        {
+          "name": "keyword.operator.comparison.st",
+          "match": "<>|<=|>=|<|>|="
+        },
+        {
+          "name": "keyword.operator.arithmetic.st",
+          "match": "\\+|-|\\*|/|\\*\\*"
+        },
+        {
+          "name": "keyword.operator.arrow.st",
+          "match": "=>"
+        }
+      ]
+    },
+    "constants": {
+      "patterns": [
+        {
+          "name": "constant.language.boolean.st",
+          "match": "(?i)\\b(TRUE|FALSE)\\b"
+        }
+      ]
+    },
+    "direct-addresses": {
+      "patterns": [
+        {
+          "name": "variable.other.direct-address.st",
+          "match": "%[IQM][XBWDL]?[0-9]+(\\.[0-9]+)*"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,34 @@
+---
+source: crates/trust-syntax/tests/parser_expressions.rs
+assertion_line: 123
+expression: "snapshot_parse(r#\"PROGRAM Test\n    x := ptr^;\n    y := ptr^^;\nEND_PROGRAM\"#)"
+---
+SourceFile@0..55
+  Program@0..55
+    KwProgram@0..7 "PROGRAM"
+    Name@7..17
+      Ident@8..12 "Test"
+    StmtList@17..44
+      AssignStmt@17..32
+        BinaryExpr@17..26
+          NameRef@17..19
+            Ident@17..18 "x"
+          Assign@19..21 ":="
+          DerefExpr@21..26
+            NameRef@21..25
+              Ident@22..25 "ptr"
+            Caret@25..26 "^"
+        Semicolon@26..27 ";"
+      AssignStmt@32..44
+        BinaryExpr@32..42
+          NameRef@32..34
+            Ident@32..33 "y"
+          Assign@34..36 ":="
+          DerefExpr@36..42
+            DerefExpr@36..41
+              NameRef@36..40
+                Ident@37..40 "ptr"
+              Caret@40..41 "^"
+            Caret@41..42 "^"
+        Semicolon@42..43 ";"
+    KwEndProgram@44..55 "END_PROGRAM"

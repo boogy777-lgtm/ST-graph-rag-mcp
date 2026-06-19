@@ -1,0 +1,82 @@
+{
+  "case_id": "cfm_scan_cycle_ordering_visibility_001",
+  "category": "scan_cycle",
+  "cycles": 3,
+  "description": "Statement ordering and same-cycle visibility",
+  "kind": "runtime",
+  "trace": [
+    {
+      "cycle": 1,
+      "direct": {},
+      "errors": [],
+      "globals": {
+        "a": {
+          "type": "DINT",
+          "value": 2
+        },
+        "b": {
+          "type": "DINT",
+          "value": 2
+        },
+        "c": {
+          "type": "DINT",
+          "value": 3
+        },
+        "prev_a": {
+          "type": "DINT",
+          "value": 1
+        }
+      },
+      "runtime_time_nanos": 0
+    },
+    {
+      "cycle": 2,
+      "direct": {},
+      "errors": [],
+      "globals": {
+        "a": {
+          "type": "DINT",
+          "value": 3
+        },
+        "b": {
+          "type": "DINT",
+          "value": 3
+        },
+        "c": {
+          "type": "DINT",
+          "value": 5
+        },
+        "prev_a": {
+          "type": "DINT",
+          "value": 2
+        }
+      },
+      "runtime_time_nanos": 0
+    },
+    {
+      "cycle": 3,
+      "direct": {},
+      "errors": [],
+      "globals": {
+        "a": {
+          "type": "DINT",
+          "value": 4
+        },
+        "b": {
+          "type": "DINT",
+          "value": 4
+        },
+        "c": {
+          "type": "DINT",
+          "value": 7
+        },
+        "prev_a": {
+          "type": "DINT",
+          "value": 3
+        }
+      },
+      "runtime_time_nanos": 0
+    }
+  ],
+  "version": 1
+}

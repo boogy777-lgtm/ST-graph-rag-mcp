@@ -1,0 +1,36 @@
+---
+source: crates/trust-syntax/tests/parser_statements.rs
+assertion_line: 61
+expression: "snapshot_parse(r#\"PROGRAM Test\nWHILE x < 10 DO\n    x := x + 1;\nEND_WHILE;\nEND_PROGRAM\"#)"
+---
+SourceFile@0..67
+  Program@0..67
+    KwProgram@0..7 "PROGRAM"
+    Name@7..13
+      Ident@8..12 "Test"
+    StmtList@13..56
+      WhileStmt@13..54
+        KwWhile@13..18 "WHILE"
+        BinaryExpr@18..26
+          NameRef@18..21
+            Ident@19..20 "x"
+          Lt@21..22 "<"
+          Literal@22..26
+            IntLiteral@23..25 "10"
+        KwDo@26..28 "DO"
+        AssignStmt@28..45
+          BinaryExpr@28..43
+            NameRef@28..35
+              Ident@33..34 "x"
+            Assign@35..37 ":="
+            BinaryExpr@37..43
+              NameRef@37..40
+                Ident@38..39 "x"
+              Plus@40..41 "+"
+              Literal@41..43
+                IntLiteral@42..43 "1"
+          Semicolon@43..44 ";"
+        KwEndWhile@45..54 "END_WHILE"
+      EmptyStmt@54..56
+        Semicolon@54..55 ";"
+    KwEndProgram@56..67 "END_PROGRAM"

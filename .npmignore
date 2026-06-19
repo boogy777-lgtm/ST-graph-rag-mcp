@@ -1,0 +1,40 @@
+# Source files (only dist is needed)
+src/
+test/
+test-trust-workspace/
+Examples/
+scripts/
+
+# Config files (not needed in package)
+tsconfig.json
+tsup.config.ts
+.gitignore
+.npmignore
+.editorconfig
+
+# Documentation (keep README.md and LICENSE)
+CHANGES.md
+ARCHITECTURE_DECISION.md
+CLAUDE.md
+
+# Debug scripts
+check-*.cjs
+compare-languages.cjs
+test-mcp-index.cjs
+test-st-lsp.cjs
+
+# Logs and databases
+logs_llm/
+.code-graph-rag/
+*.db
+*.db-shm
+*.db-wal
+*.log
+
+# Release artifacts
+git-release/
+package/
+*.7z
+*.zip
+*.tar.gz
+*.tgz

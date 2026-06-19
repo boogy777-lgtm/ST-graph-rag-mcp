@@ -1,0 +1,35 @@
+{
+  "folders": [
+    {
+      "path": "root-a"
+    },
+    {
+      "path": "root-b"
+    },
+    {
+      "path": ".."
+    }
+  ],
+  "settings": {
+    "trust-lsp.server.path": "${workspaceFolder:root-a}/../../target/debug/trust-lsp",
+    "trust-lsp.trace.server": "verbose",
+    "trust-lsp.diagnostics.showIecReferences": false
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "type": "structured-text",
+        "request": "launch",
+        "name": "Structured Text: root-a",
+        "program": "${workspaceFolder:root-a}/src/DebugMain.st",
+        "cwd": "${workspaceFolder:root-a}",
+        "stopOnEntry": true,
+        "runtimeRoot": "${workspaceFolder:root-a}",
+        "runtimeIncludeGlobs": [
+          "src/DebugMain.st"
+        ]
+      }
+    ]
+  }
+}

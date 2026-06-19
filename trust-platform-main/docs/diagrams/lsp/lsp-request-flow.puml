@@ -1,0 +1,494 @@
+@startuml lsp-request-flow
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam sequenceFontSize 11
+skinparam participantFontSize 11
+
+title LSP Request Flow Sequences
+
+' ============================================================
+' PARTICIPANTS
+' ============================================================
+
+participant "VS Code\nClient" as client #LightBlue
+participant "tower-lsp\nServer" as server #LightGreen
+participant "StLanguageServer" as lsp <<main.rs>>
+participant "ServerState" as state <<state.rs>>
+participant "ServerContext\n(trait)" as context
+participant "handlers/*" as handlers
+participant "Project" as project
+participant "trust-ide" as ide
+participant "Database\n(snapshot)" as db
+participant "Runtime Control\n(IPC)" as runtimeCtl #LightCoral
+
+' ============================================================
+' INITIALIZE SEQUENCE
+' ============================================================
+
+== Initialize ==
+
+client -> server : initialize request
+server -> lsp : initialize(params)
+activate lsp
+
+lsp -> state : set_workspace_folders(folders)
+lsp --> server : InitializeResult\n(capabilities)
+deactivate lsp
+
+server --> client : initialize response
+
+client -> server : initialized notification
+server -> lsp : initialized(params)
+activate lsp
+lsp -> handlers : register_file_watchers(client, state)
+activate handlers
+handlers -> client : registerCapability\n(didChangeWatchedFiles)
+handlers --> lsp
+deactivate handlers
+lsp -> handlers : index_workspace(client, state)
+activate handlers
+handlers -> state : workspace_folders()
+handlers -> handlers : scan .st files
+handlers -> state : index_document(uri, content)
+state -> project : set_source_text(SourceKey, text)
+handlers --> lsp
+deactivate handlers
+deactivate lsp
+
+note right of handlers
+    Indexes all .st files
+    in workspace folders
+end note
+
+note right of handlers
+    Feature layer is decomposed into
+    completion/navigation/actions/
+    symbols/hierarchy modules with a
+    thin core facade.
+end note
+
+' ============================================================
+' DOCUMENT SYNC SEQUENCE
+' ============================================================
+
+== Document Sync ==
+
+client -> server : didOpen
+server -> lsp : did_open(params)
+activate lsp
+lsp -> handlers : did_open(client, state, params)
+activate handlers
+handlers -> state : open_document(uri, version, content)
+state -> project : set_source_text(SourceKey, text)
+handlers -> state : with_database(|db| ...)
+activate state
+state -> project : database_snapshot()
+project --> state : db
+state -> db : diagnostics(file_id)
+db --> state : Vec<Diagnostic>
+state --> handlers
+deactivate state
+handlers -> client : publishDiagnostics
+handlers --> lsp
+deactivate handlers
+deactivate lsp
+
+...
+
+client -> server : didChange
+server -> lsp : did_change(params)
+activate lsp
+lsp -> handlers : did_change(client, state, params)
+activate handlers
+handlers -> state : update_document(uri, version, content)
+state -> project : set_source_text(SourceKey, new_text)
+handlers -> state : with_database(|db| ...)
+activate state
+state -> project : database_snapshot()
+project --> state : db
+state -> db : diagnostics(file_id)
+db --> state : Vec<Diagnostic>
+state --> handlers
+deactivate state
+handlers -> client : publishDiagnostics
+handlers --> lsp
+deactivate handlers
+deactivate lsp
+
+' ============================================================
+' CONFIGURATION CHANGE SEQUENCE
+' ============================================================
+
+== Configuration Change ==
+
+client -> server : workspace/didChangeConfiguration
+server -> lsp : did_change_configuration(params)
+activate lsp
+lsp -> handlers : did_change_configuration(state, params)
+activate handlers
+handlers -> state : set_config(settings)
+handlers --> lsp
+deactivate handlers
+deactivate lsp
+
+note right of handlers
+    Stores trust-lsp.* workspace
+    settings (including runtime
+    control endpoint overrides).
+end note
+
+client -> server : didChangeWatchedFiles
+server -> lsp : did_change_watched_files(params)
+activate lsp
+lsp -> handlers : did_change_watched_files(state, params)
+activate handlers
+alt changeType = Created or Changed
+    handlers -> state : index_document(uri, content)
+    state -> project : set_source_text(SourceKey, text)
+else changeType = Deleted
+    handlers -> state : remove_document(uri)
+    state -> project : remove_source(SourceKey)
+end
+handlers --> lsp
+deactivate handlers
+deactivate lsp
+
+' ============================================================
+' EXECUTE COMMAND SEQUENCE
+' ============================================================
+
+== Execute Command ==
+
+client -> server : workspace/executeCommand
+server -> lsp : execute_command(params)
+activate lsp
+lsp -> handlers : execute_command(client, state, params)
+activate handlers
+handlers -> context : project_info_value_with_context(...)\nnamespace_move_workspace_edit_with_context(...)
+activate context
+context -> state : workspace_configs()/workspace_config_for_uri()
+context -> state : get_document()/document_for_file_id()
+context -> state : with_database(|db| rename(...)) [moveNamespace]
+context --> handlers
+deactivate context
+handlers -> client : workspace/applyEdit [moveNamespace]
+handlers --> lsp : command response value
+deactivate handlers
+deactivate lsp
+server --> client
+
+' ============================================================
+' DOCUMENT SYMBOLS SEQUENCE
+' ============================================================
+
+== Document Symbols ==
+
+client -> server : documentSymbol request
+server -> lsp : document_symbol(params)
+activate lsp
+
+lsp -> handlers : document_symbol(state, params)
+activate handlers
+handlers -> state : with_database(|db| ...)
+activate state
+state -> project : database_snapshot()
+project --> state : db
+state -> ide : document_symbols(db, file_id)
+activate ide
+ide -> db : file_symbols(file_id)
+ide -> ide : map to SymbolInformation
+ide --> state : Vec<SymbolInformation>
+deactivate ide
+state --> handlers
+deactivate state
+handlers --> lsp : Vec<SymbolInformation>
+deactivate handlers
+
+lsp --> server
+deactivate lsp
+server --> client
+
+' ============================================================
+' RENAME SEQUENCE
+' ============================================================
+
+== Rename ==
+
+client -> server : rename request
+server -> lsp : rename(params)
+activate lsp
+
+lsp -> handlers : rename(state, params)
+activate handlers
+handlers -> state : with_database(|db| ...)
+activate state
+state -> project : database_snapshot()
+project --> state : db
+state -> ide : rename(db, file_id, offset, new_name)
+activate ide
+ide -> db : file_symbols(file_id)
+ide -> ide : compute edits
+ide --> state : WorkspaceEdit
+deactivate ide
+state --> handlers
+deactivate state
+handlers --> lsp : WorkspaceEdit
+deactivate handlers
+
+lsp --> server
+deactivate lsp
+server --> client
+
+' ============================================================
+' FORMAT SEQUENCE
+' ============================================================
+
+== Formatting ==
+
+client -> server : formatting request
+server -> lsp : formatting(params)
+activate lsp
+
+lsp -> handlers : formatting(state, params)
+activate handlers
+handlers -> state : get_document(uri)
+handlers -> handlers : format document text
+handlers --> lsp : Vec<TextEdit>
+deactivate handlers
+
+lsp --> server
+deactivate lsp
+server --> client
+
+' ============================================================
+' HOVER SEQUENCE
+' ============================================================
+
+== Hover ==
+
+client -> server : hover request
+server -> lsp : hover(params)
+activate lsp
+
+lsp -> handlers : hover(state, params)
+activate handlers
+handlers -> state : get_document(uri)
+state --> handlers : Document { file_id }
+handlers -> handlers : position → offset
+handlers -> state : with_database(|db| ...)
+activate state
+state -> project : database_snapshot()
+project --> state : db
+state -> ide : hover(db, file_id, offset)
+activate ide
+ide -> db : file_symbols(file_id)
+ide -> ide : find symbol at offset
+ide -> ide : format type/docs
+ide --> state : HoverResult
+deactivate ide
+state --> handlers
+deactivate state
+handlers --> lsp : Option<Hover>
+deactivate handlers
+
+lsp --> server : Hover response
+deactivate lsp
+server --> client
+
+' ============================================================
+' INLINE VALUE SEQUENCE
+' ============================================================
+
+== Inline Values ==
+
+client -> server : inlineValue request
+server -> lsp : inline_value(params)
+activate lsp
+lsp -> handlers : inline_value(state, params)
+activate handlers
+handlers -> state : with_database(|db| ...)
+activate state
+state -> project : database_snapshot()
+project --> state : db
+state --> handlers : inline targets
+deactivate state
+handlers -> runtimeCtl : debug.scopes / debug.variables
+runtimeCtl --> handlers : scope + variable values
+handlers --> lsp : InlineValue[]
+deactivate handlers
+lsp --> server
+deactivate lsp
+server --> client
+
+note right of runtimeCtl
+    Uses runtime control endpoint
+    from trust-lsp.toml or workspace
+    settings override.
+end note
+
+' ============================================================
+' COMPLETION SEQUENCE
+' ============================================================
+
+== Completion ==
+
+client -> server : completion request
+server -> lsp : completion(params)
+activate lsp
+
+lsp -> handlers : completion(state, params)
+activate handlers
+handlers -> state : with_database(|db| ...)
+activate state
+state -> project : database_snapshot()
+project --> state : db
+state -> ide : complete(db, file_id, offset)
+activate ide
+ide -> db : file_symbols(file_id)
+ide -> ide : determine context\n(after dot, type, etc.)
+ide -> ide : collect candidates
+ide --> state : Vec<CompletionItem>
+deactivate ide
+state --> handlers
+deactivate state
+handlers --> lsp : CompletionResponse
+deactivate handlers
+
+lsp --> server
+deactivate lsp
+server --> client
+
+' ============================================================
+' GOTO DEFINITION SEQUENCE
+' ============================================================
+
+== Go to Definition ==
+
+client -> server : goto definition
+server -> lsp : goto_definition(params)
+activate lsp
+
+lsp -> handlers : goto_definition(state, params)
+activate handlers
+handlers -> state : with_database(|db| ...)
+activate state
+state -> project : database_snapshot()
+project --> state : db
+state -> ide : goto_definition(db, file_id, offset)
+activate ide
+ide -> db : file_symbols(file_id)
+ide -> ide : find symbol at offset
+ide -> ide : resolve to definition
+ide --> state : Option<Location>
+deactivate ide
+state --> handlers
+deactivate state
+handlers --> lsp : GotoDefinitionResponse
+deactivate handlers
+
+lsp --> server
+deactivate lsp
+server --> client
+
+' ============================================================
+' FIND REFERENCES SEQUENCE
+' ============================================================
+
+== Find References ==
+
+client -> server : references request
+server -> lsp : references(params)
+activate lsp
+
+lsp -> handlers : references(state, params)
+activate handlers
+handlers -> state : get_document(uri)
+handlers -> state : with_database(|db| ...)
+activate state
+state -> project : database_snapshot()
+project --> state : db
+state -> ide : find_references(db, file_id, offset)
+activate ide
+ide -> db : file_ids()
+loop for each file
+    ide -> db : file_symbols(file_id)
+    ide -> ide : scan for usages
+end
+ide --> state : Vec<Location>
+deactivate ide
+state --> handlers
+deactivate state
+handlers --> lsp : Vec<Location>
+deactivate handlers
+
+lsp --> server
+deactivate lsp
+server --> client
+
+' ============================================================
+' SEMANTIC TOKENS SEQUENCE
+' ============================================================
+
+== Semantic Tokens ==
+
+client -> server : semantic tokens request
+server -> lsp : semantic_tokens_full(params)
+activate lsp
+
+lsp -> handlers : semantic_tokens_full(state, params)
+activate handlers
+handlers -> state : with_database(|db| ...)
+activate state
+state -> project : database_snapshot()
+project --> state : db
+state -> ide : semantic_tokens(db, file_id)
+activate ide
+ide -> db : file_symbols(file_id)
+ide -> ide : classify tokens\n(keyword, type, variable, etc.)
+ide --> state : Vec<SemanticToken>
+deactivate ide
+state --> handlers
+deactivate state
+handlers -> handlers : encode to delta format
+handlers --> lsp : SemanticTokensResult
+deactivate handlers
+
+lsp --> server
+deactivate lsp
+server --> client
+
+' ============================================================
+' LEGEND
+' ============================================================
+
+note right of client
+    **Key Files:**
+    • trust-lsp/src/main.rs - StLanguageServer
+    • trust-lsp/src/state.rs - ServerState
+    • trust-lsp/src/handlers/*.rs - Request handlers
+    • trust-ide/src/*.rs - IDE features
+    • trust-hir/src/project.rs - Project + SourceRegistry
+    • trust-hir/src/db/queries.rs - Database
+
+    **ServerState (state.rs):**
+    documents: RwLock<FxHashMap<Url, Document>>
+    project: RwLock<Project>
+    workspace_folders: RwLock<Vec<Url>>
+
+    **IDE Functions (trust-ide/src/lib.rs):**
+    • complete() - Completion
+    • hover() - Hover info
+    • goto_definition() - Navigate
+    • find_references() - All usages
+    • rename() - Safe rename
+    • semantic_tokens() - Highlighting
+end note
+
+note right of handlers
+    Workspace file-watch integration
+    via didChangeWatchedFiles.
+    index_workspace skips already
+    tracked files (incremental).
+end note
+
+@enduml

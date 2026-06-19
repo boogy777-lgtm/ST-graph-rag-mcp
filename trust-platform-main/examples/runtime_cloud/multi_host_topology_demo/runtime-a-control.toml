@@ -1,0 +1,75 @@
+[bundle]
+version = 1
+
+[resource]
+name = "runtime-a-control"
+cycle_interval_ms = 20
+
+[runtime.control]
+endpoint = "unix:///tmp/trust-topology-runtime-a-control.sock"
+mode = "production"
+debug_enabled = false
+
+[runtime.web]
+enabled = true
+listen = "127.0.0.1:19181"
+auth = "local"
+tls = false
+
+[runtime.tls]
+mode = "disabled"
+require_remote = false
+
+[runtime.discovery]
+enabled = true
+service_name = "runtime-a-control"
+advertise = true
+interfaces = ["lo"]
+host_group = "cell-a-edge-ipc"
+
+[runtime.mesh]
+enabled = true
+role = "peer"
+listen = "127.0.0.1:5311"
+connect = [
+  "127.0.0.1:5312",
+  "127.0.0.1:5313"
+]
+tls = false
+zenohd_version = "1.7.2"
+plugin_versions = {}
+publish = [
+  "LineA.Control.State",
+  "LineA.Control.CycleMs"
+]
+
+[runtime.mesh.subscribe]
+"runtime-a-gateway:LineA.Gateway.Events" = "LineA.Gateway.Events"
+"runtime-b-control:LineB.Control.State" = "LineB.Control.State"
+
+[runtime.cloud]
+profile = "dev"
+
+[runtime.cloud.wan]
+allow_write = []
+
+[runtime.cloud.links]
+transports = [
+  { source = "runtime-a-control", target = "runtime-b-control", transport = "realtime" },
+  { source = "runtime-a-control", target = "runtime-a-gateway", transport = "zenoh" }
+]
+
+[runtime.log]
+level = "info"
+
+[runtime.retain]
+mode = "none"
+save_interval_ms = 1000
+
+[runtime.watchdog]
+enabled = false
+timeout_ms = 5000
+action = "halt"
+
+[runtime.fault]
+policy = "halt"

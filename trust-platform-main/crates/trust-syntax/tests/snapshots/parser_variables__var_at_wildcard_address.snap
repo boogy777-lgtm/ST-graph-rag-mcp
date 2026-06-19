@@ -1,0 +1,23 @@
+---
+source: crates/trust-syntax/tests/parser_variables.rs
+expression: "snapshot_parse(r#\"PROGRAM Test\nVAR\n    input AT %I* : BOOL;\nEND_VAR\nEND_PROGRAM\"#)"
+---
+SourceFile@0..61
+  Program@0..61
+    KwProgram@0..7 "PROGRAM"
+    Name@7..13
+      Ident@8..12 "Test"
+    VarBlock@13..50
+      KwVar@13..16 "VAR"
+      VarDecl@16..42
+        Name@16..27
+          Ident@21..26 "input"
+        KwAt@27..29 "AT"
+        DirectAddress@30..33 "%I*"
+        Colon@34..35 ":"
+        TypeRef@35..40
+          KwBool@36..40 "BOOL"
+        Semicolon@40..41 ";"
+      KwEndVar@42..49 "END_VAR"
+    StmtList@50..50
+    KwEndProgram@50..61 "END_PROGRAM"

@@ -1,0 +1,32 @@
+{
+  "detected_ecosystem": "codesys",
+  "discovered_pous": 3,
+  "imported_pous": 2,
+  "imported_data_types": 1,
+  "discovered_configurations": 1,
+  "imported_configurations": 1,
+  "imported_resources": 1,
+  "imported_tasks": 2,
+  "imported_program_instances": 2,
+  "compatibility_coverage": {
+    "supported_items": 2,
+    "partial_items": 5,
+    "unsupported_items": 1,
+    "verdict": "partial"
+  },
+  "unsupported_nodes": [
+    "types/dataTypes/GoodType",
+    "types/dataTypes/BrokenType",
+    "addData/globalVars/GlobalVars1",
+    "instances/globalVars",
+    "pouType:DATA_BLOCK"
+  ],
+  "diagnostic_codes": [
+    "PLCO103",
+    "PLCO203",
+    "PLCO402",
+    "PLCO403",
+    "PLCO601",
+    "PLCO506"
+  ]
+}

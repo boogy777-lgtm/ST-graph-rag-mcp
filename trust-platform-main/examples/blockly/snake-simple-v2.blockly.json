@@ -1,0 +1,754 @@
+{
+  "blocks": {
+    "languageVersion": 0,
+    "blocks": [
+      {
+        "type": "variables_set",
+        "id": "block_1",
+        "x": 100,
+        "y": 50,
+        "fields": {
+          "VAR": {
+            "id": "var_position"
+          }
+        },
+        "inputs": {
+          "VALUE": {
+            "block": {
+              "type": "math_number",
+              "id": "block_2",
+              "fields": {
+                "NUM": 0
+              }
+            }
+          }
+        },
+        "next": {
+          "block": {
+            "type": "variables_set",
+            "id": "block_3",
+            "fields": {
+              "VAR": {
+                "id": "var_direction"
+              }
+            },
+            "inputs": {
+              "VALUE": {
+                "block": {
+                  "type": "math_number",
+                  "id": "block_4",
+                  "fields": {
+                    "NUM": 1
+                  }
+                }
+              }
+            },
+            "next": {
+              "block": {
+                "type": "controls_whileUntil",
+                "id": "block_5",
+                "fields": {
+                  "MODE": "WHILE"
+                },
+                "inputs": {
+                  "BOOL": {
+                    "block": {
+                      "type": "logic_boolean",
+                      "id": "block_6",
+                      "fields": {
+                        "BOOL": "TRUE"
+                      }
+                    }
+                  },
+                  "DO": {
+                    "block": {
+                      "type": "io_digital_write",
+                      "id": "block_7",
+                      "fields": {
+                        "ADDRESS": "%QX0.0"
+                      },
+                      "inputs": {
+                        "VALUE": {
+                          "block": {
+                            "type": "logic_compare",
+                            "id": "block_8",
+                            "fields": {
+                              "OP": "EQ"
+                            },
+                            "inputs": {
+                              "A": {
+                                "block": {
+                                  "type": "variables_get",
+                                  "id": "block_9",
+                                  "fields": {
+                                    "VAR": {
+                                      "id": "var_position"
+                                    }
+                                  }
+                                }
+                              },
+                              "B": {
+                                "block": {
+                                  "type": "math_number",
+                                  "id": "block_10",
+                                  "fields": {
+                                    "NUM": 0
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "next": {
+                        "block": {
+                          "type": "io_digital_write",
+                          "id": "block_11",
+                          "fields": {
+                            "ADDRESS": "%QX0.1"
+                          },
+                          "inputs": {
+                            "VALUE": {
+                              "block": {
+                                "type": "logic_compare",
+                                "id": "block_12",
+                                "fields": {
+                                  "OP": "EQ"
+                                },
+                                "inputs": {
+                                  "A": {
+                                    "block": {
+                                      "type": "variables_get",
+                                      "id": "block_13",
+                                      "fields": {
+                                        "VAR": {
+                                          "id": "var_position"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "B": {
+                                    "block": {
+                                      "type": "math_number",
+                                      "id": "block_14",
+                                      "fields": {
+                                        "NUM": 1
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "next": {
+                            "block": {
+                              "type": "io_digital_write",
+                              "id": "block_15",
+                              "fields": {
+                                "ADDRESS": "%QX0.2"
+                              },
+                              "inputs": {
+                                "VALUE": {
+                                  "block": {
+                                    "type": "logic_compare",
+                                    "id": "block_16",
+                                    "fields": {
+                                      "OP": "EQ"
+                                    },
+                                    "inputs": {
+                                      "A": {
+                                        "block": {
+                                          "type": "variables_get",
+                                          "id": "block_17",
+                                          "fields": {
+                                            "VAR": {
+                                              "id": "var_position"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      "B": {
+                                        "block": {
+                                          "type": "math_number",
+                                          "id": "block_18",
+                                          "fields": {
+                                            "NUM": 2
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "next": {
+                                "block": {
+                                  "type": "io_digital_write",
+                                  "id": "block_19",
+                                  "fields": {
+                                    "ADDRESS": "%QX0.3"
+                                  },
+                                  "inputs": {
+                                    "VALUE": {
+                                      "block": {
+                                        "type": "logic_compare",
+                                        "id": "block_20",
+                                        "fields": {
+                                          "OP": "EQ"
+                                        },
+                                        "inputs": {
+                                          "A": {
+                                            "block": {
+                                              "type": "variables_get",
+                                              "id": "block_21",
+                                              "fields": {
+                                                "VAR": {
+                                                  "id": "var_position"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "B": {
+                                            "block": {
+                                              "type": "math_number",
+                                              "id": "block_22",
+                                              "fields": {
+                                                "NUM": 3
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "next": {
+                                    "block": {
+                                      "type": "io_digital_write",
+                                      "id": "block_23",
+                                      "fields": {
+                                        "ADDRESS": "%QX0.4"
+                                      },
+                                      "inputs": {
+                                        "VALUE": {
+                                          "block": {
+                                            "type": "logic_compare",
+                                            "id": "block_24",
+                                            "fields": {
+                                              "OP": "EQ"
+                                            },
+                                            "inputs": {
+                                              "A": {
+                                                "block": {
+                                                  "type": "variables_get",
+                                                  "id": "block_25",
+                                                  "fields": {
+                                                    "VAR": {
+                                                      "id": "var_position"
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "B": {
+                                                "block": {
+                                                  "type": "math_number",
+                                                  "id": "block_26",
+                                                  "fields": {
+                                                    "NUM": 4
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      },
+                                      "next": {
+                                        "block": {
+                                          "type": "io_digital_write",
+                                          "id": "block_27",
+                                          "fields": {
+                                            "ADDRESS": "%QX0.5"
+                                          },
+                                          "inputs": {
+                                            "VALUE": {
+                                              "block": {
+                                                "type": "logic_compare",
+                                                "id": "block_28",
+                                                "fields": {
+                                                  "OP": "EQ"
+                                                },
+                                                "inputs": {
+                                                  "A": {
+                                                    "block": {
+                                                      "type": "variables_get",
+                                                      "id": "block_29",
+                                                      "fields": {
+                                                        "VAR": {
+                                                          "id": "var_position"
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "B": {
+                                                    "block": {
+                                                      "type": "math_number",
+                                                      "id": "block_30",
+                                                      "fields": {
+                                                        "NUM": 5
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "next": {
+                                            "block": {
+                                              "type": "io_digital_write",
+                                              "id": "block_31",
+                                              "fields": {
+                                                "ADDRESS": "%QX0.6"
+                                              },
+                                              "inputs": {
+                                                "VALUE": {
+                                                  "block": {
+                                                    "type": "logic_compare",
+                                                    "id": "block_32",
+                                                    "fields": {
+                                                      "OP": "EQ"
+                                                    },
+                                                    "inputs": {
+                                                      "A": {
+                                                        "block": {
+                                                          "type": "variables_get",
+                                                          "id": "block_33",
+                                                          "fields": {
+                                                            "VAR": {
+                                                              "id": "var_position"
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      "B": {
+                                                        "block": {
+                                                          "type": "math_number",
+                                                          "id": "block_34",
+                                                          "fields": {
+                                                            "NUM": 6
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "next": {
+                                                "block": {
+                                                  "type": "io_digital_write",
+                                                  "id": "block_35",
+                                                  "fields": {
+                                                    "ADDRESS": "%QX0.7"
+                                                  },
+                                                  "inputs": {
+                                                    "VALUE": {
+                                                      "block": {
+                                                        "type": "logic_compare",
+                                                        "id": "block_36",
+                                                        "fields": {
+                                                          "OP": "EQ"
+                                                        },
+                                                        "inputs": {
+                                                          "A": {
+                                                            "block": {
+                                                              "type": "variables_get",
+                                                              "id": "block_37",
+                                                              "fields": {
+                                                                "VAR": {
+                                                                  "id": "var_position"
+                                                                }
+                                                              }
+                                                            }
+                                                          },
+                                                          "B": {
+                                                            "block": {
+                                                              "type": "math_number",
+                                                              "id": "block_38",
+                                                              "fields": {
+                                                                "NUM": 7
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "next": {
+                                                    "block": {
+                                                      "type": "controls_if",
+                                                      "id": "block_39",
+                                                      "inputs": {
+                                                        "IF0": {
+                                                          "block": {
+                                                            "type": "logic_compare",
+                                                            "id": "block_40",
+                                                            "fields": {
+                                                              "OP": "EQ"
+                                                            },
+                                                            "inputs": {
+                                                              "A": {
+                                                                "block": {
+                                                                  "type": "variables_get",
+                                                                  "id": "block_41",
+                                                                  "fields": {
+                                                                    "VAR": {
+                                                                      "id": "var_direction"
+                                                                    }
+                                                                  }
+                                                                }
+                                                              },
+                                                              "B": {
+                                                                "block": {
+                                                                  "type": "math_number",
+                                                                  "id": "block_42",
+                                                                  "fields": {
+                                                                    "NUM": 1
+                                                                  }
+                                                                }
+                                                              }
+                                                            }
+                                                          }
+                                                        },
+                                                        "DO0": {
+                                                          "block": {
+                                                            "type": "variables_set",
+                                                            "id": "block_43",
+                                                            "fields": {
+                                                              "VAR": {
+                                                                "id": "var_position"
+                                                              }
+                                                            },
+                                                            "inputs": {
+                                                              "VALUE": {
+                                                                "block": {
+                                                                  "type": "math_arithmetic",
+                                                                  "id": "block_44",
+                                                                  "fields": {
+                                                                    "OP": "ADD"
+                                                                  },
+                                                                  "inputs": {
+                                                                    "A": {
+                                                                      "block": {
+                                                                        "type": "variables_get",
+                                                                        "id": "block_45",
+                                                                        "fields": {
+                                                                          "VAR": {
+                                                                            "id": "var_position"
+                                                                          }
+                                                                        }
+                                                                      }
+                                                                    },
+                                                                    "B": {
+                                                                      "block": {
+                                                                        "type": "math_number",
+                                                                        "id": "block_46",
+                                                                        "fields": {
+                                                                          "NUM": 1
+                                                                        }
+                                                                      }
+                                                                    }
+                                                                  }
+                                                                }
+                                                              }
+                                                            },
+                                                            "next": {
+                                                              "block": {
+                                                                "type": "controls_if",
+                                                                "id": "block_47",
+                                                                "inputs": {
+                                                                  "IF0": {
+                                                                    "block": {
+                                                                      "type": "logic_compare",
+                                                                      "id": "block_48",
+                                                                      "fields": {
+                                                                        "OP": "GT"
+                                                                      },
+                                                                      "inputs": {
+                                                                        "A": {
+                                                                          "block": {
+                                                                            "type": "variables_get",
+                                                                            "id": "block_49",
+                                                                            "fields": {
+                                                                              "VAR": {
+                                                                                "id": "var_position"
+                                                                              }
+                                                                            }
+                                                                          }
+                                                                        },
+                                                                        "B": {
+                                                                          "block": {
+                                                                            "type": "math_number",
+                                                                            "id": "block_50",
+                                                                            "fields": {
+                                                                              "NUM": 7
+                                                                            }
+                                                                          }
+                                                                        }
+                                                                      }
+                                                                    }
+                                                                  },
+                                                                  "DO0": {
+                                                                    "block": {
+                                                                      "type": "variables_set",
+                                                                      "id": "block_51",
+                                                                      "fields": {
+                                                                        "VAR": {
+                                                                          "id": "var_position"
+                                                                        }
+                                                                      },
+                                                                      "inputs": {
+                                                                        "VALUE": {
+                                                                          "block": {
+                                                                            "type": "math_number",
+                                                                            "id": "block_52",
+                                                                            "fields": {
+                                                                              "NUM": 7
+                                                                            }
+                                                                          }
+                                                                        }
+                                                                      },
+                                                                      "next": {
+                                                                        "block": {
+                                                                          "type": "variables_set",
+                                                                          "id": "block_53",
+                                                                          "fields": {
+                                                                            "VAR": {
+                                                                              "id": "var_direction"
+                                                                            }
+                                                                          },
+                                                                          "inputs": {
+                                                                            "VALUE": {
+                                                                              "block": {
+                                                                                "type": "math_number",
+                                                                                "id": "block_54",
+                                                                                "fields": {
+                                                                                  "NUM": -1
+                                                                                }
+                                                                              }
+                                                                            }
+                                                                          }
+                                                                        }
+                                                                      }
+                                                                    }
+                                                                  }
+                                                                }
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      "next": {
+                                                        "block": {
+                                                          "type": "controls_if",
+                                                          "id": "block_55",
+                                                          "inputs": {
+                                                            "IF0": {
+                                                              "block": {
+                                                                "type": "logic_compare",
+                                                                "id": "block_56",
+                                                                "fields": {
+                                                                  "OP": "EQ"
+                                                                },
+                                                                "inputs": {
+                                                                  "A": {
+                                                                    "block": {
+                                                                      "type": "variables_get",
+                                                                      "id": "block_57",
+                                                                      "fields": {
+                                                                        "VAR": {
+                                                                          "id": "var_direction"
+                                                                        }
+                                                                      }
+                                                                    }
+                                                                  },
+                                                                  "B": {
+                                                                    "block": {
+                                                                      "type": "math_number",
+                                                                      "id": "block_58",
+                                                                      "fields": {
+                                                                        "NUM": -1
+                                                                      }
+                                                                    }
+                                                                  }
+                                                                }
+                                                              }
+                                                            },
+                                                            "DO0": {
+                                                              "block": {
+                                                                "type": "variables_set",
+                                                                "id": "block_59",
+                                                                "fields": {
+                                                                  "VAR": {
+                                                                    "id": "var_position"
+                                                                  }
+                                                                },
+                                                                "inputs": {
+                                                                  "VALUE": {
+                                                                    "block": {
+                                                                      "type": "math_arithmetic",
+                                                                      "id": "block_60",
+                                                                      "fields": {
+                                                                        "OP": "MINUS"
+                                                                      },
+                                                                      "inputs": {
+                                                                        "A": {
+                                                                          "block": {
+                                                                            "type": "variables_get",
+                                                                            "id": "block_61",
+                                                                            "fields": {
+                                                                              "VAR": {
+                                                                                "id": "var_position"
+                                                                              }
+                                                                            }
+                                                                          }
+                                                                        },
+                                                                        "B": {
+                                                                          "block": {
+                                                                            "type": "math_number",
+                                                                            "id": "block_62",
+                                                                            "fields": {
+                                                                              "NUM": 1
+                                                                            }
+                                                                          }
+                                                                        }
+                                                                      }
+                                                                    }
+                                                                  }
+                                                                },
+                                                                "next": {
+                                                                  "block": {
+                                                                    "type": "controls_if",
+                                                                    "id": "block_63",
+                                                                    "inputs": {
+                                                                      "IF0": {
+                                                                        "block": {
+                                                                          "type": "logic_compare",
+                                                                          "id": "block_64",
+                                                                          "fields": {
+                                                                            "OP": "LT"
+                                                                          },
+                                                                          "inputs": {
+                                                                            "A": {
+                                                                              "block": {
+                                                                                "type": "variables_get",
+                                                                                "id": "block_65",
+                                                                                "fields": {
+                                                                                  "VAR": {
+                                                                                    "id": "var_position"
+                                                                                  }
+                                                                                }
+                                                                              }
+                                                                            },
+                                                                            "B": {
+                                                                              "block": {
+                                                                                "type": "math_number",
+                                                                                "id": "block_66",
+                                                                                "fields": {
+                                                                                  "NUM": 0
+                                                                                }
+                                                                              }
+                                                                            }
+                                                                          }
+                                                                        }
+                                                                      },
+                                                                      "DO0": {
+                                                                        "block": {
+                                                                          "type": "variables_set",
+                                                                          "id": "block_67",
+                                                                          "fields": {
+                                                                            "VAR": {
+                                                                              "id": "var_position"
+                                                                            }
+                                                                          },
+                                                                          "inputs": {
+                                                                            "VALUE": {
+                                                                              "block": {
+                                                                                "type": "math_number",
+                                                                                "id": "block_68",
+                                                                                "fields": {
+                                                                                  "NUM": 0
+                                                                                }
+                                                                              }
+                                                                            }
+                                                                          },
+                                                                          "next": {
+                                                                            "block": {
+                                                                              "type": "variables_set",
+                                                                              "id": "block_69",
+                                                                              "fields": {
+                                                                                "VAR": {
+                                                                                  "id": "var_direction"
+                                                                                }
+                                                                              },
+                                                                              "inputs": {
+                                                                                "VALUE": {
+                                                                                  "block": {
+                                                                                    "type": "math_number",
+                                                                                    "id": "block_70",
+                                                                                    "fields": {
+                                                                                      "NUM": 1
+                                                                                    }
+                                                                                  }
+                                                                                }
+                                                                              }
+                                                                            }
+                                                                          }
+                                                                        }
+                                                                      }
+                                                                    }
+                                                                  }
+                                                                }
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "variables": [
+    {
+      "name": "position",
+      "id": "var_position"
+    },
+    {
+      "name": "direction",
+      "id": "var_direction"
+    }
+  ],
+  "metadata": {
+    "name": "snake-simple-v2",
+    "description": "Snake/Knight Rider effect with bidirectional LED sweep - visible block structure",
+    "mode": "hardware"
+  }
+}

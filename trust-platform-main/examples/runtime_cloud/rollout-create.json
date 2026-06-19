@@ -1,0 +1,9 @@
+{
+  "api_version": "1.0",
+  "actor": "spiffe://trust/site-a/engineer-1",
+  "target_runtimes": [
+    "site-a/runtime-a",
+    "site-a/runtime-b"
+  ],
+  "desired_revision": 4
+}

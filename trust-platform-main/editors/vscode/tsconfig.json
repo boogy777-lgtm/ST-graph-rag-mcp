@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "CommonJS",
+    "lib": ["ES2020"],
+    "rootDir": "src",
+    "outDir": "out",
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  },
+  "include": ["src"],
+  "exclude": [
+    "node_modules",
+    ".vscode-test",
+    "src/statechart/webview/**",
+    "src/blockly/webview/**",
+    "src/ladder/webview/**",
+    "src/sfc/webview/**",
+    "src/visual/runtime/webview/**"
+  ]
+}

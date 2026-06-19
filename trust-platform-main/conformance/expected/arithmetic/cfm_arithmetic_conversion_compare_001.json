@@ -1,0 +1,38 @@
+{
+  "case_id": "cfm_arithmetic_conversion_compare_001",
+  "category": "arithmetic",
+  "cycles": 1,
+  "description": "Conversion boundaries and comparison corner cases",
+  "kind": "runtime",
+  "trace": [
+    {
+      "cycle": 1,
+      "direct": {},
+      "errors": [],
+      "globals": {
+        "cmp_eq": {
+          "type": "BOOL",
+          "value": true
+        },
+        "cmp_lt": {
+          "type": "BOOL",
+          "value": true
+        },
+        "near_max": {
+          "type": "DINT",
+          "value": 2147483646
+        },
+        "rounded_even_high": {
+          "type": "INT",
+          "value": 2
+        },
+        "rounded_even_low": {
+          "type": "INT",
+          "value": 2
+        }
+      },
+      "runtime_time_nanos": 0
+    }
+  ],
+  "version": 1
+}

@@ -1,0 +1,78 @@
+@startuml debug-state-machine
+!theme plain
+skinparam stateFontSize 12
+
+title Debug Control State Machine
+
+[*] --> AwaitingConfig : adapter created
+
+state "Launch State" as launch {
+    state AwaitingConfig {
+        AwaitingConfig : pending: Option<PendingStart>\n(launch or attach)
+    }
+
+    state Configured
+
+    state PostLaunch {
+        PostLaunch : pause_after_launch
+        PostLaunch : start_runner_after_launch
+    }
+
+    AwaitingConfig --> Configured : configurationDone\n(no pending)
+    AwaitingConfig --> PostLaunch : configurationDone\n(pending launch)
+    AwaitingConfig --> Configured : configurationDone\n(pending attach)
+    AwaitingConfig --> AwaitingConfig : attachRequest\n(defer until configurationDone)
+    PostLaunch --> Configured : actions drained
+}
+
+state "Debug Mode" as debug {
+    state Running
+    state Paused
+
+    Running --> Paused : breakpoint hit\npause request\nstopOnEntry (entry)
+    Paused --> Running : continue
+    Paused --> Paused : pause (no-op)
+    Paused --> Running : stepIn/next/stepOut\n(step state set)
+}
+
+state "Step State" as step {
+    state Idle
+    state StepInto {
+        StepInto : target_depth = current\n(next statement)
+    }
+    state StepOver {
+        StepOver : target_depth = current
+    }
+    state StepOut {
+        StepOut : target_depth = current - 1
+    }
+
+    Idle --> StepInto : stepIn (from Paused)
+    Idle --> StepOver : next (from Paused)
+    Idle --> StepOut : stepOut (from Paused)
+    StepInto --> Idle : condition met
+    StepOver --> Idle : condition met
+    StepOut --> Idle : condition met
+}
+
+note right of step
+    Step state is per-thread
+    (multi-resource ready).
+end note
+
+Configured --> Running : start_runner()\n(no pause_after_launch)
+Configured --> Paused : start_runner()\n(pause_after_launch)
+Configured --> Running : attach (runtime running)
+Configured --> Paused : attach (runtime paused)\n(stopped event)
+Running --> [*] : disconnect
+
+state "Reload" as reload {
+    state Reloading
+}
+
+Running --> Reloading : stReload
+Paused --> Reloading : stReload
+Reloading --> Running : was_running
+Reloading --> Paused : was_paused
+
+@enduml

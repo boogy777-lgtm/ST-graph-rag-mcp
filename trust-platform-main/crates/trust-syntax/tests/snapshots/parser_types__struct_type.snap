@@ -1,0 +1,29 @@
+---
+source: crates/trust-syntax/tests/parser_types.rs
+expression: "snapshot_parse(r#\"TYPE\n    Point : STRUCT\n        x : REAL;\n        y : REAL;\n    END_STRUCT;\nEND_TYPE\"#)"
+---
+SourceFile@0..84
+  TypeDecl@0..84
+    KwType@0..4 "TYPE"
+    Name@4..15
+      Ident@9..14 "Point"
+    Colon@15..16 ":"
+    StructDef@16..74
+      KwStruct@17..23 "STRUCT"
+      VarDecl@23..50
+        Name@23..34
+          Ident@32..33 "x"
+        Colon@34..35 ":"
+        TypeRef@35..40
+          KwReal@36..40 "REAL"
+        Semicolon@40..41 ";"
+      VarDecl@50..64
+        Name@50..52
+          Ident@50..51 "y"
+        Colon@52..53 ":"
+        TypeRef@53..58
+          KwReal@54..58 "REAL"
+        Semicolon@58..59 ";"
+      KwEndStruct@64..74 "END_STRUCT"
+    Semicolon@74..75 ";"
+    KwEndType@76..84 "END_TYPE"

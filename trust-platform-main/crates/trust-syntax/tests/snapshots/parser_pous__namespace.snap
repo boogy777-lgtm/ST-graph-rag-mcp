@@ -1,0 +1,19 @@
+---
+source: crates/trust-syntax/tests/parser_pous.rs
+expression: "snapshot_parse(r#\"NAMESPACE MyLib\n    FUNCTION Helper : INT\n    END_FUNCTION\nEND_NAMESPACE\"#)"
+---
+SourceFile@0..72
+  Namespace@0..72
+    KwNamespace@0..9 "NAMESPACE"
+    Name@9..20
+      Ident@10..15 "MyLib"
+    Function@20..59
+      KwFunction@20..28 "FUNCTION"
+      Name@28..36
+        Ident@29..35 "Helper"
+      Colon@36..37 ":"
+      TypeRef@37..46
+        KwInt@38..41 "INT"
+      StmtList@46..46
+      KwEndFunction@46..58 "END_FUNCTION"
+    KwEndNamespace@59..72 "END_NAMESPACE"

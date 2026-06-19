@@ -1,0 +1,60 @@
+---
+source: crates/trust-syntax/tests/parser_literals.rs
+assertion_line: 69
+expression: "snapshot_parse(r#\"PROGRAM Test\n    t1 := T#1h30m;\n    t2 := TIME#500ms;\n    t3 := LT#14.7s;\n    t4 := LTIME#5m_30s_500ms_100.1us;\n    t5 := T#-14ms;\n    t6 := t#12h4m34ms230us400ns;\nEND_PROGRAM\"#)"
+---
+SourceFile@0..175
+  Program@0..175
+    KwProgram@0..7 "PROGRAM"
+    Name@7..17
+      Ident@8..12 "Test"
+    StmtList@17..164
+      AssignStmt@17..36
+        BinaryExpr@17..30
+          NameRef@17..20
+            Ident@17..19 "t1"
+          Assign@20..22 ":="
+          Literal@22..30
+            TimeLiteral@23..30 "T#1h30m"
+        Semicolon@30..31 ";"
+      AssignStmt@36..58
+        BinaryExpr@36..52
+          NameRef@36..39
+            Ident@36..38 "t2"
+          Assign@39..41 ":="
+          Literal@41..52
+            TimeLiteral@42..52 "TIME#500ms"
+        Semicolon@52..53 ";"
+      AssignStmt@58..78
+        BinaryExpr@58..72
+          NameRef@58..61
+            Ident@58..60 "t3"
+          Assign@61..63 ":="
+          Literal@63..72
+            TimeLiteral@64..72 "LT#14.7s"
+        Semicolon@72..73 ";"
+      AssignStmt@78..116
+        BinaryExpr@78..110
+          NameRef@78..81
+            Ident@78..80 "t4"
+          Assign@81..83 ":="
+          Literal@83..110
+            TimeLiteral@84..110 "LTIME#5m_30s_500ms_100.1us"
+        Semicolon@110..111 ";"
+      AssignStmt@116..135
+        BinaryExpr@116..129
+          NameRef@116..119
+            Ident@116..118 "t5"
+          Assign@119..121 ":="
+          Literal@121..129
+            TimeLiteral@122..129 "T#-14ms"
+        Semicolon@129..130 ";"
+      AssignStmt@135..164
+        BinaryExpr@135..162
+          NameRef@135..138
+            Ident@135..137 "t6"
+          Assign@138..140 ":="
+          Literal@140..162
+            TimeLiteral@141..162 "t#12h4m34ms230us400ns"
+        Semicolon@162..163 ";"
+    KwEndProgram@164..175 "END_PROGRAM"

@@ -1,0 +1,7 @@
+[project]
+include_paths = ["src"]
+vendor_profile = "codesys"
+stdlib = "iec"
+
+[runtime]
+control_endpoint = "unix:///tmp/trust-debug.sock"

@@ -1,0 +1,49 @@
+---
+source: crates/trust-syntax/tests/parser_types.rs
+expression: "snapshot_parse(r#\"TYPE\n    IntArray : ARRAY[0..9] OF INT;\n    Matrix : ARRAY[0..2, 0..2] OF REAL;\nEND_TYPE\"#)"
+---
+SourceFile@0..88
+  TypeDecl@0..88
+    KwType@0..4 "TYPE"
+    Name@4..18
+      Ident@9..17 "IntArray"
+    Colon@18..19 ":"
+    ArrayType@19..38
+      KwArray@20..25 "ARRAY"
+      LBracket@25..26 "["
+      Subrange@26..30
+        Literal@26..27
+          IntLiteral@26..27 "0"
+        DotDot@27..29 ".."
+        Literal@29..30
+          IntLiteral@29..30 "9"
+      RBracket@30..31 "]"
+      KwOf@32..34 "OF"
+      TypeRef@34..38
+        KwInt@35..38 "INT"
+    Semicolon@38..39 ";"
+    Name@39..51
+      Ident@44..50 "Matrix"
+    Colon@51..52 ":"
+    ArrayType@52..78
+      KwArray@53..58 "ARRAY"
+      LBracket@58..59 "["
+      Subrange@59..63
+        Literal@59..60
+          IntLiteral@59..60 "0"
+        DotDot@60..62 ".."
+        Literal@62..63
+          IntLiteral@62..63 "2"
+      Comma@63..64 ","
+      Subrange@64..69
+        Literal@64..66
+          IntLiteral@65..66 "0"
+        DotDot@66..68 ".."
+        Literal@68..69
+          IntLiteral@68..69 "2"
+      RBracket@69..70 "]"
+      KwOf@71..73 "OF"
+      TypeRef@73..78
+        KwReal@74..78 "REAL"
+    Semicolon@78..79 ";"
+    KwEndType@80..88 "END_TYPE"

@@ -1,0 +1,11 @@
+PROGRAM Main
+VAR RETAIN
+    r : INT := 1;
+END_VAR
+VAR NON_RETAIN
+    n : INT := 2;
+END_VAR
+VAR
+    u : INT := 3;
+END_VAR
+END_PROGRAM

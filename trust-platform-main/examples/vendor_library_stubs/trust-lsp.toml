@@ -1,0 +1,8 @@
+[project]
+include_paths = ["src"]
+vendor_profile = "siemens"
+
+[[libraries]]
+name = "siemens-stubs"
+path = "vendor/siemens"
+version = "0.1.0"

@@ -1,0 +1,117 @@
+@startuml thread-architecture
+!theme plain
+skinparam componentStyle uml2
+
+title Debug Adapter Thread Architecture
+
+package "Main Thread" as main {
+    component "Protocol Loop\nrun_stdio()" as protocolLoop
+    component "dispatch_request()" as dispatch
+    component "ThreadMapper" as threadMap
+    component "StopCoordinator" as stopCoord
+    component "BreakpointManager" as bpManager
+    component "PausedStateView" as pausedView
+
+    protocolLoop --> dispatch
+    dispatch --> stopCoord
+    dispatch --> bpManager
+    dispatch --> pausedView
+}
+
+package "Log Thread" as logT #LightGreen {
+    component "Log Receiver" as logRecv
+    note bottom: Converts DebugLog\n→ output events
+}
+
+package "IO Thread" as ioT #LightBlue {
+    component "IO Receiver" as ioRecv
+    note bottom: Rate-limited\nstIoState events\n(150ms min interval)
+}
+
+package "Stop Thread" as stopT #LightCoral {
+    component "Stop Receiver" as stopRecv
+    note bottom: Converts DebugStop\n→ stopped events\n+ invalidated events
+}
+
+package "Remote Poller" as remoteT #LightCoral {
+    component "RemoteStopPoller" as remotePoller
+    note bottom: Polls control IPC\n(debug.stops)\n→ stopped events
+}
+
+package "Runner Thread" as runnerT #LightYellow {
+    component "Cycle Executor" as cycleExec
+    note bottom: Calls execute_cycle()\nin tight loop
+}
+
+database "Channels" as channels {
+    component "log_tx/rx" as logChan
+    component "io_tx/rx" as ioChan
+    component "stop_tx/rx" as stopChan
+}
+
+cloud "Runtime" as runtime {
+    component "DebugControl" as debugControl
+    component "DebugHook" as hook
+    component "Task Registry" as taskRegistry
+}
+
+' Main thread connections
+dispatch ..> debugControl : control actions
+dispatch ..> threadMap : threads/stackTrace
+threadMap ..> taskRegistry : map tasks → DAP threadId
+
+' Channel connections
+debugControl --> logChan : DebugLog
+debugControl --> ioChan : IoSnapshot
+hook --> stopChan : DebugStop
+logChan ..> debugControl : closed receiver fallback\nretains DebugLog
+stopChan ..> debugControl : closed receiver fallback\nretains DebugStop
+
+logChan --> logRecv
+ioChan --> ioRecv
+stopChan --> stopRecv
+stopRecv --> stopCoord
+
+remotePoller ..> protocolLoop : stopped/output events\n(attach mode)
+remotePoller ..> stopCoord : uses StopGate ordering
+
+' Runner connection
+cycleExec --> runtime : execute_cycle()
+
+' Thread outputs to main
+logRecv ..> protocolLoop : output event
+ioRecv ..> protocolLoop : stIoState event
+stopRecv ..> protocolLoop : stopped event
+stopCoord ..> protocolLoop : ordered stopped + invalidated
+
+' Sync primitives
+note right of runtime
+    **Synchronization:**
+    • Arc<Mutex<Runtime>>
+    • Arc<AtomicBool> stop flags
+    • Condvar for pause/resume
+    • RuntimeEvent sender drops fall back
+      to DebugControl's event buffer
+end note
+
+note right of stopCoord
+    Centralizes DAP ordering
+    + breakpoint generation checks.
+end note
+
+note right of pausedView
+    Single read path for
+    stack/vars/expr while paused.
+end note
+
+note right of stopT
+    Stop reason integrity +
+    breakpoint generation guard
+end note
+
+note bottom of threadMap
+    IEC tasks map to threadId.
+    step/pause apply per thread.
+end note
+
+@enduml

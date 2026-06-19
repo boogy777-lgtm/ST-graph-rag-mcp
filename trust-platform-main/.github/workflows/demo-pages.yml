@@ -1,0 +1,98 @@
+name: Docs Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/public/**"
+      - "docs/guides/**"
+      - "docs/specs/**"
+      - "conformance/**"
+      - "docs/internal/assets/**"
+      - "mkdocs.yml"
+      - "README.md"
+      - "docs/README.md"
+      - "examples/README.md"
+      - "examples/**/README.md"
+      - "examples/tutorials/12_hmi_pid_process_dashboard/hmi/**"
+      - "examples/ladder/*.mp4"
+      - "examples/statecharts/*.mp4"
+      - "examples/blockly/*.mp4"
+      - "CHANGELOG.md"
+      - "scripts/check_public_docs_links.py"
+      - "scripts/check_example_catalog_links.py"
+      - "scripts/check_public_docs_assets.py"
+      - "scripts/check_public_docs_search.py"
+      - "scripts/generate_public_docs_media.py"
+      - "scripts/capture-public-docs-visual-editors.sh"
+      - "scripts/verify_public_docs_deploy.py"
+      - "editors/vscode/assets/**"
+      - ".github/workflows/demo-pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: docs-pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build Pages Artifact
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Install docs toolchain
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install mkdocs-material mkdocs-mermaid2-plugin
+      - name: Generate docs media
+        run: |
+          python scripts/generate_public_docs_media.py
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - name: Check docs links
+        run: |
+          python scripts/check_public_docs_ia.py
+          python scripts/check_public_docs_links.py
+          python scripts/check_example_catalog_links.py
+      - name: Build docs site
+        run: |
+          set -euo pipefail
+          mkdocs build --strict
+          python scripts/check_public_docs_assets.py
+          python scripts/check_public_docs_search.py
+          test -f site/public/index.html
+          test -f site/public/start/agent-quickstart/index.html
+          test -f site/public/connect/protocol-matrix/index.html
+          test -f site/public/operate/compile-validate-reload/index.html
+          test -f site/public/reference/agent-api/v1/index.html
+          touch site/public/.nojekyll
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/public
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - id: deployment
+        uses: actions/deploy-pages@v4
+      - name: Verify deployed pages
+        run: |
+          python scripts/verify_public_docs_deploy.py --base-url "${{ steps.deployment.outputs.page_url }}"

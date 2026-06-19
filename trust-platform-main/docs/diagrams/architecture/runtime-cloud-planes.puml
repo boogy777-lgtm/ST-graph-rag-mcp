@@ -1,0 +1,72 @@
+@startuml runtime-cloud-planes
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam componentStyle uml2
+skinparam linetype ortho
+skinparam nodesep 45
+skinparam ranksep 35
+
+title truST Runtime Cloud Planes (Zenoh + SHM + Gateway Plugins)
+
+package "Runtime (site-a/runtime-a)" as runtimeA #LightBlue {
+  component "T0 HardRT Plane\nOS-backed SHM ring\n(same host only)" as t0A
+  component "Runtime Cloud Service\npreflight/dispatch/config/rollout" as cloudA
+  database "Persisted Cloud State\nconfig/link/rollout JSON" as stateA
+  component "Zenoh Mesh Session\n(T1/T2/T3)" as meshA
+}
+
+package "Runtime (site-a/runtime-b)" as runtimeB #LightBlue {
+  component "T0 HardRT Plane\nOS-backed SHM ring\n(same host only)" as t0B
+  component "Runtime Cloud Service\npreflight/dispatch/config/rollout" as cloudB
+  database "Persisted Cloud State\nconfig/link/rollout JSON" as stateB
+  component "Zenoh Mesh Session\n(T1/T2/T3)" as meshB
+}
+
+package "Gateway Plugin Host (optional profile)" as gateway #Wheat {
+  component "acl plugin\n(default-deny + allowlist)" as aclPlugin
+  component "storage plugin\n(retention cfg/meta/audit)" as storagePlugin
+  component "bridge plugin\ncross-site policy + degraded mode" as bridgePlugin
+  component "api-rest plugin\ncommissioning + fleet APIs" as restPlugin
+  component "api-ws plugin\nweb client fanout" as wsPlugin
+  component "audit plugin\npublish diag/audit/**" as auditPlugin
+  component "ha-witness plugin\n(optional lease witness)" as witnessPlugin
+}
+
+package "Fleet Web UI (browser)" as fleetUi #AliceBlue {
+  component "Topology Composer\nHost -> Runtime -> Driver -> Endpoint" as topoComposer
+  component "Comms Editor\nruntime-owned io.toml drivers" as commsEditor
+}
+
+cloudA --> t0A : handle-only T0 APIs
+cloudB --> t0B : handle-only T0 APIs
+cloudA --> stateA : load/store\ncorrupt config => Error\ncorrupt link/rollout => startup error
+cloudB --> stateB : load/store\ncorrupt config => Error\ncorrupt link/rollout => startup error
+
+cloudA --> meshA : publish/query\nsnapshot timeout => error
+cloudB --> meshB : publish/query\nsnapshot timeout => error
+meshA <--> meshB : Zenoh keyspace + liveliness
+
+meshA --> bridgePlugin : gateway-assisted federation
+meshB --> bridgePlugin : gateway-assisted federation
+aclPlugin --> bridgePlugin : policy decisions
+storagePlugin --> bridgePlugin : retained desired/meta + snapshots
+auditPlugin --> bridgePlugin : protected-action audit emission
+witnessPlugin --> bridgePlugin : lease state
+bridgePlugin --> restPlugin : REST dispatch/preflight
+bridgePlugin --> wsPlugin : fleet web updates
+wsPlugin --> topoComposer : runtime-cloud state stream
+restPlugin --> commsEditor : read/write io config APIs
+commsEditor --> topoComposer : driver+endpoint projection
+
+note right of t0A
+  No fallback from T0 to mesh/IP.
+  Contract violations are deterministic.
+end note
+
+note bottom of gateway
+  Gateway profile is pluginized;
+  plugin failures remain bounded
+  and surfaced via diagnostics.
+end note
+
+@enduml

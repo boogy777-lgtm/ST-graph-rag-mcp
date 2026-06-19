@@ -1,0 +1,16 @@
+---
+source: crates/trust-syntax/tests/parser_statements.rs
+expression: "snapshot_parse(r#\"PROGRAM Test\n    JMP Target;\nEND_PROGRAM\"#)"
+---
+SourceFile@0..40
+  Program@0..40
+    KwProgram@0..7 "PROGRAM"
+    Name@7..17
+      Ident@8..12 "Test"
+    StmtList@17..29
+      JmpStmt@17..29
+        KwJmp@17..20 "JMP"
+        Name@20..27
+          Ident@21..27 "Target"
+        Semicolon@27..28 ";"
+    KwEndProgram@29..40 "END_PROGRAM"

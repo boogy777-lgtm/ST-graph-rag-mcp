@@ -1,0 +1,48 @@
+---
+source: crates/trust-hir/tests/iec_table_coverage.rs
+expression: report
+---
+Tables 5-9 (docs/specs/01-lexical-elements.md)
+  - iec_table5: ok [crates/trust-syntax/tests/lexer_literals.rs]
+  - iec_tables6_7: ok [crates/trust-syntax/tests/lexer_literals.rs]
+  - iec_tables8_9: ok [crates/trust-syntax/tests/lexer_literals.rs]
+
+Table 11 (docs/specs/02-data-types.md)
+  - iec_table11: ok [crates/trust-runtime/tests/types_user.rs]
+  - test_type_level_defaults_cover_directly_derived_shapes: ok [crates/trust-syntax/tests/parser_types.rs]
+
+Table 12 (docs/specs/02-data-types.md)
+  - iec_table12: ok [crates/trust-runtime/tests/types_ref.rs]
+
+Table 17 (docs/specs/02-data-types.md)
+  - table17: ok [crates/trust-runtime/tests/types_bit_access.rs]
+  - table17_fb: ok [crates/trust-runtime/tests/types_bit_access.rs]
+
+Table 13 (docs/specs/03-variables.md)
+  - iec_table13: ok [crates/trust-hir/tests/var_sections.rs]
+  - multi_name_struct_initializer_values_are_independent: ok [crates/trust-runtime/tests/struct_initializers.rs]
+
+Table 14 (docs/specs/03-variables.md)
+  - iec_table14: ok [crates/trust-runtime/tests/var_init.rs]
+  - named_struct_initializer_materializes_runtime_value: ok [crates/trust-runtime/tests/struct_initializers.rs]
+  - function_block_instance_initializer_applies_allowed_member_overrides: ok [crates/trust-runtime/tests/struct_initializers.rs]
+
+Table 41 (docs/specs/04-pou-declarations.md)
+  - function_block_instance_initializer_applies_allowed_member_overrides: ok [crates/trust-runtime/tests/struct_initializers.rs]
+  - function_local_fb_initializer_applies_in_vm_local_init: ok [crates/trust-runtime/tests/struct_initializers.rs]
+
+Table 15 (docs/specs/03-variables.md)
+  - iec_table15: ok [crates/trust-runtime/tests/var_vla.rs]
+
+Table 62 (docs/specs/09-semantic-rules.md)
+  - test_task_missing_priority_error: ok [crates/trust-hir/tests/semantic_type_checking/assignments_and_var_access.rs]
+  - test_task_single_requires_bool_literal: ok [crates/trust-hir/tests/semantic_type_checking/assignments_and_var_access.rs]
+  - test_task_interval_requires_time_literal: ok [crates/trust-hir/tests/semantic_type_checking/assignments_and_var_access.rs]
+  - test_program_with_unknown_task_error: ok [crates/trust-hir/tests/semantic_type_checking/assignments_and_var_access.rs]
+
+Tables 64-66 (docs/specs/09-semantic-rules.md)
+  - iec_table64: ok [crates/trust-hir/tests/namespaces.rs]
+  - iec_table66: ok [crates/trust-hir/tests/namespaces.rs]
+
+Table 72 (docs/specs/06-statements.md)
+  - iec_table72: ok [crates/trust-runtime/tests/stmt_full.rs]

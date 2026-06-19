@@ -1,0 +1,45 @@
+.right-pane-resizable {
+  flex: 0 0 auto;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.right-pane-resize-handle {
+  width: 6px;
+  flex: 0 0 6px;
+  cursor: col-resize;
+  position: relative;
+  touch-action: none;
+  outline: none;
+  background: transparent;
+}
+
+body.right-pane-resize-active {
+  user-select: none;
+  cursor: col-resize;
+}
+
+.right-pane-resize-handle::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  transform: translateX(-50%);
+  background: var(--vscode-panel-border);
+  opacity: 0.6;
+}
+
+.right-pane-resize-handle:hover::before,
+.right-pane-resize-handle.is-resizing::before,
+body.right-pane-resize-active .right-pane-resize-handle::before {
+  background: var(--vscode-focusBorder);
+  opacity: 1;
+}
+
+.right-pane-resize-handle:focus-visible::before {
+  background: var(--vscode-focusBorder);
+  opacity: 1;
+  width: 2px;
+}

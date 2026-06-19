@@ -1,0 +1,16 @@
+FUNCTION_BLOCK CounterFb IMPLEMENTS ICounter
+VAR
+    x : DINT;
+END_VAR
+
+METHOD PUBLIC Next : DINT
+    x := x + 1;
+    Next := x;
+END_METHOD
+
+PUBLIC PROPERTY Value : DINT
+    GET
+        Value := x;
+    END_GET
+END_PROPERTY
+END_FUNCTION_BLOCK

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://www.plcopen.org/xml/tc6_0200">
+  <fileHeader companyName="Siemens AG" productName="TIA Portal V17" />
+  <types>
+    <pous>
+      <pou name="MainOb1" pouType="PRG">
+        <body>
+          <ST><![CDATA[
+PROGRAM MainOb1
+VAR
+    Run : BOOL := TRUE;
+END_VAR
+END_PROGRAM
+]]></ST>
+        </body>
+      </pou>
+      <pou name="DiagFc" pouType="FC">
+        <body>
+          <ST><![CDATA[
+FUNCTION DiagFc : INT
+DiagFc := 7;
+END_FUNCTION
+]]></ST>
+        </body>
+      </pou>
+      <pou name="LegacyDb" pouType="DATA_BLOCK">
+        <body>
+          <ST><![CDATA[
+DATA_BLOCK LegacyDb
+END_DATA_BLOCK
+]]></ST>
+        </body>
+      </pou>
+    </pous>
+  </types>
+  <instances>
+    <configurations />
+  </instances>
+</project>

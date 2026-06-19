@@ -1,0 +1,9 @@
+CONFIGURATION PlantDemo
+TASK Fast (INTERVAL := T#100ms, PRIORITY := 1);
+PROGRAM P1 WITH Fast : PlantProgram;
+VAR_CONFIG
+    P1.StartCmd AT %IX0.0 : BOOL;
+    P1.SpeedRaw AT %IW0 : INT;
+    P1.HaltReq AT %QX0.0 : BOOL;
+END_VAR
+END_CONFIGURATION

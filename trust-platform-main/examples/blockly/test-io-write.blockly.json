@@ -1,0 +1,33 @@
+{
+  "blocks": {
+    "languageVersion": 0,
+    "blocks": [
+      {
+        "type": "io_digital_write",
+        "id": "test_write",
+        "x": 100,
+        "y": 100,
+        "fields": {
+          "ADDRESS": "%QX0.0"
+        },
+        "inputs": {
+          "VALUE": {
+            "block": {
+              "type": "logic_boolean",
+              "id": "bool_val",
+              "fields": {
+                "BOOL": "TRUE"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "variables": [],
+  "metadata": {
+    "name": "test-io-write",
+    "description": "Test custom io_digital_write block",
+    "version": "1.0.0"
+  }
+}

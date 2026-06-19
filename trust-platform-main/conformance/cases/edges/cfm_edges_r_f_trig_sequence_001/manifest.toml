@@ -1,0 +1,8 @@
+id = "cfm_edges_r_f_trig_sequence_001"
+category = "edges"
+description = "R_TRIG and F_TRIG edge pulse behavior"
+cycles = 6
+watch_globals = ["q_r", "q_f"]
+
+[input_series]
+clk = ["BOOL:false", "BOOL:false", "BOOL:true", "BOOL:true", "BOOL:false", "BOOL:false"]

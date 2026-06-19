@@ -1,0 +1,27 @@
+{
+  "metadata": {
+    "name": "legacy-v1",
+    "description": "legacy fixture"
+  },
+  "rungs": [
+    {
+      "id": "legacy_rung_1",
+      "elements": [
+        {
+          "id": "c1",
+          "type": "contact",
+          "contactType": "NO",
+          "variable": "%IX0.0",
+          "position": { "x": 100, "y": 100 }
+        },
+        {
+          "id": "q1",
+          "type": "coil",
+          "coilType": "NORMAL",
+          "variable": "%QX0.0",
+          "position": { "x": 260, "y": 100 }
+        }
+      ]
+    }
+  ]
+}

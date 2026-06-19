@@ -1,0 +1,47 @@
+---
+source: crates/trust-syntax/tests/parser_variables.rs
+expression: "snapshot_parse(r#\"PROGRAM Test\nVAR CONSTANT\n    PI : REAL := 3.14159;\nEND_VAR\nVAR RETAIN\n    counter : INT;\nEND_VAR\nVAR PERSISTENT\n    settings : INT;\nEND_VAR\nEND_PROGRAM\"#)"
+---
+SourceFile@0..152
+  Program@0..152
+    KwProgram@0..7 "PROGRAM"
+    Name@7..13
+      Ident@8..12 "Test"
+    VarBlock@13..60
+      KwVar@13..16 "VAR"
+      KwConstant@17..25 "CONSTANT"
+      VarDecl@25..52
+        Name@25..33
+          Ident@30..32 "PI"
+        Colon@33..34 ":"
+        TypeRef@34..40
+          KwReal@35..39 "REAL"
+        Assign@40..42 ":="
+        Literal@42..50
+          RealLiteral@43..50 "3.14159"
+        Semicolon@50..51 ";"
+      KwEndVar@52..59 "END_VAR"
+    VarBlock@60..98
+      KwVar@60..63 "VAR"
+      KwRetain@64..70 "RETAIN"
+      VarDecl@70..90
+        Name@70..83
+          Ident@75..82 "counter"
+        Colon@83..84 ":"
+        TypeRef@84..88
+          KwInt@85..88 "INT"
+        Semicolon@88..89 ";"
+      KwEndVar@90..97 "END_VAR"
+    VarBlock@98..141
+      KwVar@98..101 "VAR"
+      KwPersistent@102..112 "PERSISTENT"
+      VarDecl@112..133
+        Name@112..126
+          Ident@117..125 "settings"
+        Colon@126..127 ":"
+        TypeRef@127..131
+          KwInt@128..131 "INT"
+        Semicolon@131..132 ";"
+      KwEndVar@133..140 "END_VAR"
+    StmtList@141..141
+    KwEndProgram@141..152 "END_PROGRAM"

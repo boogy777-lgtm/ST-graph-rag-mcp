@@ -1,0 +1,8 @@
+INTERFACE ICounter
+    METHOD Next : DINT
+    END_METHOD
+    PROPERTY Value : DINT
+        GET
+        END_GET
+    END_PROPERTY
+END_INTERFACE

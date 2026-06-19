@@ -1,0 +1,54 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.5.0/schema.json",
+	"files": {
+		"includes": ["**/src/**/*.ts", "**/scripts/**/*.ts"]
+	},
+	"formatter": {
+		"enabled": true,
+		"formatWithErrors": false,
+		"indentStyle": "tab",
+		"indentWidth": 2,
+		"lineEnding": "lf",
+		"lineWidth": 80,
+		"attributePosition": "auto"
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"preset": "recommended",
+			"suspicious": {
+				"noExplicitAny": "off",
+				"useIterableCallbackReturn": "off",
+				"noImplicitAnyLet": "off"
+			},
+			"complexity": {
+				"useOptionalChain": "off",
+				"useLiteralKeys": "off",
+				"noUselessSwitchCase": "off"
+			},
+			"style": {
+				"useNodejsImportProtocol": "off",
+				"noNonNullAssertion": "off",
+				"useTemplate": "off"
+			},
+			"correctness": {
+				"noUnusedVariables": "off",
+				"noUnusedImports": "off",
+				"noUnusedFunctionParameters": "off",
+				"noUnusedPrivateClassMembers": "off",
+				"useParseIntRadix": "off"
+			}
+		}
+	},
+	"javascript": {
+		"formatter": {
+			"quoteStyle": "double",
+			"semicolons": "always",
+			"arrowParentheses": "always",
+			"bracketSpacing": true,
+			"bracketSameLine": false,
+			"quoteProperties": "asNeeded",
+			"trailingCommas": "all"
+		}
+	}
+}

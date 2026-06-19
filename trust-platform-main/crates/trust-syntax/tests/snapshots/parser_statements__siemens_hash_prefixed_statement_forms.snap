@@ -1,0 +1,51 @@
+---
+source: crates/trust-syntax/tests/parser_statements.rs
+assertion_line: 154
+expression: "snapshot_parse(r#\"PROGRAM Test\n    #sum := 0;\n    FOR #i := 0 TO 3 DO\n        #sum := #sum + #i;\n    END_FOR;\nEND_PROGRAM\"#)"
+---
+SourceFile@0..103
+  Program@0..103
+    KwProgram@0..7 "PROGRAM"
+    Name@7..17
+      Ident@8..12 "Test"
+    StmtList@17..92
+      AssignStmt@17..32
+        BinaryExpr@17..26
+          NameRef@17..22
+            Hash@17..18 "#"
+            Ident@18..21 "sum"
+          Assign@22..24 ":="
+          Literal@24..26
+            IntLiteral@25..26 "0"
+        Semicolon@26..27 ";"
+      ForStmt@32..90
+        KwFor@32..35 "FOR"
+        Hash@36..37 "#"
+        Name@37..39
+          Ident@37..38 "i"
+        Assign@39..41 ":="
+        Literal@41..44
+          IntLiteral@42..43 "0"
+        KwTo@44..46 "TO"
+        Literal@46..49
+          IntLiteral@47..48 "3"
+        KwDo@49..51 "DO"
+        AssignStmt@51..83
+          BinaryExpr@51..77
+            NameRef@51..65
+              Hash@60..61 "#"
+              Ident@61..64 "sum"
+            Assign@65..67 ":="
+            BinaryExpr@67..77
+              NameRef@67..73
+                Hash@68..69 "#"
+                Ident@69..72 "sum"
+              Plus@73..74 "+"
+              NameRef@74..77
+                Hash@75..76 "#"
+                Ident@76..77 "i"
+          Semicolon@77..78 ";"
+        KwEndFor@83..90 "END_FOR"
+      EmptyStmt@90..92
+        Semicolon@90..91 ";"
+    KwEndProgram@92..103 "END_PROGRAM"

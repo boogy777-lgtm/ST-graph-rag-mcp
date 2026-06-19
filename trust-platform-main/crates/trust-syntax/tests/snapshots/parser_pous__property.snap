@@ -1,0 +1,43 @@
+---
+source: crates/trust-syntax/tests/parser_pous.rs
+assertion_line: 185
+expression: "snapshot_parse(r#\"FUNCTION_BLOCK FB_Test\n    PROPERTY Value : INT\n    GET\n        Value := _value;\n    END_GET\n    SET\n        _value := Value;\n    END_SET\n    END_PROPERTY\nEND_FUNCTION_BLOCK\"#)"
+---
+SourceFile@0..173
+  FunctionBlock@0..173
+    KwFunctionBlock@0..14 "FUNCTION_BLOCK"
+    Name@14..27
+      Ident@15..22 "FB_Test"
+    Property@27..155
+      KwProperty@27..35 "PROPERTY"
+      Name@35..42
+        Ident@36..41 "Value"
+      Colon@42..43 ":"
+      TypeRef@43..52
+        KwInt@44..47 "INT"
+      PropertyGet@52..97
+        KwGet@52..55 "GET"
+        StmtList@55..85
+          AssignStmt@55..85
+            BinaryExpr@55..79
+              NameRef@55..70
+                Ident@64..69 "Value"
+              Assign@70..72 ":="
+              NameRef@72..79
+                Ident@73..79 "_value"
+            Semicolon@79..80 ";"
+        KwEndGet@85..92 "END_GET"
+      PropertySet@97..142
+        KwSet@97..100 "SET"
+        StmtList@100..130
+          AssignStmt@100..130
+            BinaryExpr@100..124
+              NameRef@100..116
+                Ident@109..115 "_value"
+              Assign@116..118 ":="
+              NameRef@118..124
+                Ident@119..124 "Value"
+            Semicolon@124..125 ";"
+        KwEndSet@130..137 "END_SET"
+      KwEndProperty@142..154 "END_PROPERTY"
+    KwEndFunctionBlock@155..173 "END_FUNCTION_BLOCK"

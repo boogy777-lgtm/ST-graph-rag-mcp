@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>truST - IEC 61131-3 Structured Text Analyzer Demo</title>
+  <link rel="icon" href="./favicon.ico" sizes="any"/>
+  <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"/>
+  <link rel="stylesheet" href="./demo.css"/>
+</head>
+<body data-theme="dark">
+
+<div class="demo-layout">
+
+  <!-- Header -->
+  <header class="demo-header">
+    <div class="demo-brand">
+      <svg viewBox="0 0 120 50">
+        <text x="4" y="32" class="logo-text">tru<tspan class="logo-accent">ST</tspan></text>
+        <text x="4" y="45" class="logo-tagline">open source plc toolchain</text>
+      </svg>
+      <span class="tagline">Browser-native IEC 61131-3 static analysis via WebAssembly</span>
+    </div>
+    <div class="demo-header-badges">
+      <span id="wasmBadge" class="demo-badge loading">
+        <span class="demo-spinner"></span>
+        Loading WASM...
+      </span>
+    </div>
+  </header>
+
+  <!-- Editor Area -->
+  <div class="demo-editor-area">
+    <div class="demo-tabs" id="fileTabs" role="tablist">
+      <!-- Tabs injected by demo.js -->
+    </div>
+    <div class="demo-editor-mount" id="editorMount"></div>
+  </div>
+
+  <!-- Walkthrough Panel -->
+  <aside class="demo-walkthrough">
+    <div class="walkthrough-header">
+      <h2>Feature Walkthrough</h2>
+      <p>Click each step to see the analyzer in action.</p>
+    </div>
+    <div class="walkthrough-steps" id="walkthroughSteps">
+      <!-- Steps injected by demo.js -->
+    </div>
+  </aside>
+
+  <!-- Status Bar -->
+  <footer class="demo-statusbar">
+    <span id="statusDot" class="status-dot loading"></span>
+    <strong id="statusLabel">Initializing...</strong>
+    <span class="sep"></span>
+    <span id="cursorLabel">Ln 1, Col 1</span>
+    <span class="sep"></span>
+    <span id="fileCount">4 files loaded</span>
+    <span class="sep"></span>
+    <span id="diagCount">0 diagnostics</span>
+    <span style="margin-left:auto;">
+      No server required &mdash; 100% client-side WASM
+    </span>
+  </footer>
+
+</div>
+
+<script type="module" src="./demo.js"></script>
+</body>
+</html>

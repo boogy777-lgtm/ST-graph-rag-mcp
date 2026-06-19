@@ -1,0 +1,782 @@
+@startuml runtime-execution
+!theme plain
+allowmixing
+skinparam backgroundColor #FEFEFE
+skinparam componentStyle uml2
+skinparam linetype ortho
+skinparam nodesep 50
+skinparam ranksep 35
+
+title truST Runtime: Bytecode, Scheduler, and Simulation Engine
+
+' ============================================================
+' RUNTIME CORE
+' ============================================================
+package "Runtime Core" as runtimeCore #LightGreen {
+
+    class "Runtime" as runtime <<runtime/core.rs:22-44>> {
+        execution_backend: ExecutionBackend
+        profile: DateTimeProfile
+        storage: VariableStorage
+        registry: TypeRegistry
+        initializer_catalog: program_model::InitializerCatalog
+        io: IoSubsystem
+        access: AccessMap
+        stdlib: StandardLibrary
+        debug: Option<DebugControl>
+        statement_index: IndexMap
+        source_text_index: IndexMap
+        source_label_index: HashMap
+        metrics: MetricsSubsystem
+        watchdog: WatchdogSubsystem
+        faults: FaultSubsystem
+        retain: RetainManager
+        --
+        functions: IndexMap<SmolStr, FunctionDef>
+        function_blocks: IndexMap<SmolStr, FunctionBlockDef>
+        classes: IndexMap<SmolStr, ClassDef>
+        interfaces: IndexMap<SmolStr, InterfaceDef>
+        programs: IndexMap<SmolStr, ProgramDef>
+        globals: IndexMap<SmolStr, GlobalVarMeta>
+        --
+        tasks: Vec<TaskConfig>
+        task_state: IndexMap<SmolStr, TaskState>
+        current_time: Duration
+        cycle_counter: u64
+        --
+        +new() → Runtime
+        +execute_cycle() → Result<()>
+        +apply_bytecode_metadata()
+        +apply_bytecode_module()
+        +apply_online_change_bytes()
+    }
+
+    component "online_change.rs\n(bytecode swap + warm-restart migration contract)" as runtimeOnlineChange
+    component "harness/initializer.rs\n(default + aggregate materialization)" as initializerService
+    component "HIR SymbolTable.initializer_catalog\n(source ranges + InitializerId handles)" as hirInitCatalog
+    component "program_model::InitializerCatalog\n(lowered Expr records)" as runtimeInitCatalog
+    runtime ..> runtimeOnlineChange : hot-reload contract owner
+    runtime ..> initializerService : startup/default materialization
+    runtime --> runtimeInitCatalog : owns lowered catalog
+    hirInitCatalog ..> runtimeInitCatalog : compile-time lowering copies/ translates defaults
+    initializerService --> runtimeInitCatalog : reads TYPE/member defaults
+}
+
+package "Execution Engine" as backendPkg #LightYellow {
+    component "execute_program_by_name() / execute_function_block_ref()\n(runtime/cycle.rs)" as runtimeDispatch
+    component "ensure_vm_module_loaded() / build_vm_module()\n(runtime/cycle.rs)" as vmEnsure
+
+    runtime ..> runtimeDispatch : program/FB dispatch
+    runtimeDispatch --> vmEnsure
+
+    package "Bytecode VM Core\n(runtime/vm/*)" as vmCore #LightCyan {
+        component "dispatch.rs\n(PC loop + op dispatch + debug hook emit)" as vmDispatch
+        component "dispatch_ops.rs\n(opcode math/operand/jump helpers)" as vmDispatchOps
+        component "dispatch_refs.rs\n(ref/deref + storage bridge)" as vmDispatchRefs
+        component "dispatch_sizeof.rs\n(TYPE_TABLE sizeof helpers)" as vmDispatchSizeOf
+        component "stack.rs\n(operand stack invariants)" as vmStack
+        component "frames.rs + call.rs\n(frame stack + CALL_NATIVE dispatch bridge)" as vmFrames
+        component "errors.rs\n(trap -> RuntimeError)" as vmErrors
+        component "debug_map.rs\n(symbol/source mappings + pc->source)" as vmDebugMap
+    }
+
+    vmEnsure --> vmDispatch
+    vmDispatch ..> vmStack
+    vmDispatch ..> vmFrames
+    vmDispatch ..> vmErrors
+    vmDispatch ..> vmDebugMap
+    vmDispatch ..> vmDispatchOps
+    vmDispatch ..> vmDispatchRefs
+    vmDispatch ..> vmDispatchSizeOf
+    vmDispatch ..> runtime : resolve vm debug source labels/offsets
+
+    note right of vmDispatchSizeOf
+        ST lowering resolves `SIZEOF(...)`
+        operands to static types before
+        bytecode emit.
+
+        Production codegen emits
+        `SIZEOF_TYPE`; legacy
+        `SIZEOF_VALUE` remains only for
+        compatibility / negative-path tests.
+    end note
+}
+
+' ============================================================
+' EXECUTION CYCLE
+' ============================================================
+package "Execution Cycle" as cyclePkg #LightBlue {
+
+    rectangle "execute_cycle() (cycle.rs:18-91)" as cycleFlow #Wheat {
+        card "1. Apply debug var writes" as step1
+        card "2. Emit CycleStart event" as step2
+        card "2a. simulation pre-cycle hooks\n(disturbances + delayed effects)" as step2a
+        card "3. read_cycle_inputs()" as step3
+        card "4. collect_ready_tasks()" as step4
+        card "5. Sort by (priority, due_at)" as step5
+        card "6. execute_task() for each" as step6
+        card "6a. watchdog check\n(wall-clock elapsed)" as step6a
+        card "7. execute_background_programs()" as step7
+        card "8. write_cycle_outputs()" as step8
+        card "8a. simulation post-cycle hooks\n(coupling scheduling)" as step8a
+        card "9. update_io_health()" as step9
+        card "10. Emit CycleEnd event" as step10
+    }
+
+    step1 --> step2
+    step2 --> step2a
+    step2a --> step3
+    step3 --> step4
+    step4 --> step5
+    step5 --> step6
+    step6 --> step6a
+    step6a --> step7
+    step7 --> step8
+    step8 --> step8a
+    step8a --> step9
+    step9 --> step10
+
+    note right of step4
+        TaskConfig:
+        • name: SmolStr
+        • interval: Duration
+        • priority: u8
+        • programs: Vec<SmolStr>
+    end note
+
+    note right of step3
+        read_cycle_inputs():
+        • drivers read inputs
+        • apply debug IO writes
+        • apply forced values (IO + vars)
+        • map inputs → storage
+    end note
+
+    note right of step8
+        write_cycle_outputs():
+        • map storage → outputs
+        • apply forced values (IO + vars)
+        • drivers write outputs
+    end note
+
+    note right of step9
+        update_io_health():
+        • snapshot each driver health
+        • exposed via ctl status / UI
+    end note
+
+    note right of step2a
+        simulation pre-cycle:
+        • apply scheduled delayed effects
+        • apply scripted disturbances
+        • fault injection hooks
+    end note
+
+    note right of step8a
+        simulation post-cycle:
+        • read source outputs
+        • apply threshold/coupling logic
+        • enqueue delayed input effects
+    end note
+
+    note right of step6
+        execute_task():
+        • emits TaskStart event
+        • runs programs + FB refs
+        • dispatches directly to the VM path
+        • emits TaskEnd event
+        • task → DAP thread id
+    end note
+
+    note right of step6a
+        watchdog check:
+        • FaultDecision via WatchdogSubsystem
+        • apply safe state via IoSubsystem
+    end note
+}
+
+' ============================================================
+' LIFECYCLE (START/STOP)
+' ============================================================
+package "Lifecycle" as lifecyclePkg #LightGray {
+    rectangle "startup()" as startupFlow #Wheat {
+        card "1. load_retain()\n(decode + value validation)" as start1
+        card "2. init globals/IO" as start2
+        card "2a. provision T0 SHM channels\n(map shared + initialize headers + pin pages)" as start2a
+        card "2b. apply Linux RT posture\n(verify PREEMPT_RT + mlockall + affinity)" as start2b
+        card "3. start tasks" as start3
+    }
+
+    start1 --> start2
+    start2 --> start2a
+    start2a --> start2b
+    start2b --> start3
+
+    note right of start2a
+        fail-fast contract:
+        • required SHM create/open failure => startup abort
+        • required page pinning failure => startup abort
+        • publish readiness metadata for _meta/shm_channels
+    end note
+
+    note right of start2b
+        Linux PREEMPT_RT profile:
+        • verify /sys/kernel/realtime when requested
+        • call mlockall(MCL_CURRENT|MCL_FUTURE)
+        • pin scheduler thread affinity
+        • verify deployed scheduler policy/priority
+    end note
+
+    note right of start1
+        Retain restore contract:
+        • decode persisted Value tree
+        • use declared GlobalVarMeta type
+          and TypeRegistry to canonicalize
+          retained compound values before storage
+        • stale serialized enum type casing
+          is repaired on load
+        • enum mismatches, struct field drift,
+          and array shape/type drift fail
+          startup instead of entering storage
+    end note
+
+    rectangle "shutdown()" as shutdownFlow #Wheat {
+        card "1. stop tasks" as stop1
+        card "2. save_retain()" as stop2
+    }
+
+    rectangle "online_change()" as onlineChangeFlow #Wheat {
+        card "1. queue ReloadBytecode command" as online1
+        card "2. scheduler applies swap at cycle boundary" as online2
+        card "3. apply_online_change_bytes()" as online3
+        card "4. warm restart + retain reload\n(restart-entrypoint IP policy)" as online4
+    }
+
+    online1 --> online2
+    online2 --> online3
+    online3 --> online4
+}
+
+' ============================================================
+' CONTROL + HMI CONTRACT
+' ============================================================
+package "Control + HMI Contract" as hmiPkg #Lavender {
+    rectangle "Control API (control/transport.rs + control/* handlers)" as hmiControl #Wheat {
+        card "control/hmi_runtime_ports.rs\n(narrow runtime read/write port)" as hmiRuntimePort
+        card "hmi.schema.get\n(read-only schema from metadata)" as hmiSchema
+        card "load customization\n(@hmi + hmi.toml)" as hmiCustomize
+        card "merge precedence:\ndefaults < annotation < file" as hmiMerge
+        card "emit schema:\ntheme + responsive + export + pages/widgets" as hmiEmit
+        card "hmi.values.get\n(typed values + quality + timestamp)" as hmiValues
+        card "hmi.trends.get\n(sample buffers + downsample)" as hmiTrends
+        card "hmi.alarms.get / hmi.alarm.ack\n(raise -> ack -> clear + history)" as hmiAlarms
+        card "HMI persistence\n(JSONL append + bounded restart window)" as hmiPersistence
+        card "historian.query / historian.alerts\n(persistent samples + alert transitions)" as hmiHistorian
+        card "hmi.write\n(explicit allowlist + authz,\nqueued writes; no force semantics)" as hmiWrite
+    }
+
+    rectangle "Web HMI (/hmi)" as hmiWeb #Wheat {
+        card "GET /hmi, /hmi/app.js, /hmi/styles.css,\n/hmi/modules/hmi-*.js" as hmiRoute
+        card "sidebar navigation:\ndashboard/trend/alarm/table/process" as hmiNav
+        card "poll POST /api/control every 500 ms\n(values/trends/alarms)" as hmiPoll
+        card "status badges:\nconnection + freshness" as hmiStatus
+        card "GET /hmi/export.json\n(standalone assets + routes + schema config)" as hmiExport
+        card "GET /metrics\n(Prometheus scrape, auth-gated)" as hmiMetrics
+        card "transport:\nHTTP (local) or HTTPS (runtime.web.tls=true)" as hmiTransport
+    }
+
+    rectangle "Web IDE Preview (/ide)" as ideWeb #Wheat {
+        card "GET /ide + /ide/modules/ide-*.js\n(preview shell + modular UI bundles)" as ideRoute
+        card "GET /api/ide/capabilities\n(scope + limits + mode)" as ideCaps
+        card "POST /api/ide/session\n(auth -> session token)" as ideSession
+        card "GET /api/ide/files\n(list sources/**/*.st)" as ideFiles
+        card "GET /api/ide/file\n(open path + version)" as ideOpen
+        card "POST /api/ide/file\n(expected_version + content)" as ideWrite
+    }
+
+    rectangle "Terminal Console (ui/*)" as tuiContract #Wheat {
+        card "ui.rs facade:\nrun_ui loop + orchestration" as tuiFacade
+        card "client.rs:\nendpoint/auth + control transport" as tuiClient
+        card "parsing.rs + state.rs:\nsnapshots + prompt/session state" as tuiState
+        card "input.rs + commands/*:\nkey handling + action routing" as tuiInput
+        card "render.rs:\npanel/prompt presentation" as tuiRender
+    }
+
+    hmiRuntimePort --> hmiSchema
+    hmiRuntimePort --> hmiValues
+    hmiRuntimePort --> hmiWrite
+    hmiSchema --> hmiCustomize
+    hmiCustomize --> hmiMerge
+    hmiMerge --> hmiEmit
+    hmiEmit --> hmiValues
+    hmiValues --> hmiTrends
+    hmiValues --> hmiAlarms
+    hmiValues --> hmiPersistence
+    hmiTrends --> hmiPersistence
+    hmiAlarms --> hmiPersistence
+    hmiValues --> hmiHistorian
+    hmiValues --> hmiWrite
+    hmiAlarms --> hmiWrite
+    hmiRoute --> hmiPoll
+    hmiRoute --> hmiNav
+    hmiRoute --> hmiTransport
+    hmiRoute --> hmiMetrics
+    hmiPoll --> hmiStatus
+    hmiPoll ..> hmiValues : request values
+    hmiPoll ..> hmiTrends : request trends
+    hmiPoll ..> hmiAlarms : request alarms
+    hmiRoute --> hmiExport
+    ideRoute --> ideCaps
+    ideCaps --> ideSession
+    ideSession --> ideFiles
+    ideFiles --> ideOpen
+    ideOpen --> ideWrite
+    tuiFacade --> tuiClient
+    tuiFacade --> tuiState
+    tuiFacade --> tuiInput
+    tuiFacade --> tuiRender
+
+    note right of ideWrite
+        security boundary:
+        • web auth required for session bootstrap
+        • optional TLS (runtime.web.tls + runtime.tls cert material)
+        • X-Trust-Ide-Session required for calls
+        • writes allowed only in debug mode
+        • optimistic conflict check via expected_version
+        • source scope limited to sources/**/*.st
+    end note
+
+    note right of hmiWeb
+        web transport boundary:
+        • accept loop + HTTP lifecycle in web/server.rs
+        • route handlers split by concern in web/*_routes.rs
+    end note
+
+    note right of start2
+        Initializers flow through the
+        runtime initializer service:
+        TYPE/member defaults, aggregate
+        VAR initializers, VAR_CONFIG,
+        and FB member overrides.
+
+        Materialization priority:
+        retained value > VAR_CONFIG override
+        > variable initializer > TYPE/member
+        defaults > zero/type default.
+
+        Struct/union construction ends at
+        StructValue::new or an equivalent
+        validation boundary.
+    end note
+}
+
+' ============================================================
+' OPC UA INTEROP
+' ============================================================
+package "OPC UA Interop" as opcuaPkg #LightCyan {
+    rectangle "OPC UA Gateway (opcua.rs)" as opcuaFlow #Wheat {
+        card "1. Load runtime.opcua profile" as opc1
+        card "2. Bootstrap endpoint + namespace" as opc2
+        card "3. Startup probe read\n(reference client session)" as opc3
+        card "4. Poll runtime snapshot\n(refresh exposed node values)" as opc4
+        card "5. External clients\nbrowse/read/write nodes" as opc5
+    }
+
+    opc1 --> opc2
+    opc2 --> opc3
+    opc3 --> opc4
+    opc4 --> opc5
+}
+
+' ============================================================
+' VARIABLE STORAGE
+' ============================================================
+package "Variable Storage" as storagePkg #LightCoral {
+
+    class "VariableStorage" as varStorage <<memory.rs:63-71>> {
+        globals: IndexMap<SmolStr, Value>
+        frames: Vec<LocalFrame>
+        instances: FxHashMap<InstanceId, InstanceData>
+        retain: IndexMap<SmolStr, Value>
+        next_frame_id: u32
+        next_instance_id: u32
+        --
+        +set_global(name, value)
+        +get_global(name) → Option<Value>
+        +push_frame(owner) → FrameId
+        +pop_frame()
+        +set_local(name, value)
+        +get_local(name) → Option<Value>
+        +create_instance(type_name) → InstanceId
+    }
+
+    class "LocalFrame" as localFrame <<memory.rs:45-52>> {
+        id: FrameId
+        owner: SmolStr
+        variables: IndexMap<SmolStr, Value>
+        return_value: Option<Value>
+        instance_id: Option<InstanceId>
+    }
+
+    class "InstanceData" as instanceData <<memory.rs:55-60>> {
+        type_name: SmolStr
+        variables: IndexMap<SmolStr, Value>
+        parent: Option<InstanceId>
+    }
+
+    enum "MemoryLocation" as memLoc <<memory.rs:11-22>> {
+        Global
+        Local(FrameId)
+        Instance(InstanceId)
+        Io(IoArea)
+        Retain
+    }
+
+    varStorage --> localFrame : frames
+    varStorage --> instanceData : instances
+    varStorage --> memLoc
+}
+
+runtime ..> opc4 : snapshot globals
+
+' ============================================================
+' VALUE CONTRACTS
+' ============================================================
+package "Runtime Value Contracts" as valuePkg #MistyRose {
+
+    class "Value" as valueEnum <<value/types.rs>> {
+        Bool, Integer, Float, String, Time
+        Enum(EnumValue)
+        Struct(StructValue)
+        Array(ArrayValue)
+        Reference, Null
+    }
+
+    class "EnumValue" as enumValue <<value/types.rs>> {
+        type_name: SmolStr
+        variant_name: SmolStr
+        numeric_value: i64
+        --
+        +new(registry, type_id, variant) -> Result
+        +from_serialized_parts(registry, type, variant, value) -> Result
+        +from_canonical_parts(type, variant, value)
+    }
+
+    note right of enumValue
+        Construction boundary owns enum identity:
+        • public constructors resolve Alias chains
+        • stored type_name is the underlying
+          enum's canonical Type name
+        • variant_name and numeric_value are
+          cross-validated against TypeRegistry
+        • equality compares canonical type_name
+          plus numeric_value
+    end note
+
+    class "StructValue" as structValue <<value/types.rs>> {
+        type_name: SmolStr
+        fields: IndexMap<SmolStr, Value>
+        --
+        +new(registry, type_id, fields) -> Result
+        +from_serialized_parts(registry, type, fields) -> Result
+        +fields() -> &IndexMap
+    }
+
+    note right of structValue
+        Struct construction validates declared identity:
+        • Alias chains resolve to the underlying
+          struct or union Type name
+        • field names are matched case-insensitively
+          and stored in declaration order
+        • missing, extra, or wrongly typed fields
+          return diagnostics at the entry point
+    end note
+
+    class "ArrayValue" as arrayValue <<value/types.rs>> {
+        elements: Vec<Value>
+        dimensions: Vec<(i64, i64)>
+        --
+        +new(registry, type_id, elements) -> Result
+        +from_serialized_parts(registry, type, dims, elements) -> Result
+        +elements() -> &[Value]
+        +dimensions() -> &[(i64, i64)]
+    }
+
+    note right of arrayValue
+        Array construction validates shape:
+        • Alias chains resolve before checking element type
+        • retained dimensions must match declared bounds
+        • element count and each element value type
+          are checked before storing the value
+    end note
+
+    valueEnum --> enumValue
+    valueEnum --> structValue
+    valueEnum --> arrayValue
+    structValue --> valueEnum : fields
+    arrayValue --> valueEnum : elements
+}
+
+varStorage --> valueEnum
+secConst ..> enumValue : enum constants
+start1 ..> valueEnum : validate retained values
+
+' ============================================================
+' EVALUATION CONTEXT
+' ============================================================
+package "Helper Evaluation" as evalPkg #Wheat {
+
+    component "helper_eval::const_expr" as constEval
+    component "helper_eval::storage_expr" as storageEval
+    component "helper_eval::storage_lvalue" as storageWrite
+    component "DebugRuntimeContext" as debugRuntimeCtx
+
+    note right of storageEval
+        Residual helper surface:
+        - debug expression / watch evaluation
+        - selected build-time/runtime helpers
+        - pending debug writes
+
+        Production task/program execution
+        goes directly through the VM path.
+        Remaining evaluator internals are test-only.
+    end note
+}
+
+' ============================================================
+' STATEMENT AST
+' ============================================================
+package "Statement AST" as stmtPkg #PaleGreen {
+
+    enum "Stmt" as stmtEnum <<eval/stmt.rs:30-95>> {
+        Assign { target, value, location }
+        AssignAttempt { target, value, location }
+        Expr { expr, location }
+        If { condition, then_block, else_if, else_block, location }
+        Case { selector, branches, else_block, location }
+        For { control, start, end, step, body, location }
+        While { condition, body, location }
+        Repeat { body, until, location }
+        Label { name, stmt, location }
+        Jmp { target, location }
+        Return { expr, location }
+        Exit { location }
+        Continue { location }
+    }
+
+    enum "StmtResult" as stmtResult <<eval/stmt.rs:13-20>> {
+        Continue
+        Return(Option<Value>)
+        Exit
+        LoopContinue
+        Jump(SmolStr)
+    }
+}
+
+' ============================================================
+' EXPRESSION AST
+' ============================================================
+package "Expression AST" as exprPkg #Lavender {
+
+    enum "Expr" as exprEnum <<eval/expr/ast.rs:6-36>> {
+        Literal(Value)
+        This
+        Super
+        SizeOf(SizeOfTarget)
+        Name(SmolStr)
+        Call { target, args }
+        Unary { op, expr }
+        Binary { op, left, right }
+        Index { target, indices }
+        Field { target, field }
+        Ref(LValue)
+        Deref(Box<Expr>)
+    }
+
+    enum "LValue" as lvalueEnum <<eval/expr/ast.rs:46-52>> {
+        Name(SmolStr)
+        Index { name, indices }
+        Field { name, field }
+        Deref(Box<Expr>)
+    }
+
+    enum "BinaryOp" as binOp <<eval/ops.rs:23-40>> {
+        Add, Sub, Mul, Div, Mod, Pow
+        And, Or, Xor
+        Eq, Ne, Lt, Le, Gt, Ge
+    }
+
+    enum "UnaryOp" as unOp <<eval/ops.rs:15-20>> {
+        Neg, Pos, Not
+    }
+
+    exprEnum --> lvalueEnum
+    exprEnum --> binOp
+    exprEnum --> unOp
+}
+
+' ============================================================
+' BYTECODE FORMAT
+' ============================================================
+package "Bytecode Format" as bytecodePkg #LightYellow {
+
+    class "BytecodeModule" as bcModule <<bytecode/format.rs:494-499>> {
+        version: BytecodeVersion
+        flags: u32
+        sections: Vec<Section>
+    }
+
+    class "BytecodeVersion" as bcVersion <<bytecode/format.rs:10-14>> {
+        major: u16
+        minor: u16
+    }
+
+    class "BytecodeMetadata" as bcMeta <<bytecode/format.rs:49-53>> {
+        version: BytecodeVersion
+        resources: Vec<ResourceMetadata>
+    }
+
+    class "ResourceMetadata" as resMeta <<bytecode/format.rs:41-46>> {
+        name: SmolStr
+        process_image: ProcessImageConfig
+        tasks: Vec<TaskConfig>
+    }
+
+    rectangle "Sections" as sections {
+        card "StringTable" as secStr
+        card "TypeTable" as secType
+        card "ConstPool" as secConst
+        card "PouIndex" as secPou
+        card "PouBodies" as secBodies
+        card "GlobalInit" as secGlobal
+        card "TaskConfig" as secTask
+    }
+
+    bcModule --> bcVersion
+    bcModule --> sections
+    bcMeta --> resMeta
+}
+
+note right of bcModule
+    **Bytecode Constants:**
+    MAGIC: [u8; 4] = "STBC"
+    VERSION: 1.1
+    HEADER_SIZE: 24 bytes
+    FLAG_CRC32: 0x0001
+end note
+
+note right of bytecodePkg
+    Bytecode is currently a container
+    + metadata format (not a VM).
+end note
+
+package "Bytecode Apply" as bcApply #Wheat {
+    component "apply_bytecode_metadata()" as applyMeta
+    component "apply_bytecode_module()" as applyModule
+    applyModule --> applyMeta
+}
+
+note right of applyMeta
+    • load ResourceMetadata
+    • size process image
+    • configure task list
+end note
+
+note right of applyModule
+    • load POU bodies + constants
+    • attach debug map entries
+end note
+
+' ============================================================
+' STANDARD LIBRARY
+' ============================================================
+package "Standard Library" as stdlibPkg #PaleTurquoise {
+
+    component "stdlib/" as stdlib <<stdlib/>> {
+        card "**Functions:**\nABS, SQRT, SIN, COS, TAN\nMIN, MAX, LIMIT, MUX, SEL\nLEN, LEFT, RIGHT, MID, CONCAT\nTO_INT, TO_REAL, TO_STRING\nSHL, SHR, ROL, ROR, TRUNC" as stdFuncs
+
+        card "**Function Blocks:**\nTON - Timer On Delay\nTOF - Timer Off Delay\nTP - Pulse Timer\nCTU - Count Up\nCTD - Count Down\nCTUD - Count Up/Down\nR_TRIG - Rising Edge\nF_TRIG - Falling Edge\nSR - Set/Reset\nRS - Reset/Set" as stdFBs
+
+        card "**Native robot FB bridge:**\nRobot_P3MinimalArm\n-> world::arm writer-free bridge\n(no transform writes)" as robotFBBridge
+    }
+}
+
+' ============================================================
+' I/O INTERFACE
+' ============================================================
+package "I/O Interface" as ioPkg #LightGray {
+
+    class "IoSubsystem" as ioSubsystem {
+        interface: IoInterface
+        drivers: Vec<IoDriverEntry>
+        safe_state: IoSafeState
+        --
+        +apply_safe_state()
+        +update_health()
+    }
+
+    class "IoInterface" as ioIface {
+        inputs: Vec<u8>
+        outputs: Vec<u8>
+        memory: Vec<u8>
+        --
+        +read(address) → Value
+        +write(address, value)
+    }
+
+    interface "IoDriver" as ioDriver {
+        +read_inputs(io)
+        +write_outputs(io)
+    }
+
+    ioSubsystem --> ioIface
+    ioSubsystem --> ioDriver : uses
+}
+
+' ============================================================
+' CONNECTIONS
+' ============================================================
+
+runtime --> varStorage
+runtime --> evalCtx : creates
+runtime --> cyclePkg : execute_cycle()
+runtime --> stdlibPkg
+runtime --> ioPkg
+runtime --> bcApply
+runtime --> hmiControl
+hmiControl --> hmiWeb
+
+evalCtx --> stmtPkg : executes
+evalCtx --> exprPkg : evaluates
+evalCtx --> varStorage : reads/writes
+
+' ============================================================
+' LEGEND
+' ============================================================
+
+legend right
+    **Key Files:**
+    • runtime/core.rs:22 - Runtime struct
+    • runtime/cycle.rs:18 - execute_cycle()
+    • memory.rs:63 - VariableStorage
+    • eval/stmt.rs:30 - Stmt enum
+    • eval/expr/ast.rs:6 - Expr enum
+    • bytecode/format.rs:494 - BytecodeModule
+    • stdlib/ - Standard library
+
+    **Execution Model:**
+    1. Tasks scheduled by priority + interval
+    2. Programs execute within tasks
+    3. Production execution dispatches directly into the VM after module materialization
+    4. Bytecode VM is the only production execution backend
+    5. helper_eval handles debug/tooling/build-helper paths
+
+    **Memory Areas:**
+    • Globals - Program-wide variables
+    • Frames - Function call locals
+    • Instances - FB/Class state
+    • Retain - Persistent across restart
+    • I/O - Direct addresses (%I, %Q, %M)
+end legend
+
+@enduml

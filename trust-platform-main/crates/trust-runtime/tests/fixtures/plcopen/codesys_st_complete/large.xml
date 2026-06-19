@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://www.plcopen.org/xml/tc6_0200">
+  <fileHeader companyName="CODESYS GmbH" productName="CODESYS V3.5" />
+  <types>
+    <dataTypes>
+      <dataType name="GoodType">
+        <baseType>
+          <int />
+        </baseType>
+      </dataType>
+      <dataType name="GoodType">
+        <baseType>
+          <bool />
+        </baseType>
+      </dataType>
+      <dataType name="BrokenType">
+        <documentation>
+          <xhtml>missing baseType on purpose</xhtml>
+        </documentation>
+      </dataType>
+    </dataTypes>
+    <pous>
+      <pou name="Main" pouType="program">
+        <body>
+          <ST><![CDATA[
+PROGRAM Main
+END_PROGRAM
+]]></ST>
+        </body>
+      </pou>
+      <pou name="Helper" pouType="functionBlock">
+        <body>
+          <ST><![CDATA[
+FUNCTION_BLOCK Helper
+END_FUNCTION_BLOCK
+]]></ST>
+        </body>
+      </pou>
+      <pou name="LegacyDb" pouType="DATA_BLOCK">
+        <body>
+          <ST><![CDATA[
+DATA_BLOCK LegacyDb
+END_DATA_BLOCK
+]]></ST>
+        </body>
+      </pou>
+    </pous>
+  </types>
+  <instances>
+    <configurations>
+      <configuration name="Factory Config">
+        <task name="Background-Task" interval="PT0.5S" />
+        <program name="Main Program" typeName="Main" task="Background-Task" />
+        <resource name="Line-1" type="PLC-CPU">
+          <program name="Program 1" typeName="Main" />
+        </resource>
+      </configuration>
+    </configurations>
+    <globalVars />
+  </instances>
+</project>

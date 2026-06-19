@@ -1,0 +1,42 @@
+#!/bin/bash
+# truST Platform pre-commit hook
+# Install: git config core.hooksPath .githooks
+
+set -e
+
+echo "Running pre-commit checks..."
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m'
+
+FAILED=0
+
+# Check formatting
+echo -n "Checking formatting... "
+if cargo fmt -- --check > /dev/null 2>&1; then
+    echo -e "${GREEN}OK${NC}"
+else
+    echo -e "${RED}FAILED${NC}"
+    echo "Run 'cargo fmt' to fix formatting issues"
+    FAILED=1
+fi
+
+# Run clippy
+echo -n "Running clippy... "
+if cargo clippy --all-targets --all-features -- -D warnings > /dev/null 2>&1; then
+    echo -e "${GREEN}OK${NC}"
+else
+    echo -e "${RED}FAILED${NC}"
+    echo "Run 'cargo clippy' to see lint issues"
+    FAILED=1
+fi
+
+if [ $FAILED -eq 1 ]; then
+    echo -e "\n${RED}Pre-commit checks failed.${NC}"
+    echo "Fix issues above or use 'git commit --no-verify' to skip."
+    exit 1
+fi
+
+echo -e "\n${GREEN}All pre-commit checks passed!${NC}"
+exit 0

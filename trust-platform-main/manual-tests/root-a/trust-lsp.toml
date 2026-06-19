@@ -1,0 +1,61 @@
+[project]
+vendor_profile = "siemens"
+include_paths = ["src"]
+stdlib = "iec"
+
+[indexing]
+max_files = 1000
+max_ms = 5000
+cache = true
+cache_dir = ".trust-lsp/index-cache"
+memory_budget_mb = 1
+evict_to_percent = 75
+throttle_idle_ms = 0
+throttle_active_ms = 8
+throttle_max_ms = 50
+throttle_active_window_ms = 250
+
+[diagnostics]
+rule_pack = "iec-safety"
+warn_unused = true
+warn_unreachable = true
+warn_missing_else = true
+warn_implicit_conversion = true
+warn_shadowed = true
+warn_deprecated = true
+warn_complexity = true
+warn_nondeterminism = true
+severity_overrides = { W010 = "error" }
+external_paths = ["lint.json"]
+
+[build]
+target = "x86_64"
+profile = "release"
+flags = ["-O2"]
+defines = ["SIM=1"]
+
+[[targets]]
+name = "sim"
+profile = "debug"
+flags = ["-g"]
+defines = ["TRACE=1"]
+
+[workspace]
+priority = 10
+visibility = "public"
+
+[telemetry]
+enabled = true
+path = ".trust-lsp/telemetry.jsonl"
+flush_every = 5
+
+[[libraries]]
+name = "VendorCore"
+path = "libs/Core"
+version = "2.0"
+dependencies = [{ name = "VendorUtils", version = "1.0" }]
+
+[[libraries]]
+name = "VendorUtils"
+path = "libs/Utils"
+version = "0.9" # intentional mismatch

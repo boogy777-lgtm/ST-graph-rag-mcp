@@ -1,0 +1,17 @@
+[package]
+name = "trust-syntax"
+description = "Lexer, parser, and concrete syntax tree for IEC 61131-3 Structured Text"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+logos.workspace = true
+rowan.workspace = true
+text-size.workspace = true
+drop_bomb.workspace = true
+
+[dev-dependencies]
+insta.workspace = true

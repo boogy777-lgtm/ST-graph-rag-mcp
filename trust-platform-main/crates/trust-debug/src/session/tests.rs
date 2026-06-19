@@ -1,0 +1,388 @@
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::protocol::Source;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    use trust_runtime::debug::SourceLocation;
+
+    static NEXT_ID: AtomicUsize = AtomicUsize::new(0);
+
+    fn temp_source_path(label: &str) -> std::path::PathBuf {
+        let id = NEXT_ID.fetch_add(1, Ordering::Relaxed);
+        let mut dir = std::env::temp_dir();
+        dir.push(format!("trust-debug-{label}-{id}"));
+        let _ = std::fs::create_dir_all(&dir);
+        let mut path = dir;
+        path.push("main.st");
+        path
+    }
+
+    #[test]
+    fn expands_brace_globs() {
+        let patterns = expand_braces("**/*.{st,ST,pou,POU}");
+        assert_eq!(patterns.len(), 4);
+        assert!(patterns.contains(&"**/*.st".to_string()));
+        assert!(patterns.contains(&"**/*.ST".to_string()));
+        assert!(patterns.contains(&"**/*.pou".to_string()));
+        assert!(patterns.contains(&"**/*.POU".to_string()));
+    }
+
+    #[test]
+    fn expands_nested_braces() {
+        let patterns = expand_braces("a{b,c}d{e,f}");
+        let mut sorted = patterns.clone();
+        sorted.sort();
+        assert_eq!(sorted, vec!["abde", "abdf", "acde", "acdf"]);
+    }
+
+    #[test]
+    fn session_resolves_breakpoints_to_statement_start() {
+        let mut runtime = Runtime::new();
+        let source = "x := 1;\n  y := 2;\n";
+        let x_start = source.find("x := 1;").unwrap();
+        let x_end = x_start + "x := 1;".len();
+        let y_start = source.find("y := 2;").unwrap();
+        let y_end = y_start + "y := 2;".len();
+        runtime.register_statement_locations(
+            0,
+            vec![
+                SourceLocation::new(0, x_start as u32, x_end as u32),
+                SourceLocation::new(0, y_start as u32, y_end as u32),
+            ],
+        );
+
+        let mut session = DebugSession::new(runtime);
+        session.register_source("main.st", 0, source);
+
+        let args = SetBreakpointsArguments {
+            source: Source {
+                name: Some("main".into()),
+                path: Some("main.st".into()),
+                source_reference: None,
+            },
+            breakpoints: Some(vec![SourceBreakpoint {
+                line: 2,
+                column: Some(1),
+                condition: None,
+                hit_condition: None,
+                log_message: None,
+            }]),
+            lines: None,
+            source_modified: None,
+        };
+
+        let response = session.set_breakpoints(&args);
+        assert_eq!(response.breakpoints.len(), 1);
+        let breakpoint = &response.breakpoints[0];
+        assert!(breakpoint.verified);
+        assert_eq!(breakpoint.line, Some(2));
+        assert_eq!(breakpoint.column, Some(3));
+    }
+
+    #[test]
+    fn session_snaps_breakpoints_inside_indent() {
+        let mut runtime = Runtime::new();
+        let source = "x := 1;\n  y := 2;\n";
+        let x_start = source.find("x := 1;").unwrap();
+        let x_end = x_start + "x := 1;".len();
+        let y_start = source.find("y := 2;").unwrap();
+        let y_end = y_start + "y := 2;".len();
+        runtime.register_statement_locations(
+            0,
+            vec![
+                SourceLocation::new(0, x_start as u32, x_end as u32),
+                SourceLocation::new(0, y_start as u32, y_end as u32),
+            ],
+        );
+
+        let mut session = DebugSession::new(runtime);
+        session.register_source("main.st", 0, source);
+
+        let args = SetBreakpointsArguments {
+            source: Source {
+                name: Some("main".into()),
+                path: Some("main.st".into()),
+                source_reference: None,
+            },
+            breakpoints: Some(vec![SourceBreakpoint {
+                line: 2,
+                column: Some(2),
+                condition: None,
+                hit_condition: None,
+                log_message: None,
+            }]),
+            lines: None,
+            source_modified: None,
+        };
+
+        let response = session.set_breakpoints(&args);
+        assert_eq!(response.breakpoints.len(), 1);
+        let breakpoint = &response.breakpoints[0];
+        assert!(breakpoint.verified);
+        assert_eq!(breakpoint.line, Some(2));
+        assert_eq!(breakpoint.column, Some(3));
+    }
+
+    #[test]
+    fn session_accepts_logpoint_templates() {
+        let mut runtime = Runtime::new();
+        let source = "x := 1;\n";
+        let x_start = source.find("x := 1;").unwrap();
+        let x_end = x_start + "x := 1;".len();
+        runtime.register_statement_locations(
+            0,
+            vec![SourceLocation::new(0, x_start as u32, x_end as u32)],
+        );
+
+        let mut session = DebugSession::new(runtime);
+        session.register_source("main.st", 0, source);
+
+        let args = SetBreakpointsArguments {
+            source: Source {
+                name: Some("main".into()),
+                path: Some("main.st".into()),
+                source_reference: None,
+            },
+            breakpoints: Some(vec![SourceBreakpoint {
+                line: 1,
+                column: Some(1),
+                condition: None,
+                hit_condition: None,
+                log_message: Some("x={x}".into()),
+            }]),
+            lines: None,
+            source_modified: None,
+        };
+
+        let response = session.set_breakpoints(&args);
+        assert_eq!(response.breakpoints.len(), 1);
+        assert!(response.breakpoints[0].verified);
+    }
+
+    #[test]
+    fn session_rejects_invalid_log_message() {
+        let mut runtime = Runtime::new();
+        let source = "x := 1;\n";
+        let x_start = source.find("x := 1;").unwrap();
+        let x_end = x_start + "x := 1;".len();
+        runtime.register_statement_locations(
+            0,
+            vec![SourceLocation::new(0, x_start as u32, x_end as u32)],
+        );
+
+        let mut session = DebugSession::new(runtime);
+        session.register_source("main.st", 0, source);
+
+        let args = SetBreakpointsArguments {
+            source: Source {
+                name: Some("main".into()),
+                path: Some("main.st".into()),
+                source_reference: None,
+            },
+            breakpoints: Some(vec![SourceBreakpoint {
+                line: 1,
+                column: Some(1),
+                condition: None,
+                hit_condition: None,
+                log_message: Some("{".into()),
+            }]),
+            lines: None,
+            source_modified: None,
+        };
+
+        let response = session.set_breakpoints(&args);
+        assert_eq!(response.breakpoints.len(), 1);
+        assert!(!response.breakpoints[0].verified);
+    }
+
+    #[test]
+    fn parse_hit_condition_supports_basic_operators() {
+        assert_eq!(parse_hit_condition("3"), Some(HitCondition::Equal(3)));
+        assert_eq!(parse_hit_condition(">= 4"), Some(HitCondition::AtLeast(4)));
+        assert_eq!(
+            parse_hit_condition("> 5"),
+            Some(HitCondition::GreaterThan(5))
+        );
+        assert_eq!(parse_hit_condition("==6"), Some(HitCondition::Equal(6)));
+        assert!(parse_hit_condition("nope").is_none());
+    }
+
+    #[test]
+    fn session_reload_revalidates_breakpoints() {
+        let path = temp_source_path("reload");
+        let source_v1 = r#"PROGRAM Main
+VAR
+    x : INT;
+END_VAR
+x := INT#1;
+END_PROGRAM
+"#;
+        std::fs::write(&path, source_v1).unwrap();
+
+        let mut session = DebugSession::new(Runtime::new());
+        session.set_program_path(path.to_string_lossy().to_string());
+        session
+            .reload_program(Some(path.to_string_lossy().as_ref()))
+            .unwrap();
+
+        let args = SetBreakpointsArguments {
+            source: Source {
+                name: Some(path.to_string_lossy().to_string()),
+                path: Some(path.to_string_lossy().to_string()),
+                source_reference: None,
+            },
+            breakpoints: Some(vec![SourceBreakpoint {
+                line: 5,
+                column: Some(1),
+                condition: None,
+                hit_condition: None,
+                log_message: None,
+            }]),
+            lines: None,
+            source_modified: None,
+        };
+        let response = session.set_breakpoints(&args);
+        assert_eq!(response.breakpoints.len(), 1);
+        assert_eq!(response.breakpoints[0].line, Some(5));
+
+        let source_v2 = format!("\n{source_v1}");
+        std::fs::write(&path, source_v2).unwrap();
+        let updated = session.reload_program(None).unwrap();
+        assert_eq!(updated.len(), 1);
+        assert_eq!(updated[0].line, Some(6));
+    }
+
+    #[test]
+    fn session_reload_clears_breakpoints_without_requests() {
+        let path = temp_source_path("reload_clear");
+        let source = r#"PROGRAM Main
+VAR
+    x : INT;
+END_VAR
+x := INT#1;
+END_PROGRAM
+"#;
+        std::fs::write(&path, source).unwrap();
+
+        let mut session = DebugSession::new(Runtime::new());
+        session.set_program_path(path.to_string_lossy().to_string());
+        session
+            .reload_program(Some(path.to_string_lossy().as_ref()))
+            .unwrap();
+
+        let args = SetBreakpointsArguments {
+            source: Source {
+                name: Some(path.to_string_lossy().to_string()),
+                path: Some(path.to_string_lossy().to_string()),
+                source_reference: None,
+            },
+            breakpoints: Some(vec![SourceBreakpoint {
+                line: 5,
+                column: Some(1),
+                condition: None,
+                hit_condition: None,
+                log_message: None,
+            }]),
+            lines: None,
+            source_modified: None,
+        };
+        let _ = session.set_breakpoints(&args);
+        assert_eq!(session.control.breakpoint_count(), 1);
+
+        session.clear_requested_breakpoints();
+        session.reload_program(None).unwrap();
+        assert_eq!(session.control.breakpoint_count(), 0);
+    }
+
+    #[test]
+    fn session_revalidates_breakpoints_after_source_registration() {
+        let source = r#"PROGRAM Main
+VAR
+    x : INT := 0;
+END_VAR
+IF x = 0 THEN
+    x := x + 1;
+END_IF;
+END_PROGRAM
+"#;
+        let harness = TestHarness::from_source(source).unwrap();
+        let mut session = DebugSession::new(harness.into_runtime());
+
+        let line_index = source
+            .lines()
+            .position(|line| line.contains("x := x + 1;"))
+            .unwrap();
+        let line = line_index as u32 + 1;
+        let args = SetBreakpointsArguments {
+            source: Source {
+                name: Some("main".into()),
+                path: Some("main.st".into()),
+                source_reference: None,
+            },
+            breakpoints: Some(vec![SourceBreakpoint {
+                line,
+                column: Some(1),
+                condition: None,
+                hit_condition: None,
+                log_message: None,
+            }]),
+            lines: None,
+            source_modified: None,
+        };
+
+        let response = session.set_breakpoints(&args);
+        assert!(!response.breakpoints[0].verified);
+
+        session.register_source("main.st", 0, source);
+        let updated = session.revalidate_breakpoints();
+        assert_eq!(updated.len(), 1);
+        assert_eq!(updated[0].line, Some(line));
+        assert!(updated[0].verified);
+    }
+
+    #[test]
+    fn session_resolves_if_header_breakpoint_to_if_statement() {
+        let source = r#"PROGRAM Main
+VAR
+    startCmd : BOOL := TRUE;
+    x : INT := 0;
+END_VAR
+IF startCmd THEN
+    x := x + 1;
+END_IF;
+END_PROGRAM
+"#;
+        let harness = TestHarness::from_source(source).unwrap();
+        let mut session = DebugSession::new(harness.into_runtime());
+        session.register_source("main.st", 0, source);
+
+        let if_line = source
+            .lines()
+            .position(|line| line.trim_start().starts_with("IF startCmd THEN"))
+            .unwrap() as u32
+            + 1;
+        let args = SetBreakpointsArguments {
+            source: Source {
+                name: Some("main".into()),
+                path: Some("main.st".into()),
+                source_reference: None,
+            },
+            breakpoints: Some(vec![SourceBreakpoint {
+                line: if_line,
+                column: Some(1),
+                condition: None,
+                hit_condition: None,
+                log_message: None,
+            }]),
+            lines: None,
+            source_modified: None,
+        };
+
+        let response = session.set_breakpoints(&args);
+        assert_eq!(response.breakpoints.len(), 1);
+        let bp = &response.breakpoints[0];
+        assert!(bp.verified);
+        assert_eq!(bp.line, Some(if_line));
+        assert_eq!(bp.column, Some(1));
+    }
+}

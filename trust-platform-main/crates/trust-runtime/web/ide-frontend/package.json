@@ -1,0 +1,21 @@
+{
+  "name": "trust-runtime-ide-frontend",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "build:monaco": "vite build --config vite.monaco.config.ts"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "vite": "7.3.1"
+  },
+  "dependencies": {
+    "@codemirror/autocomplete": "6.20.0",
+    "@codemirror/commands": "6.10.2",
+    "@codemirror/lint": "6.9.4",
+    "@codemirror/state": "6.5.4",
+    "@codemirror/view": "6.39.14",
+    "monaco-editor": "0.55.1"
+  }
+}

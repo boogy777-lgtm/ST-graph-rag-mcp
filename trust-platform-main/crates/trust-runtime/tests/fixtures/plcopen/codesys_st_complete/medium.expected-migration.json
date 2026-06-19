@@ -1,0 +1,19 @@
+{
+  "detected_ecosystem": "codesys",
+  "discovered_pous": 3,
+  "imported_pous": 3,
+  "imported_data_types": 4,
+  "discovered_configurations": 1,
+  "imported_configurations": 1,
+  "imported_resources": 1,
+  "imported_tasks": 3,
+  "imported_program_instances": 3,
+  "compatibility_coverage": {
+    "supported_items": 3,
+    "partial_items": 0,
+    "unsupported_items": 0,
+    "verdict": "full"
+  },
+  "unsupported_nodes": [],
+  "diagnostic_codes": []
+}

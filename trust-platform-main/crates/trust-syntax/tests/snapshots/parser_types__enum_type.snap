@@ -1,0 +1,102 @@
+---
+source: crates/trust-syntax/tests/parser_types.rs
+expression: "snapshot_parse(r#\"TYPE\n    Color : (Red, Green, Blue);\n    State : (Idle := 0, Running := 1, Stopped := 2);\n    Defaulted : (Alpha, Beta) := Beta;\n    Colors : DWORD\n        (Red := 16#00FF0000,\n         Green := 16#0000FF00,\n         Blue := 16#000000FF)\n        := Green;\nEND_TYPE\"#)"
+---
+SourceFile@0..264
+  TypeDecl@0..264
+    KwType@0..4 "TYPE"
+    Name@4..15
+      Ident@9..14 "Color"
+    Colon@15..16 ":"
+    EnumDef@16..35
+      LParen@17..18 "("
+      EnumValue@18..21
+        Name@18..21
+          Ident@18..21 "Red"
+      Comma@21..22 ","
+      EnumValue@22..28
+        Name@22..28
+          Ident@23..28 "Green"
+      Comma@28..29 ","
+      EnumValue@29..34
+        Name@29..34
+          Ident@30..34 "Blue"
+      RParen@34..35 ")"
+    Semicolon@35..36 ";"
+    Name@36..47
+      Ident@41..46 "State"
+    Colon@47..48 ":"
+    EnumDef@48..88
+      LParen@49..50 "("
+      EnumValue@50..59
+        Name@50..55
+          Ident@50..54 "Idle"
+        Assign@55..57 ":="
+        Literal@57..59
+          IntLiteral@58..59 "0"
+      Comma@59..60 ","
+      EnumValue@60..73
+        Name@60..69
+          Ident@61..68 "Running"
+        Assign@69..71 ":="
+        Literal@71..73
+          IntLiteral@72..73 "1"
+      Comma@73..74 ","
+      EnumValue@74..87
+        Name@74..83
+          Ident@75..82 "Stopped"
+        Assign@83..85 ":="
+        Literal@85..87
+          IntLiteral@86..87 "2"
+      RParen@87..88 ")"
+    Semicolon@88..89 ";"
+    Name@89..104
+      Ident@94..103 "Defaulted"
+    Colon@104..105 ":"
+    EnumDef@105..120
+      LParen@106..107 "("
+      EnumValue@107..112
+        Name@107..112
+          Ident@107..112 "Alpha"
+      Comma@112..113 ","
+      EnumValue@113..118
+        Name@113..118
+          Ident@114..118 "Beta"
+      RParen@118..119 ")"
+    Assign@120..122 ":="
+    NameRef@122..127
+      Ident@123..127 "Beta"
+    Semicolon@127..128 ";"
+    Name@128..140
+      Ident@133..139 "Colors"
+    Colon@140..141 ":"
+    EnumDef@141..246
+      TypeRef@141..156
+        KwDWord@142..147 "DWORD"
+      LParen@156..157 "("
+      EnumValue@157..175
+        Name@157..161
+          Ident@157..160 "Red"
+        Assign@161..163 ":="
+        Literal@163..175
+          IntLiteral@164..175 "16#00FF0000"
+      Comma@175..176 ","
+      EnumValue@176..206
+        Name@176..192
+          Ident@186..191 "Green"
+        Assign@192..194 ":="
+        Literal@194..206
+          IntLiteral@195..206 "16#0000FF00"
+      Comma@206..207 ","
+      EnumValue@207..236
+        Name@207..222
+          Ident@217..221 "Blue"
+        Assign@222..224 ":="
+        Literal@224..236
+          IntLiteral@225..236 "16#000000FF"
+      RParen@236..237 ")"
+    Assign@246..248 ":="
+    NameRef@248..254
+      Ident@249..254 "Green"
+    Semicolon@254..255 ";"
+    KwEndType@256..264 "END_TYPE"

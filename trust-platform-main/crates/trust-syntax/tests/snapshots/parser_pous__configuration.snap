@@ -1,0 +1,120 @@
+---
+source: crates/trust-syntax/tests/parser_pous.rs
+expression: "snapshot_parse(r#\"CONFIGURATION Cell_1\nVAR_GLOBAL\n    gCounter : INT;\nEND_VAR\nRESOURCE Station_1 ON Processor_A\n    TASK Fast (INTERVAL := T#10ms, PRIORITY := 1);\n    TASK Slow (INTERVAL := T#20ms, PRIORITY := 2);\n    PROGRAM P1 WITH Fast : MyProgram;\nEND_RESOURCE\nVAR_ACCESS\n    A1 : Station_1.P1.gCounter : INT READ_WRITE;\nEND_VAR\nVAR_CONFIG\n    Station_1.P1.gCounter : INT := 1;\nEND_VAR\nEND_CONFIGURATION\"#)"
+---
+SourceFile@0..389
+  Configuration@0..389
+    KwConfiguration@0..13 "CONFIGURATION"
+    Name@13..21
+      Ident@14..20 "Cell_1"
+    VarBlock@21..60
+      KwVarGlobal@21..31 "VAR_GLOBAL"
+      VarDecl@31..52
+        Name@31..45
+          Ident@36..44 "gCounter"
+        Colon@45..46 ":"
+        TypeRef@46..50
+          KwInt@47..50 "INT"
+        Semicolon@50..51 ";"
+      KwEndVar@52..59 "END_VAR"
+    Resource@60..247
+      KwResource@60..68 "RESOURCE"
+      Name@68..79
+        Ident@69..78 "Station_1"
+      KwOn@79..81 "ON"
+      QualifiedName@81..98
+        Name@81..98
+          Ident@82..93 "Processor_A"
+      TaskConfig@98..149
+        KwTask@98..102 "TASK"
+        Name@102..108
+          Ident@103..107 "Fast"
+        TaskInit@108..143
+          LParen@108..109 "("
+          Name@109..118
+            Ident@109..117 "INTERVAL"
+          Assign@118..120 ":="
+          Literal@120..127
+            TimeLiteral@121..127 "T#10ms"
+          Comma@127..128 ","
+          Name@128..138
+            Ident@129..137 "PRIORITY"
+          Assign@138..140 ":="
+          Literal@140..142
+            IntLiteral@141..142 "1"
+          RParen@142..143 ")"
+        Semicolon@143..144 ";"
+      TaskConfig@149..200
+        KwTask@149..153 "TASK"
+        Name@153..159
+          Ident@154..158 "Slow"
+        TaskInit@159..194
+          LParen@159..160 "("
+          Name@160..169
+            Ident@160..168 "INTERVAL"
+          Assign@169..171 ":="
+          Literal@171..178
+            TimeLiteral@172..178 "T#20ms"
+          Comma@178..179 ","
+          Name@179..189
+            Ident@180..188 "PRIORITY"
+          Assign@189..191 ":="
+          Literal@191..193
+            IntLiteral@192..193 "2"
+          RParen@193..194 ")"
+        Semicolon@194..195 ";"
+      ProgramConfig@200..234
+        KwProgram@200..207 "PROGRAM"
+        Name@207..211
+          Ident@208..210 "P1"
+        KwWith@211..215 "WITH"
+        Name@215..221
+          Ident@216..220 "Fast"
+        Colon@221..222 ":"
+        QualifiedName@222..232
+          Name@222..232
+            Ident@223..232 "MyProgram"
+        Semicolon@232..233 ";"
+      KwEndResource@234..246 "END_RESOURCE"
+    VarAccessBlock@247..315
+      KwVarAccess@247..257 "VAR_ACCESS"
+      AccessDecl@257..305
+        Name@257..265
+          Ident@262..264 "A1"
+        Colon@265..266 ":"
+        AccessPath@266..289
+          Name@266..276
+            Ident@267..276 "Station_1"
+          Dot@276..277 "."
+          Name@277..279
+            Ident@277..279 "P1"
+          Dot@279..280 "."
+          Name@280..289
+            Ident@280..288 "gCounter"
+        Colon@289..290 ":"
+        TypeRef@290..295
+          KwInt@291..294 "INT"
+        KwReadWrite@295..305 "READ_WRITE"
+      Semicolon@305..306 ";"
+      KwEndVar@307..314 "END_VAR"
+    VarConfigBlock@315..372
+      KwVarConfig@315..325 "VAR_CONFIG"
+      ConfigInit@325..362
+        AccessPath@325..352
+          Name@325..339
+            Ident@330..339 "Station_1"
+          Dot@339..340 "."
+          Name@340..342
+            Ident@340..342 "P1"
+          Dot@342..343 "."
+          Name@343..352
+            Ident@343..351 "gCounter"
+        Colon@352..353 ":"
+        TypeRef@353..358
+          KwInt@354..357 "INT"
+        Assign@358..360 ":="
+        Literal@360..362
+          IntLiteral@361..362 "1"
+      Semicolon@362..363 ";"
+      KwEndVar@364..371 "END_VAR"
+    KwEndConfiguration@372..389 "END_CONFIGURATION"

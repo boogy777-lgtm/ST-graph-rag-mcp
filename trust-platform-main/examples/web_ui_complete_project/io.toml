@@ -1,0 +1,108 @@
+[io]
+driver = "simulated"
+
+[io.params]
+
+[[io.safe_state]]
+address = "%QX0.0"
+value = "FALSE"
+
+[[io.safe_state]]
+address = "%QX0.1"
+value = "FALSE"
+
+[[io.safe_state]]
+address = "%QX0.2"
+value = "FALSE"
+
+[[io.safe_state]]
+address = "%QX0.3"
+value = "FALSE"
+
+[[io.safe_state]]
+address = "%QX0.4"
+value = "FALSE"
+
+[[io.safe_state]]
+address = "%QX0.5"
+value = "FALSE"
+
+[[io.safe_state]]
+address = "%QX0.6"
+value = "FALSE"
+
+[[io.safe_state]]
+address = "%QX0.7"
+value = "FALSE"
+
+[[io.safe_state]]
+address = "%QX1.0"
+value = "FALSE"
+
+[[io.safe_state]]
+address = "%QX2.0"
+value = "FALSE"
+
+[[io.safe_state]]
+address = "%QX3.0"
+value = "FALSE"
+
+[[io.safe_state]]
+address = "%QX3.1"
+value = "FALSE"
+
+[[io.safe_state]]
+address = "%QX3.2"
+value = "FALSE"
+
+[[io.safe_state]]
+address = "%QX3.3"
+value = "FALSE"
+
+[[io.safe_state]]
+address = "%QX3.4"
+value = "FALSE"
+
+[[io.safe_state]]
+address = "%QX3.5"
+value = "FALSE"
+
+[[io.safe_state]]
+address = "%QX3.6"
+value = "FALSE"
+
+[[io.safe_state]]
+address = "%QX3.7"
+value = "FALSE"
+
+[[io.safe_state]]
+address = "%QX4.0"
+value = "FALSE"
+
+[[io.safe_state]]
+address = "%QX4.1"
+value = "FALSE"
+
+[[io.safe_state]]
+address = "%QX4.2"
+value = "FALSE"
+
+[[io.safe_state]]
+address = "%QX4.3"
+value = "FALSE"
+
+[[io.safe_state]]
+address = "%QX4.4"
+value = "FALSE"
+
+[[io.safe_state]]
+address = "%QX4.5"
+value = "FALSE"
+
+[[io.safe_state]]
+address = "%QX4.6"
+value = "FALSE"
+
+[[io.safe_state]]
+address = "%QX4.7"
+value = "FALSE"

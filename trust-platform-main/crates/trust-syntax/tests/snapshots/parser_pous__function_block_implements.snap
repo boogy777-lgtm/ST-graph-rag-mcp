@@ -1,0 +1,17 @@
+---
+source: crates/trust-syntax/tests/parser_pous.rs
+expression: "snapshot_parse(r#\"FUNCTION_BLOCK FB_Impl IMPLEMENTS IMotor, ISensor\nEND_FUNCTION_BLOCK\"#)"
+---
+SourceFile@0..68
+  FunctionBlock@0..68
+    KwFunctionBlock@0..14 "FUNCTION_BLOCK"
+    Name@14..23
+      Ident@15..22 "FB_Impl"
+    ImplementsClause@23..50
+      KwImplements@23..33 "IMPLEMENTS"
+      Name@33..40
+        Ident@34..40 "IMotor"
+      Comma@40..41 ","
+      Name@41..50
+        Ident@42..49 "ISensor"
+    KwEndFunctionBlock@50..68 "END_FUNCTION_BLOCK"

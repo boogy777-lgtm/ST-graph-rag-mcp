@@ -1,0 +1,21 @@
+[package]
+name = "trust-debug"
+description = "Debug Adapter Protocol helpers for Structured Text"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+trust-runtime.workspace = true
+trust-hir.workspace = true
+indexmap.workspace = true
+smol_str.workspace = true
+glob.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+
+[dev-dependencies]

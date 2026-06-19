@@ -1,0 +1,247 @@
+use super::*;
+
+#[test]
+pub(super) fn lsp_learner_diagnostics_include_syntax_habit_hints() {
+    let source = r#"
+PROGRAM Test
+VAR
+    x : INT;
+    y : INT;
+END_VAR
+IF x == y THEN
+    x = 1;
+END_IF;
+IF TRUE && FALSE THEN
+    x := 2;
+END_IF;
+}
+END_PROGRAM
+"#;
+    let state = ServerState::new();
+    let uri = tower_lsp::lsp_types::Url::parse("file:///syntax-hints.st").unwrap();
+    state.open_document(uri.clone(), 1, source.to_string());
+
+    let params = tower_lsp::lsp_types::DocumentDiagnosticParams {
+        text_document: tower_lsp::lsp_types::TextDocumentIdentifier { uri },
+        identifier: None,
+        previous_result_id: None,
+        work_done_progress_params: Default::default(),
+        partial_result_params: Default::default(),
+    };
+    let report = document_diagnostic(&state, params);
+    let report = match report {
+        tower_lsp::lsp_types::DocumentDiagnosticReportResult::Report(report) => report,
+        _ => panic!("expected diagnostic report"),
+    };
+    let full = match report {
+        tower_lsp::lsp_types::DocumentDiagnosticReport::Full(full) => full,
+        _ => panic!("expected full diagnostic report"),
+    };
+    let hints: Vec<String> = full
+        .full_document_diagnostic_report
+        .items
+        .iter()
+        .flat_map(|diag| {
+            diag.related_information
+                .iter()
+                .flat_map(|items| items.iter().map(|item| item.message.clone()))
+        })
+        .collect();
+
+    assert!(
+        hints
+            .iter()
+            .any(|hint| hint.contains("use '=' for comparison")),
+        "expected == guidance, got {hints:?}"
+    );
+    assert!(
+        hints
+            .iter()
+            .any(|hint| hint.contains("assignments use ':='")),
+        "expected assignment guidance, got {hints:?}"
+    );
+    assert!(
+        hints.iter().any(|hint| hint.contains("AND instead of &&")),
+        "expected && guidance, got {hints:?}"
+    );
+    assert!(
+        hints
+            .iter()
+            .any(|hint| hint.contains("END_* keywords for block endings")),
+        "expected brace guidance, got {hints:?}"
+    );
+}
+
+#[test]
+pub(super) fn lsp_learner_diagnostics_no_hint_noise_on_valid_code() {
+    let source = r#"
+PROGRAM Test
+VAR
+    x : INT;
+    y : INT;
+END_VAR
+x := 1;
+y := x + 1;
+END_PROGRAM
+"#;
+    let state = ServerState::new();
+    let uri = tower_lsp::lsp_types::Url::parse("file:///no-noise.st").unwrap();
+    state.open_document(uri.clone(), 1, source.to_string());
+
+    let params = tower_lsp::lsp_types::DocumentDiagnosticParams {
+        text_document: tower_lsp::lsp_types::TextDocumentIdentifier { uri },
+        identifier: None,
+        previous_result_id: None,
+        work_done_progress_params: Default::default(),
+        partial_result_params: Default::default(),
+    };
+    let report = document_diagnostic(&state, params);
+    let report = match report {
+        tower_lsp::lsp_types::DocumentDiagnosticReportResult::Report(report) => report,
+        _ => panic!("expected diagnostic report"),
+    };
+    let full = match report {
+        tower_lsp::lsp_types::DocumentDiagnosticReport::Full(full) => full,
+        _ => panic!("expected full diagnostic report"),
+    };
+
+    let hint_messages: Vec<String> = full
+        .full_document_diagnostic_report
+        .items
+        .iter()
+        .flat_map(|diag| {
+            diag.related_information
+                .iter()
+                .flat_map(|items| items.iter().map(|item| item.message.clone()))
+        })
+        .filter(|message| message.starts_with("Hint:"))
+        .collect();
+    assert!(
+        hint_messages.is_empty(),
+        "expected no learner hints on valid code, got {hint_messages:?}"
+    );
+}
+
+#[test]
+pub(super) fn lsp_config_diagnostics_report_library_dependency_issues() {
+    let config = r#"
+[project]
+include_paths = ["src"]
+
+[[libraries]]
+name = "Core"
+path = "libs/core"
+version = "1.0"
+
+[[libraries]]
+name = "App"
+path = "libs/app"
+version = "1.0"
+dependencies = [{ name = "Core", version = "2.0" }, { name = "Missing" }]
+"#;
+    let state = ServerState::new();
+    let root_uri = tower_lsp::lsp_types::Url::parse("file:///workspace/").unwrap();
+    state.set_workspace_folders(vec![root_uri]);
+
+    let uri = tower_lsp::lsp_types::Url::parse("file:///workspace/trust-lsp.toml").unwrap();
+    state.open_document(uri.clone(), 1, config.to_string());
+
+    let params = tower_lsp::lsp_types::DocumentDiagnosticParams {
+        text_document: tower_lsp::lsp_types::TextDocumentIdentifier { uri },
+        identifier: None,
+        previous_result_id: None,
+        work_done_progress_params: Default::default(),
+        partial_result_params: Default::default(),
+    };
+    let report = document_diagnostic(&state, params);
+    let report = match report {
+        tower_lsp::lsp_types::DocumentDiagnosticReportResult::Report(report) => report,
+        _ => panic!("expected diagnostic report"),
+    };
+    let full = match report {
+        tower_lsp::lsp_types::DocumentDiagnosticReport::Full(full) => full,
+        _ => panic!("expected full diagnostic report"),
+    };
+    let codes: Vec<String> = full
+        .full_document_diagnostic_report
+        .items
+        .iter()
+        .filter_map(|diag| diag.code.as_ref())
+        .map(|code| match code {
+            tower_lsp::lsp_types::NumberOrString::String(value) => value.clone(),
+            tower_lsp::lsp_types::NumberOrString::Number(value) => value.to_string(),
+        })
+        .collect();
+
+    assert!(codes.contains(&"L001".to_string()));
+    assert!(codes.contains(&"L002".to_string()));
+}
+
+#[test]
+pub(super) fn lsp_config_diagnostics_report_dependency_cycle_issues() {
+    let root = temp_dir("trustlsp-cycle-config");
+    let dep_a = root.join("deps/lib-a");
+    let dep_b = root.join("deps/lib-b");
+    std::fs::create_dir_all(&dep_a).expect("create dep a");
+    std::fs::create_dir_all(&dep_b).expect("create dep b");
+
+    let config = r#"
+[dependencies]
+LibA = { path = "deps/lib-a" }
+"#;
+    std::fs::write(root.join("trust-lsp.toml"), config).expect("write root config");
+    std::fs::write(
+        dep_a.join("trust-lsp.toml"),
+        r#"
+[dependencies]
+LibB = { path = "../lib-b" }
+"#,
+    )
+    .expect("write dep a");
+    std::fs::write(
+        dep_b.join("trust-lsp.toml"),
+        r#"
+[dependencies]
+LibA = { path = "../lib-a" }
+"#,
+    )
+    .expect("write dep b");
+
+    let state = ServerState::new();
+    let root_uri = tower_lsp::lsp_types::Url::from_file_path(&root).expect("root uri");
+    state.set_workspace_folders(vec![root_uri.clone()]);
+
+    let uri =
+        tower_lsp::lsp_types::Url::from_file_path(root.join("trust-lsp.toml")).expect("config uri");
+    state.open_document(uri.clone(), 1, config.to_string());
+
+    let params = tower_lsp::lsp_types::DocumentDiagnosticParams {
+        text_document: tower_lsp::lsp_types::TextDocumentIdentifier { uri },
+        identifier: None,
+        previous_result_id: None,
+        work_done_progress_params: Default::default(),
+        partial_result_params: Default::default(),
+    };
+    let report = document_diagnostic(&state, params);
+    let report = match report {
+        tower_lsp::lsp_types::DocumentDiagnosticReportResult::Report(report) => report,
+        _ => panic!("expected diagnostic report"),
+    };
+    let full = match report {
+        tower_lsp::lsp_types::DocumentDiagnosticReport::Full(full) => full,
+        _ => panic!("expected full diagnostic report"),
+    };
+    let codes: Vec<String> = full
+        .full_document_diagnostic_report
+        .items
+        .iter()
+        .filter_map(|diag| diag.code.as_ref())
+        .map(|code| match code {
+            tower_lsp::lsp_types::NumberOrString::String(value) => value.clone(),
+            tower_lsp::lsp_types::NumberOrString::Number(value) => value.to_string(),
+        })
+        .collect();
+
+    assert!(codes.contains(&"L004".to_string()));
+    std::fs::remove_dir_all(root).ok();
+}

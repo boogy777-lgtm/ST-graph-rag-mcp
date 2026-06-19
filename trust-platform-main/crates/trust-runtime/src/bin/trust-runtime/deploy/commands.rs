@@ -1,0 +1,95 @@
+pub struct DeployResult {
+    pub current_bundle: PathBuf,
+}
+
+pub fn run_deploy(
+    bundle: PathBuf,
+    root: Option<PathBuf>,
+    label: Option<String>,
+) -> anyhow::Result<DeployResult> {
+    let spinner = ProgressBar::new_spinner();
+    spinner.set_style(ProgressStyle::default_spinner().template("{spinner} {msg}")?);
+    spinner.enable_steady_tick(std::time::Duration::from_millis(120));
+    spinner.set_message("Deploying project...");
+    let source_bundle = RuntimeBundle::load(&bundle)?;
+    validate_bundle(&source_bundle)?;
+    let root = root.unwrap_or(std::env::current_dir()?);
+    let bundles_dir = root.join("bundles");
+    let deployments_dir = root.join("deployments");
+    fs::create_dir_all(&bundles_dir)?;
+    fs::create_dir_all(&deployments_dir)?;
+
+    let bundle_name = label.unwrap_or_else(default_bundle_label);
+    let dest = bundles_dir.join(&bundle_name);
+    if dest.exists() {
+        anyhow::bail!("deployment already exists: {}", dest.display());
+    }
+
+    copy_bundle(&source_bundle.root, &dest)?;
+    let dest_bundle = RuntimeBundle::load(&dest)?;
+    validate_bundle(&dest_bundle)?;
+
+    let current_link = root.join("current");
+    let previous_link = root.join("previous");
+    let current_target = read_link_target(&current_link);
+    let previous_target = read_link_target(&previous_link);
+
+    let previous_bundle = current_target
+        .as_ref()
+        .and_then(|path| RuntimeBundle::load(path).ok());
+    let summary = BundleChangeSummary::new(previous_bundle.as_ref(), &dest_bundle);
+
+    summary.print();
+    write_summary(&deployments_dir, &bundle_name, &summary)?;
+
+    update_symlink(&current_link, &dest)?;
+    if let Some(old_current) = current_target {
+        update_symlink(&previous_link, &old_current)?;
+    }
+
+    prune_bundles(
+        &bundles_dir,
+        &bundle_targets(&dest, previous_target.as_ref()),
+    )?;
+
+    spinner.finish_and_clear();
+    println!(
+        "{}",
+        style::success(format!(
+            "Deployed project {} -> {}",
+            bundle_name,
+            dest.display()
+        ))
+    );
+    println!("Current project version: {}", current_link.display());
+    Ok(DeployResult {
+        current_bundle: current_link,
+    })
+}
+
+pub fn run_rollback(root: Option<PathBuf>) -> anyhow::Result<()> {
+    let root = root.unwrap_or(std::env::current_dir()?);
+    let current_link = root.join("current");
+    let previous_link = root.join("previous");
+    let current_target = read_link_target(&current_link)
+        .ok_or_else(|| anyhow::anyhow!("no current project link at {}", current_link.display()))?;
+    let previous_target = read_link_target(&previous_link).ok_or_else(|| {
+        anyhow::anyhow!(
+            "no previous project link at {} (nothing to rollback)",
+            previous_link.display()
+        )
+    })?;
+
+    update_symlink(&current_link, &previous_target)?;
+    update_symlink(&previous_link, &current_target)?;
+
+    println!(
+        "{}",
+        style::success(format!(
+            "Rolled back to project {}",
+            previous_target.display()
+        ))
+    );
+    println!("Current project version: {}", current_link.display());
+    Ok(())
+}

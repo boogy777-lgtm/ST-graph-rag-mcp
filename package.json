@@ -1,0 +1,79 @@
+{
+	"name": "@boogy777-lgtm/st-graph-rag-mcp",
+	"version": "3.0.0-rc.1",
+	"description": "MCP server for ST (Structured Text) CODESYS code analysis with graph-based representations and SQLite-based graph queries",
+	"license": "MIT",
+	"author": "Ruslan Semenishin",
+	"homepage": "https://github.com/boogy777-lgtm/ST-graph-rag-mcp#readme",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/boogy777-lgtm/ST-graph-rag-mcp.git"
+	},
+	"bugs": {
+		"url": "https://github.com/boogy777-lgtm/ST-graph-rag-mcp/issues"
+	},
+	"keywords": [
+		"mcp",
+		"model-context-protocol",
+		"code-analysis",
+		"graph",
+		"codesys",
+		"iec-61131-3",
+		"structured-text",
+		"st",
+		"plc",
+		"typescript",
+		"sqlite",
+		"lsp",
+		"obsidian",
+		"trust-lsp",
+		"bun"
+	],
+	"type": "module",
+	"main": "dist/index.js",
+	"bin": {
+		"st-graph-rag-mcp": "dist/index.js"
+	},
+	"files": [
+		"dist",
+		"README.md",
+		"LICENSE",
+		"CHANGELOG.md"
+	],
+	"scripts": {
+		"build": "bun run scripts/build.ts",
+		"build:watch": "bun run --watch scripts/build.ts",
+		"typecheck": "tsc --noEmit",
+		"lint": "biome check src/ scripts/",
+		"lint:fix": "biome check --write src/ scripts/",
+		"format": "biome format --write src/ scripts/",
+		"test": "bun run scripts/run-tests.js",
+		"smoke": "bun run scripts/smoke.js",
+		"obsidian:export": "bun run src/cli/obsidian-export.ts",
+		"obsidian:export:build": "bun run src/cli/obsidian-export.ts",
+		"obsidian:export:force": "bun run src/cli/obsidian-export.ts -- --full",
+		"clean": "bun run scripts/clean.ts",
+		"prepublishOnly": "bun run build && bun run smoke",
+		"publish:npm": "bun publish",
+		"pack:dry": "bun pm pack --dry-run"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.2.4",
+		"@commitlint/cli": "^20.1.0",
+		"@commitlint/config-conventional": "^20.0.0",
+		"@types/bun": "latest",
+		"typescript": "^5.9.2"
+	},
+	"dependencies": {
+		"@modelcontextprotocol/sdk": "^1.5.0",
+		"yaml": "^2.8.1",
+		"zod": "^3.23.0",
+		"zod-to-json-schema": "^3.23.0"
+	},
+	"engines": {
+		"bun": ">=1.3.0"
+	},
+	"trustedDependencies": [
+		"@biomejs/biome"
+	]
+}

@@ -1,0 +1,24 @@
+---
+source: crates/trust-syntax/tests/parser_pous.rs
+expression: "snapshot_parse(r#\"FUNCTION_BLOCK FB_Child EXTENDS FB_Parent\nVAR\n    extra : INT;\nEND_VAR\nEND_FUNCTION_BLOCK\"#)"
+---
+SourceFile@0..89
+  FunctionBlock@0..89
+    KwFunctionBlock@0..14 "FUNCTION_BLOCK"
+    Name@14..24
+      Ident@15..23 "FB_Child"
+    ExtendsClause@24..42
+      KwExtends@24..31 "EXTENDS"
+      Name@31..42
+        Ident@32..41 "FB_Parent"
+    VarBlock@42..71
+      KwVar@42..45 "VAR"
+      VarDecl@45..63
+        Name@45..56
+          Ident@50..55 "extra"
+        Colon@56..57 ":"
+        TypeRef@57..61
+          KwInt@58..61 "INT"
+        Semicolon@61..62 ";"
+      KwEndVar@63..70 "END_VAR"
+    KwEndFunctionBlock@71..89 "END_FUNCTION_BLOCK"

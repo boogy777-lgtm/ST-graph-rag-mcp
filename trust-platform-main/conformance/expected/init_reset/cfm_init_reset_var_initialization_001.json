@@ -1,0 +1,30 @@
+{
+  "case_id": "cfm_init_reset_var_initialization_001",
+  "category": "init_reset",
+  "cycles": 1,
+  "description": "Initial values are applied deterministically",
+  "kind": "runtime",
+  "trace": [
+    {
+      "cycle": 1,
+      "direct": {},
+      "errors": [],
+      "globals": {
+        "a": {
+          "type": "INT",
+          "value": 0
+        },
+        "b": {
+          "type": "INT",
+          "value": 4
+        },
+        "c": {
+          "type": "INT",
+          "value": 5
+        }
+      },
+      "runtime_time_nanos": 0
+    }
+  ],
+  "version": 1
+}

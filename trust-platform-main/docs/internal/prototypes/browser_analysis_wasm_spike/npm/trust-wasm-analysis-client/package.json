@@ -1,0 +1,21 @@
+{
+  "name": "@trust/wasm-analysis-client",
+  "version": "0.1.0",
+  "description": "Thin browser client wrapper for truST trust-wasm-analysis worker transport.",
+  "type": "module",
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "README.md"
+  ],
+  "keywords": [
+    "structured-text",
+    "wasm",
+    "lsp",
+    "openplc",
+    "industrial"
+  ],
+  "license": "MIT"
+}

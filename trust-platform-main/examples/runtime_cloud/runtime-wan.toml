@@ -1,0 +1,66 @@
+[bundle]
+version = 1
+
+[resource]
+name = "runtime-wan"
+cycle_interval_ms = 100
+
+[runtime.control]
+endpoint = "unix:///tmp/trust-runtime-wan.sock"
+mode = "production"
+debug_enabled = false
+auth_token = "REPLACE_WITH_LONG_RANDOM_TOKEN"
+
+[runtime.web]
+enabled = true
+listen = "0.0.0.0:19443"
+auth = "token"
+tls = true
+
+[runtime.tls]
+mode = "self-managed"
+cert_path = "./certs/runtime.crt"
+key_path = "./certs/runtime.key"
+require_remote = true
+
+[runtime.discovery]
+enabled = true
+service_name = "site-a/runtime-wan"
+advertise = true
+interfaces = ["eth0"]
+
+[runtime.mesh]
+enabled = true
+role = "peer"
+listen = "0.0.0.0:6200"
+connect = []
+tls = true
+auth_token = "REPLACE_WITH_LONG_RANDOM_TOKEN"
+zenohd_version = "1.7.2"
+plugin_versions = {}
+publish = []
+subscribe = {}
+
+[runtime.cloud]
+profile = "wan"
+
+[runtime.cloud.wan]
+allow_write = [
+  { action = "cfg_apply", target = "site-b/*" },
+  { action = "cmd_invoke", target = "site-b/runtime-boiler-1" }
+]
+
+[runtime.log]
+level = "info"
+
+[runtime.retain]
+mode = "none"
+save_interval_ms = 1000
+
+[runtime.watchdog]
+enabled = false
+timeout_ms = 5000
+action = "halt"
+
+[runtime.fault]
+policy = "halt"

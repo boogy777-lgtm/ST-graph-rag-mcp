@@ -1,0 +1,312 @@
+/* ide-08.css — Online connection, deploy, debug, and live values styles. */
+
+/* ── Connection dialog ─────────────────────────────────── */
+
+.online-discovered-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.online-rt-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  font-size: 12px;
+}
+
+.online-rt-entry.online-rt-online {
+  background: var(--success-bg, rgba(34,197,94,0.06));
+}
+
+.online-rt-entry.online-rt-offline {
+  background: transparent;
+  opacity: 0.6;
+}
+
+.online-rt-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.online-rt-icon {
+  font-size: 10px;
+}
+
+.online-rt-online .online-rt-icon { color: #22c55e; }
+.online-rt-offline .online-rt-icon { color: #94a3b8; }
+
+.online-connected-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: var(--success-bg, rgba(34,197,94,0.08));
+  border-radius: 4px;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.online-connected-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  flex-shrink: 0;
+}
+
+/* ── Recent connections ───────────────────────────────── */
+
+.online-recent-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.online-recent-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 3px;
+  background: none;
+  font-size: 12px;
+  cursor: pointer;
+  text-align: left;
+  color: var(--text);
+}
+
+.online-recent-entry:hover {
+  background: var(--panel-2);
+}
+
+/* ── Sync badge ───────────────────────────────────────── */
+
+.ide-meta-title {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.ide-header-sync-badge {
+  border: 1px solid transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.ide-sync-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 30;
+  width: 320px;
+  max-width: min(90vw, 420px);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14);
+  padding: 10px;
+}
+
+.ide-sync-popover-head {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 8px;
+}
+
+.ide-sync-popover .muted {
+  margin: 0 0 8px;
+  font-size: 11px;
+}
+
+.ide-sync-popover-list {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 180px;
+  overflow: auto;
+}
+
+.ide-sync-popover-list button {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel-2);
+  color: var(--text);
+  padding: 5px 7px;
+  text-align: left;
+  font-size: 11px;
+  font-family: var(--ide-font-mono);
+  cursor: pointer;
+}
+
+.ide-sync-popover-list button:hover {
+  border-color: var(--accent);
+}
+
+.ide-sync-popover-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.online-sync-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+
+.online-sync-badge.sync-ok {
+  background: var(--success-bg, rgba(34,197,94,0.12));
+  color: #16a34a;
+}
+
+.online-sync-badge.sync-modified {
+  background: rgba(245,158,11,0.12);
+  color: #d97706;
+}
+
+.online-sync-badge.sync-none {
+  background: rgba(239,68,68,0.1);
+  color: var(--danger, #dc2626);
+}
+
+/* ── Debug toolbar ────────────────────────────────────── */
+
+.debug-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  background: rgba(245,158,11,0.08);
+  border-top: 1px solid rgba(245,158,11,0.2);
+  flex-shrink: 0;
+}
+
+.debug-toolbar[hidden] {
+  display: none;
+}
+
+/* ── Debug force banner ───────────────────────────────── */
+
+.debug-force-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  background: rgba(249,115,22,0.08);
+  border-top: 1px solid rgba(249,115,22,0.2);
+  font-size: 11px;
+  color: #ea580c;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.debug-force-banner[hidden] {
+  display: none;
+}
+
+/* ── Debug gutter/line decorations ────────────────────── */
+
+.debug-bp-glyph {
+  background: #ef4444;
+  border-radius: 50%;
+  width: 10px !important;
+  height: 10px !important;
+  margin: auto;
+}
+
+.debug-current-line {
+  background: rgba(245,158,11,0.15) !important;
+}
+
+.debug-current-glyph {
+  background: #f59e0b;
+  border-radius: 2px;
+  width: 12px !important;
+  height: 12px !important;
+  margin: auto;
+}
+
+/* ── Live values inline annotations ───────────────────── */
+
+.debug-live-value {
+  color: var(--accent, #14b8a6);
+  font-size: 11px;
+  font-style: italic;
+  opacity: 0.8;
+  margin-left: 16px;
+}
+
+.debug-live-true {
+  color: #22c55e;
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: 16px;
+}
+
+.debug-live-false {
+  color: #ef4444;
+  font-size: 11px;
+  margin-left: 16px;
+  opacity: 0.7;
+}
+
+/* ── Debug variable table ─────────────────────────────── */
+
+.debug-var-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.debug-var-table td {
+  padding: 2px 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ── Debug stack frame ────────────────────────────────── */
+
+.debug-stack-frame {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 3px 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ── Debug watch entries ──────────────────────────────── */
+
+.debug-watch-entry {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.debug-watch-remove {
+  border: none;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0 2px;
+  margin-left: auto;
+}
+
+.debug-watch-remove:hover {
+  color: var(--danger);
+}

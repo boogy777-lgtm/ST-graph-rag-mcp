@@ -1,0 +1,4 @@
+id = "cfm_memory_map_wildcard_unresolved_002"
+category = "memory_map"
+description = "Unresolved wildcard direct address is rejected"
+kind = "compile_error"

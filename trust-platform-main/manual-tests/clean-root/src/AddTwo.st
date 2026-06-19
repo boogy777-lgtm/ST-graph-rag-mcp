@@ -1,0 +1,17 @@
+FUNCTION AddTwo : DINT
+VAR_INPUT
+    EN : BOOL := TRUE;
+    A : DINT;
+    B : DINT;
+END_VAR
+VAR_OUTPUT
+    ENO : BOOL;
+END_VAR
+IF EN THEN
+    ENO := TRUE;
+    AddTwo := A + B;
+ELSE
+    ENO := FALSE;
+    AddTwo := DINT#0;
+END_IF
+END_FUNCTION

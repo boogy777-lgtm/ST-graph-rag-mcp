@@ -1,0 +1,41 @@
+[package]
+name = "trust-lsp"
+description = "Language Server Protocol implementation for IEC 61131-3 Structured Text"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[[bin]]
+name = "trust-lsp"
+path = "src/main.rs"
+
+[features]
+default = []
+perf_alloc_metrics = []
+
+[dependencies]
+trust-syntax.workspace = true
+trust-hir.workspace = true
+trust-ide.workspace = true
+tower-lsp.workspace = true
+lsp-types.workspace = true
+tokio.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+toml.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+anyhow.workspace = true
+glob.workspace = true
+parking_lot.workspace = true
+rustc-hash.workspace = true
+text-size.workspace = true
+smol_str.workspace = true
+percent-encoding.workspace = true
+trust-runtime.workspace = true
+
+[dev-dependencies]
+expect-test.workspace = true
+insta.workspace = true

@@ -1,0 +1,14 @@
+# Rustfmt configuration for truST Platform
+# https://rust-lang.github.io/rustfmt/
+
+edition = "2021"
+max_width = 100
+hard_tabs = false
+tab_spaces = 4
+
+# Stable options only
+reorder_imports = true
+reorder_modules = true
+use_field_init_shorthand = true
+use_try_shorthand = true
+newline_style = "Unix"

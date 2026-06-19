@@ -1,0 +1,17 @@
+[project]
+vendor_profile = "siemens"
+include_paths = ["src"]
+stdlib = "iec"
+
+[diagnostics]
+warn_unused = false
+warn_nondeterminism = false
+warn_unreachable = true
+warn_missing_else = true
+warn_implicit_conversion = true
+warn_shadowed = true
+warn_deprecated = true
+warn_complexity = true
+
+[runtime]
+control_endpoint = "unix:///tmp/trust-debug.sock"

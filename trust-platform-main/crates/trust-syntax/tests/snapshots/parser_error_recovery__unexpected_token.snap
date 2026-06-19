@@ -1,0 +1,25 @@
+---
+source: crates/trust-syntax/tests/parser_error_recovery.rs
+expression: "snapshot_parse(r#\"PROGRAM Test\n    @@@ invalid @@@\nEND_PROGRAM\"#)"
+---
+SourceFile@0..44
+  Program@0..44
+    KwProgram@0..7 "PROGRAM"
+    Name@7..17
+      Ident@8..12 "Test"
+    StmtList@17..33
+      At@17..18 "@"
+      At@18..19 "@"
+      At@19..20 "@"
+      ExprStmt@20..33
+        NameRef@20..29
+          Ident@21..28 "invalid"
+        At@29..30 "@"
+        At@30..31 "@"
+        At@31..32 "@"
+    KwEndProgram@33..44 "END_PROGRAM"
+
+---
+Errors:
+  - expected statement at 17..18
+  - expected ';' at 29..30

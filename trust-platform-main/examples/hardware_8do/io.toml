@@ -1,0 +1,105 @@
+# I/O Configuration for 8 Digital Outputs
+# Hardware: Beckhoff EK1100 + EL2008 (8-channel digital output)
+# Used by: Blockly programs, Statechart programs, ST programs
+# Based on: examples/ethercat_ek1100_elx008_v2/io.toml
+
+[io]
+driver = "ethercat"
+
+[io.params]
+# Network interface for EtherCAT
+# Change to match your system (check with: ip link show)
+adapter = "enp111s0"
+# adapter = "mock"  # Use this for simulation mode without hardware
+
+timeout_ms = 250
+cycle_warn_ms = 5
+on_error = "fault"
+# mock_inputs = ["01", "00"]  # Only for mock mode
+
+# EK1100 Bus Coupler
+[[io.params.modules]]
+model = "EK1100"
+slot = 0
+
+# EL2008 - 8-channel 24V digital output
+[[io.params.modules]]
+model = "EL2008"
+slot = 1
+channels = 8
+
+# Safe states - all outputs OFF when runtime stops
+# Address mapping: %QX0.0 through %QX0.7
+[[io.safe_state]]
+address = "%QX0.0"
+value = "FALSE"
+
+[[io.safe_state]]
+address = "%QX0.1"
+value = "FALSE"
+
+[[io.safe_state]]
+address = "%QX0.2"
+value = "FALSE"
+
+[[io.safe_state]]
+address = "%QX0.3"
+value = "FALSE"
+
+[[io.safe_state]]
+address = "%QX0.4"
+value = "FALSE"
+
+[[io.safe_state]]
+address = "%QX0.5"
+value = "FALSE"
+
+[[io.safe_state]]
+address = "%QX0.6"
+value = "FALSE"
+
+[[io.safe_state]]
+address = "%QX0.7"
+value = "FALSE"
+
+# --------------------------
+# Alternative: GPIO (Raspberry Pi)
+# --------------------------
+# Uncomment this section to use GPIO instead of EtherCAT
+# [io]
+# driver = "gpio"
+# 
+# [io.params]
+# pins = [17, 18, 27, 22, 23, 24, 25, 4]  # BCM numbering
+# 
+# [[io.safe_state]]
+# address = "%QX0.0"
+# value = "FALSE"
+# 
+# [[io.safe_state]]
+# address = "%QX0.1"
+# value = "FALSE"
+# 
+# [[io.safe_state]]
+# address = "%QX0.2"
+# value = "FALSE"
+# 
+# [[io.safe_state]]
+# address = "%QX0.3"
+# value = "FALSE"
+# 
+# [[io.safe_state]]
+# address = "%QX0.4"
+# value = "FALSE"
+# 
+# [[io.safe_state]]
+# address = "%QX0.5"
+# value = "FALSE"
+# 
+# [[io.safe_state]]
+# address = "%QX0.6"
+# value = "FALSE"
+# 
+# [[io.safe_state]]
+# address = "%QX0.7"
+# value = "FALSE"

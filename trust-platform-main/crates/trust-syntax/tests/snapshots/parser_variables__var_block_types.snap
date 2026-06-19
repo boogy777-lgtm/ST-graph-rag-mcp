@@ -1,0 +1,62 @@
+---
+source: crates/trust-syntax/tests/parser_variables.rs
+expression: "snapshot_parse(r#\"PROGRAM Test\nVAR\n    local : INT;\nEND_VAR\nVAR_INPUT\n    input : BOOL;\nEND_VAR\nVAR_OUTPUT\n    output : REAL;\nEND_VAR\nVAR_IN_OUT\n    inout : STRING;\nEND_VAR\nVAR_TEMP\n    temp : DINT;\nEND_VAR\nEND_PROGRAM\"#)"
+---
+SourceFile@0..200
+  Program@0..200
+    KwProgram@0..7 "PROGRAM"
+    Name@7..13
+      Ident@8..12 "Test"
+    VarBlock@13..42
+      KwVar@13..16 "VAR"
+      VarDecl@16..34
+        Name@16..27
+          Ident@21..26 "local"
+        Colon@27..28 ":"
+        TypeRef@28..32
+          KwInt@29..32 "INT"
+        Semicolon@32..33 ";"
+      KwEndVar@34..41 "END_VAR"
+    VarBlock@42..78
+      KwVarInput@42..51 "VAR_INPUT"
+      VarDecl@51..70
+        Name@51..62
+          Ident@56..61 "input"
+        Colon@62..63 ":"
+        TypeRef@63..68
+          KwBool@64..68 "BOOL"
+        Semicolon@68..69 ";"
+      KwEndVar@70..77 "END_VAR"
+    VarBlock@78..116
+      KwVarOutput@78..88 "VAR_OUTPUT"
+      VarDecl@88..108
+        Name@88..100
+          Ident@93..99 "output"
+        Colon@100..101 ":"
+        TypeRef@101..106
+          KwReal@102..106 "REAL"
+        Semicolon@106..107 ";"
+      KwEndVar@108..115 "END_VAR"
+    VarBlock@116..155
+      KwVarInOut@116..126 "VAR_IN_OUT"
+      VarDecl@126..147
+        Name@126..137
+          Ident@131..136 "inout"
+        Colon@137..138 ":"
+        TypeRef@138..145
+          StringType@138..145
+            KwString@139..145 "STRING"
+        Semicolon@145..146 ";"
+      KwEndVar@147..154 "END_VAR"
+    VarBlock@155..189
+      KwVarTemp@155..163 "VAR_TEMP"
+      VarDecl@163..181
+        Name@163..173
+          Ident@168..172 "temp"
+        Colon@173..174 ":"
+        TypeRef@174..179
+          KwDInt@175..179 "DINT"
+        Semicolon@179..180 ";"
+      KwEndVar@181..188 "END_VAR"
+    StmtList@189..189
+    KwEndProgram@189..200 "END_PROGRAM"

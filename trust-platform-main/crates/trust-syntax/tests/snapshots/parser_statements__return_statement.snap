@@ -1,0 +1,19 @@
+---
+source: crates/trust-syntax/tests/parser_statements.rs
+expression: "snapshot_parse(r#\"FUNCTION Test : INT\nRETURN 42;\nEND_FUNCTION\"#)"
+---
+SourceFile@0..43
+  Function@0..43
+    KwFunction@0..8 "FUNCTION"
+    Name@8..14
+      Ident@9..13 "Test"
+    Colon@14..15 ":"
+    TypeRef@15..20
+      KwInt@16..19 "INT"
+    StmtList@20..31
+      ReturnStmt@20..31
+        KwReturn@20..26 "RETURN"
+        Literal@26..29
+          IntLiteral@27..29 "42"
+        Semicolon@29..30 ";"
+    KwEndFunction@31..43 "END_FUNCTION"

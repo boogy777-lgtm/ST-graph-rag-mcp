@@ -1,0 +1,149 @@
+@startuml runtime-bytecode-vm-execution
+!theme plain
+allowmixing
+skinparam backgroundColor #FEFEFE
+skinparam componentStyle uml2
+skinparam linetype ortho
+skinparam nodesep 45
+skinparam ranksep 35
+
+title truST Runtime: VM Execution and Helper Evaluation
+
+package "Production Cycle Entry" as entryPkg #LightBlue {
+    component "Runtime::execute_cycle()\n(runtime/cycle.rs)" as cycle
+    component "execute_task() /\nexecute_background_programs()" as taskDispatch
+    component "ensure_vm_module_loaded() /\nbuild_vm_module()\n(runtime/cycle.rs)" as ensureVm
+
+    cycle --> taskDispatch
+    taskDispatch --> ensureVm : execute_program_by_name / execute_function_block_ref
+}
+
+package "Lazy VM Module Materialization" as modulePkg #LightYellow {
+    artifact "BytecodeModule::from_runtime*\n(runtime -> STBC sections)" as bytecodeBuild
+    component "VmModule::from_bytecode()\n(runtime/vm/mod.rs)" as vmModule
+    component "VmModule cached on Runtime\nstrings, refs, consts, pou tables,\nnative symbol specs, debug map" as vmModuleState
+
+    ensureVm --> bytecodeBuild : when vm_module missing
+    ensureVm --> vmModule
+    vmModule --> vmModuleState
+}
+
+note right of vmModuleState
+    Native-call symbol metadata is
+    prepared when the VmModule is built.
+    CALL_NATIVE does not need to split
+    raw symbol strings every cycle.
+
+    `SIZEOF(...)` operands are resolved to
+    static types before ST bytecode emit.
+    Production codegen emits `SIZEOF_TYPE`
+    only; legacy `SIZEOF_VALUE` exists for
+    compatibility / negative-path coverage.
+end note
+
+package "Program / FB Execution Inside VM" as vmExecPkg #LightCyan {
+    component "vm::dispatch::execute_program_by_name() /\nexecute_function_block_ref()" as vmEntry
+    component "try_execute_pou_with_register_ir_with_locals()\n(register path + lowering cache)" as regTry
+    component "execute_register_program()\n(register executor + tier1)" as regExec
+    component "execute_pou_stack_with_locals()\n(stack-bytecode execution path)" as stackExec
+    component "debug_map.rs\n(pc -> source / symbol lookup)" as debugMap
+
+    vmModuleState --> vmEntry
+    vmEntry --> regTry
+    regTry --> regExec : eligible + not stepping
+    regTry --> stackExec : debug mode / lowering error / unsupported shape / fallback
+    regExec --> debugMap
+    stackExec --> debugMap
+}
+
+note right of regTry
+    RegisterLoweringCacheState and the
+    tier1 specialized executor live here.
+
+    Debug stepping intentionally keeps
+    stack-bytecode execution as the
+    single source of truth.
+end note
+
+package "Hot Runtime Bridges" as bridgePkg #Lavender {
+    component "call.rs\nCALL_NATIVE dispatch +\nargument binding + output copy-back" as callBridge
+    component "dispatch_refs.rs\nref / deref / dynamic field-index bridge" as refBridge
+    component "frames.rs + stack.rs\nframe stack + operand stacks\n(pooled execution buffers)" as vmStacks
+    component "VariableStorage\n(memory.rs)" as storage
+
+    regExec --> callBridge : CALL_NATIVE
+    stackExec --> callBridge : CALL_NATIVE
+    regExec --> refBridge : LoadRef / StoreRef / RefField / RefIndex / LoadDynamic
+    stackExec --> refBridge : ref opcodes
+    vmEntry --> vmStacks
+    callBridge --> vmStacks : recursive VM calls
+    callBridge --> storage : direct field bind / instance reads-writes
+    refBridge --> storage : ValueRef-based reads-writes
+}
+
+note bottom of callBridge
+    Current performance-sensitive boundary:
+    - VM native-call argument marshaling
+    - FUNCTION_BLOCK parameter binding
+    - OUT / IN_OUT copy-back
+    - recursive VM POU execution
+end note
+
+note bottom of refBridge
+    Current performance-sensitive boundary:
+    - ValueRef materialization
+    - dynamic field/index traversal
+    - instance-field resolution
+    - storage read/write cloning pressure
+end note
+
+package "Helper Evaluation\n(non-cycle helper flows only)" as helperPkg #MistyRose {
+    component "Runtime::evaluate_expression()\n(runtime/core/evaluation.rs)" as runtimeEval
+    component "helper_eval::const_expr\ncompile-time const folding" as constEval
+    component "helper_eval::storage_expr\ndebug/config/init reads" as storageEval
+    component "helper_eval::storage_lvalue\ndebug pending writes" as storageWrite
+    component "harness::initializer\nstartup/default materialization" as initService
+    component "runtime/vm/local_init.rs\nVM local/static initializer plans" as vmLocalInit
+    component "DebugRuntimeContext\n(debug/hook.rs)" as debugCtx
+
+    runtimeEval --> storageEval
+    initService --> storageEval : evaluate default expressions
+    vmEntry --> vmLocalInit : first local/static materialization
+    vmLocalInit --> initService : default + aggregate values
+    debugCtx --> storageEval
+    cycle --> storageWrite : pending debug writes
+    constEval --> storage
+    storageEval --> storage
+    initService --> storage : materialize globals/instances
+    storageWrite --> storage
+}
+
+note right of helperPkg
+    These helpers exist for bounded
+    const/debug/config/init flows only.
+    Startup materialization is
+    orchestrated by harness::initializer.
+    VM local/static initialization
+    consumes the same default/materialization
+    service through local init plans.
+
+    Scheduled task/program execution
+    does not pass through EvalContext or
+    an interpreter backend anymore.
+end note
+
+legend right
+    **What this diagram clarifies**
+    1. Production task/program execution goes directly to the VM path.
+    2. There is no production backend-dispatch seam or interpreter backend.
+    3. The VM hot path is the combination of:
+       - register_ir.rs
+       - dispatch.rs
+       - call.rs
+       - dispatch_refs.rs
+       - memory.rs
+    4. `helper_eval` handles const/debug/config/init helpers only.
+    5. Remaining evaluator internals are test-only and are not part of the runtime scan-loop architecture.
+end legend
+
+@enduml

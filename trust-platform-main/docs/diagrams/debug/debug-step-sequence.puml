@@ -1,0 +1,93 @@
+@startuml step-over-sequence
+!theme plain
+skinparam sequenceMessageAlign center
+
+title Step Over Request Flow
+
+actor "VS Code" as vscode
+participant "DebugAdapter\ncore.rs" as adapter
+participant "DebugSession\nsession.rs" as session
+participant "DebugControl\napi.rs" as control
+participant "Stop Thread\ncore.rs" as stopThread
+participant "StopCoordinator\n(core.rs)" as stopCoord
+participant "Runner Thread\ncore.rs" as runner
+participant "Runtime\ncycle.rs" as runtime
+participant "DebugHook\nhook.rs" as hook
+
+vscode -> adapter : next(threadId) (DAP request)
+activate adapter
+
+adapter -> adapter : handle_next()
+adapter -> session : debug_control()
+session --> adapter : DebugControl ref
+
+adapter -> control : step_over(threadId)\n(thread-scoped)
+activate control
+control -> control : apply_action(StepOver)
+note right
+    state.step = StepState {
+        kind: Over,
+        target_depth: current_depth,
+        thread_id
+    }
+    state.mode = Running
+    clear pending_stop
+end note
+control -> control : cvar.notify_all()
+deactivate control
+
+adapter --> vscode : ok response
+note right
+    StopGate token held until
+    response is flushed.
+end note
+
+... Runner thread wakes up ...
+
+runner -> runtime : execute_cycle()
+activate runtime
+
+loop for each statement
+    runtime -> hook : on_statement(location, call_depth)
+    activate hook
+
+    hook -> hook : check step condition
+    note right
+        if step.started &&
+           call_depth <= target_depth
+    end note
+
+    alt should pause
+        hook -> hook : update_snapshot()
+        hook -> stopThread : emit DebugStop(Step, threadId)\n(generation ok)
+        hook -> hook : cvar.wait() [BLOCKS]
+    else continue
+        hook --> runtime : return
+    end
+    deactivate hook
+end
+
+deactivate runtime
+
+... Stop event received ...
+
+stopThread -> stopCoord : DebugStop(Step)
+stopCoord -> stopCoord : stop_gate.wait_clear()
+note right
+    DAP ordering:
+    responses first, then stopped event.
+end note
+stopCoord -> adapter : ordered stop event
+adapter -> vscode : stopped event\n{reason: "step"}
+adapter -> vscode : invalidated event
+
+vscode -> adapter : stackTrace
+adapter -> control : get snapshot
+control --> adapter : DebugSnapshot
+adapter --> vscode : stack frames
+
+vscode -> adapter : variables
+adapter -> control : read from snapshot
+adapter --> vscode : variable list
+
+@enduml

@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>OpenPLC Shell Integration Demo (truST WASM)</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f3f5f7;
+      --panel: #ffffff;
+      --line: #d7dde3;
+      --ink: #19232d;
+      --muted: #62717d;
+      --accent: #0a76b7;
+      --accent-strong: #075b8c;
+      --ok: #0f9d58;
+      --warn: #b7791f;
+      --err: #c53030;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font: 14px/1.45 "IBM Plex Sans", "Segoe UI", sans-serif;
+      background: linear-gradient(180deg, #f9fbfd 0%, var(--bg) 100%);
+    }
+
+    .app {
+      height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+    }
+
+    .topbar {
+      border-bottom: 1px solid var(--line);
+      background: #fff;
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .title {
+      margin: 0;
+      font: 700 18px/1.2 "IBM Plex Sans", "Segoe UI", sans-serif;
+    }
+
+    .subtitle {
+      margin: 3px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .pill {
+      border: 1px solid var(--line);
+      background: #f4f7fa;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #294357;
+    }
+
+    .pill.ok {
+      border-color: #b8dfc7;
+      background: #effbf4;
+      color: #156e39;
+    }
+
+    .layout {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 230px 1fr 340px;
+    }
+
+    .sidebar {
+      border-right: 1px solid var(--line);
+      background: #f8fafc;
+      padding: 10px;
+    }
+
+    .sidebar h2 {
+      margin: 0 0 8px;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+    }
+
+    .file {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px;
+      background: #fff;
+      font: 13px/1.3 "IBM Plex Mono", "Fira Code", monospace;
+    }
+
+    .editor {
+      min-width: 0;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      border-right: 1px solid var(--line);
+    }
+
+    .editor-head {
+      padding: 10px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+    }
+
+    .editor-wrap {
+      position: relative;
+      min-height: 0;
+    }
+
+    textarea {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      margin: 0;
+      padding: 12px;
+      resize: none;
+      outline: none;
+      background: #fff;
+      color: #0f1722;
+      font: 14px/1.45 "IBM Plex Mono", "Fira Code", monospace;
+    }
+
+    .completion {
+      position: absolute;
+      z-index: 20;
+      width: 320px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: #fff;
+      box-shadow: 0 14px 24px rgba(0, 0, 0, 0.16);
+      padding: 6px;
+      max-height: 260px;
+      overflow: auto;
+    }
+
+    .completion.hidden {
+      display: none;
+    }
+
+    .completion-item {
+      padding: 6px 7px;
+      border-radius: 7px;
+      cursor: pointer;
+      display: grid;
+      gap: 1px;
+    }
+
+    .completion-item:hover,
+    .completion-item.active {
+      background: #eef6fc;
+    }
+
+    .completion-item strong {
+      font: 600 13px/1.3 "IBM Plex Mono", "Fira Code", monospace;
+    }
+
+    .completion-item span {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .right {
+      min-width: 0;
+      display: grid;
+      grid-template-rows: repeat(3, minmax(0, auto));
+      gap: 9px;
+      padding: 10px;
+      overflow: auto;
+      background: #f7fafd;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      padding: 9px;
+    }
+
+    .card h3 {
+      margin: 0 0 8px;
+      font-size: 14px;
+    }
+
+    .list {
+      display: grid;
+      gap: 6px;
+    }
+
+    .diag {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 6px 7px;
+      background: #fbfdff;
+    }
+
+    .diag strong {
+      font-size: 12px;
+    }
+
+    .diag .meta {
+      color: var(--muted);
+      font: 11px/1.35 "IBM Plex Mono", "Fira Code", monospace;
+      margin-top: 3px;
+    }
+
+    .sev {
+      display: inline-flex;
+      border-radius: 999px;
+      padding: 1px 7px;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      margin-right: 5px;
+      text-transform: uppercase;
+    }
+
+    .sev.error { background: var(--err); }
+    .sev.warning { background: var(--warn); }
+
+    .muted { color: var(--muted); }
+
+    pre {
+      margin: 0;
+      white-space: pre-wrap;
+      font: 12px/1.4 "IBM Plex Mono", "Fira Code", monospace;
+      color: #273543;
+    }
+
+    .statusbar {
+      border-top: 1px solid var(--line);
+      background: #fff;
+      color: #3d4d5c;
+      padding: 8px 12px;
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 1060px) {
+      .layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr auto;
+      }
+
+      .sidebar,
+      .editor {
+        border-right: 0;
+      }
+
+      .sidebar {
+        border-bottom: 1px solid var(--line);
+      }
+
+      .editor {
+        border-bottom: 1px solid var(--line);
+      }
+
+      textarea {
+        min-height: 280px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div>
+        <p class="title">OpenPLC Web Editor Shell + truST Browser Analyzer</p>
+        <p class="subtitle">Integration mock: browser worker diagnostics, hover, completion without backend analysis service.</p>
+      </div>
+      <div class="pill" id="readyPill">Booting...</div>
+    </header>
+
+    <section class="layout">
+      <aside class="sidebar">
+        <h2>Project Files</h2>
+        <div class="file">src/main.st</div>
+      </aside>
+
+      <article class="editor">
+        <div class="editor-head">
+          <strong>main.st</strong>
+          <span id="cursorLabel" class="muted">Ln 1, Col 1</span>
+        </div>
+        <div class="editor-wrap" id="editorWrap">
+          <textarea id="source" spellcheck="false" wrap="off" aria-label="OpenPLC shell editor"></textarea>
+          <div id="completion" class="completion hidden"></div>
+        </div>
+      </article>
+
+      <aside class="right">
+        <section class="card">
+          <h3>Diagnostics</h3>
+          <div id="diagnostics" class="list"></div>
+        </section>
+        <section class="card">
+          <h3>Hover</h3>
+          <pre id="hover">Hover a symbol to inspect details.</pre>
+        </section>
+        <section class="card">
+          <h3>Completion</h3>
+          <div id="completionSummary" class="list"></div>
+        </section>
+      </aside>
+    </section>
+
+    <footer class="statusbar">
+      <span id="statusText">Starting...</span>
+      <span>Doc: memory:///main.st</span>
+    </footer>
+  </div>
+
+  <script type="module" src="./openplc-shell.js"></script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+[bundle]
+version = 1
+
+[resource]
+name = "RESOURCE"
+cycle_interval_ms = 10
+
+[runtime.control]
+endpoint = "unix:///tmp/trust-runtime-opcua.sock"
+mode = "debug"
+debug_enabled = true
+
+[runtime.web]
+enabled = false
+listen = "127.0.0.1:8080"
+auth = "local"
+tls = false
+
+[runtime.tls]
+mode = "disabled"
+require_remote = false
+
+[runtime.discovery]
+enabled = false
+service_name = "truST"
+advertise = false
+interfaces = []
+
+[runtime.mesh]
+enabled = false
+listen = "127.0.0.1:5200"
+tls = false
+publish = []
+
+[runtime.opcua]
+enabled = true
+listen = "127.0.0.1:__PORT__"
+endpoint_path = "/perf"
+namespace_uri = "urn:trust:tests:perf"
+publish_interval_ms = 20
+max_nodes = 32
+expose = ["counter", "ready", "name"]
+security_policy = "none"
+security_mode = "none"
+allow_anonymous = true
+
+[runtime.observability]
+enabled = false
+sample_interval_ms = 1000
+mode = "all"
+include = []
+history_path = "history/historian.jsonl"
+max_entries = 1000
+prometheus_enabled = false
+prometheus_path = "/metrics"
+
+[runtime.log]
+level = "info"
+
+[runtime.retain]
+mode = "none"
+save_interval_ms = 1000
+
+[runtime.watchdog]
+enabled = false
+timeout_ms = 5000
+action = "halt"
+
+[runtime.fault]
+policy = "halt"

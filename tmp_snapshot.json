@@ -1,0 +1,386 @@
+{
+  "snapshot": {
+    "diagnostics": [
+      {
+        "code": "E101",
+        "col": 10,
+        "line": 9,
+        "message": "undeclared variable 'DINT_TO_REAL'",
+        "path": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\main.st",
+        "severity": "error"
+      },
+      {
+        "code": "E102",
+        "col": 12,
+        "line": 5,
+        "message": "undefined type 'MotorCtrl'",
+        "path": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\main.st",
+        "severity": "error"
+      },
+      {
+        "code": "W009",
+        "col": 8,
+        "line": 0,
+        "message": "unused program 'Main'",
+        "path": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\main.st",
+        "severity": "warning"
+      },
+      {
+        "code": "E102",
+        "col": 19,
+        "line": 2,
+        "message": "undefined type 'MotorState'",
+        "path": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\motor.st",
+        "severity": "error"
+      },
+      {
+        "code": "E102",
+        "col": 13,
+        "line": 3,
+        "message": "undefined type 'MotorConfig'",
+        "path": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\motor.st",
+        "severity": "error"
+      },
+      {
+        "code": "W009",
+        "col": 15,
+        "line": 0,
+        "message": "unused function block 'MotorCtrl'",
+        "path": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\motor.st",
+        "severity": "warning"
+      },
+      {
+        "code": "W001",
+        "col": 4,
+        "line": 3,
+        "message": "unused variable 'config'",
+        "path": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\motor.st",
+        "severity": "warning"
+      },
+      {
+        "code": "W002",
+        "col": 24,
+        "line": 1,
+        "message": "unused parameter 'speed'",
+        "path": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\motor.st",
+        "severity": "warning"
+      },
+      {
+        "code": "W001",
+        "col": 26,
+        "line": 1,
+        "message": "unused variable 'enabled'",
+        "path": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\types.st",
+        "severity": "warning"
+      },
+      {
+        "code": "W001",
+        "col": 42,
+        "line": 1,
+        "message": "unused variable 'speed'",
+        "path": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\types.st",
+        "severity": "warning"
+      }
+    ],
+    "metadata": {
+      "edge_count": 0,
+      "entity_count": 6,
+      "export_time": "1780480943Z",
+      "project_path": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols"
+    },
+    "symbols": [
+      {
+        "children": [
+          {
+            "file_path": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\main.st",
+            "id": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\main.st:21",
+            "kind": "variable",
+            "name": "x",
+            "range": {
+              "end": {
+                "col": 5,
+                "line": 2
+              },
+              "start": {
+                "col": 4,
+                "line": 2
+              }
+            }
+          },
+          {
+            "file_path": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\main.st",
+            "id": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\main.st:34",
+            "kind": "variable",
+            "name": "y",
+            "range": {
+              "end": {
+                "col": 5,
+                "line": 3
+              },
+              "start": {
+                "col": 4,
+                "line": 3
+              }
+            }
+          },
+          {
+            "file_path": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\main.st",
+            "id": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\main.st:48",
+            "kind": "variable",
+            "name": "result",
+            "range": {
+              "end": {
+                "col": 10,
+                "line": 4
+              },
+              "start": {
+                "col": 4,
+                "line": 4
+              }
+            }
+          },
+          {
+            "file_path": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\main.st",
+            "id": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\main.st:67",
+            "kind": "variable",
+            "name": "motor",
+            "range": {
+              "end": {
+                "col": 9,
+                "line": 5
+              },
+              "start": {
+                "col": 4,
+                "line": 5
+              }
+            }
+          }
+        ],
+        "file_path": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\main.st",
+        "id": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\main.st:8",
+        "kind": "program",
+        "name": "Main",
+        "range": {
+          "end": {
+            "col": 12,
+            "line": 0
+          },
+          "start": {
+            "col": 8,
+            "line": 0
+          }
+        }
+      },
+      {
+        "children": [
+          {
+            "file_path": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\motor.st",
+            "id": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\motor.st:35",
+            "kind": "parameter",
+            "name": "start",
+            "range": {
+              "end": {
+                "col": 15,
+                "line": 1
+              },
+              "start": {
+                "col": 10,
+                "line": 1
+              }
+            }
+          },
+          {
+            "file_path": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\motor.st",
+            "id": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\motor.st:49",
+            "kind": "parameter",
+            "name": "speed",
+            "range": {
+              "end": {
+                "col": 29,
+                "line": 1
+              },
+              "start": {
+                "col": 24,
+                "line": 1
+              }
+            }
+          },
+          {
+            "file_path": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\motor.st",
+            "id": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\motor.st:82",
+            "kind": "parameter",
+            "name": "state",
+            "range": {
+              "end": {
+                "col": 16,
+                "line": 2
+              },
+              "start": {
+                "col": 11,
+                "line": 2
+              }
+            }
+          },
+          {
+            "file_path": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\motor.st",
+            "id": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\motor.st:114",
+            "kind": "variable",
+            "name": "config",
+            "range": {
+              "end": {
+                "col": 10,
+                "line": 3
+              },
+              "start": {
+                "col": 4,
+                "line": 3
+              }
+            }
+          }
+        ],
+        "file_path": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\motor.st",
+        "id": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\motor.st:15",
+        "kind": "function_block",
+        "name": "MotorCtrl",
+        "range": {
+          "end": {
+            "col": 24,
+            "line": 0
+          },
+          "start": {
+            "col": 15,
+            "line": 0
+          }
+        }
+      },
+      {
+        "children": [
+          {
+            "file_path": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\types.st",
+            "id": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\types.st:19",
+            "kind": "enum_value",
+            "name": "STOPPED",
+            "range": {
+              "end": {
+                "col": 26,
+                "line": 0
+              },
+              "start": {
+                "col": 19,
+                "line": 0
+              }
+            }
+          },
+          {
+            "file_path": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\types.st",
+            "id": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\types.st:28",
+            "kind": "enum_value",
+            "name": "RUNNING",
+            "range": {
+              "end": {
+                "col": 35,
+                "line": 0
+              },
+              "start": {
+                "col": 28,
+                "line": 0
+              }
+            }
+          },
+          {
+            "file_path": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\types.st",
+            "id": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\types.st:37",
+            "kind": "enum_value",
+            "name": "FAULT",
+            "range": {
+              "end": {
+                "col": 42,
+                "line": 0
+              },
+              "start": {
+                "col": 37,
+                "line": 0
+              }
+            }
+          }
+        ],
+        "file_path": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\types.st",
+        "id": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\types.st:5",
+        "kind": "type",
+        "name": "MotorState",
+        "range": {
+          "end": {
+            "col": 15,
+            "line": 0
+          },
+          "start": {
+            "col": 5,
+            "line": 0
+          }
+        }
+      },
+      {
+        "children": [
+          {
+            "file_path": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\types.st",
+            "id": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\types.st:80",
+            "kind": "variable",
+            "name": "enabled",
+            "range": {
+              "end": {
+                "col": 33,
+                "line": 1
+              },
+              "start": {
+                "col": 26,
+                "line": 1
+              }
+            }
+          },
+          {
+            "file_path": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\types.st",
+            "id": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\types.st:96",
+            "kind": "variable",
+            "name": "speed",
+            "range": {
+              "end": {
+                "col": 47,
+                "line": 1
+              },
+              "start": {
+                "col": 42,
+                "line": 1
+              }
+            }
+          }
+        ],
+        "file_path": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\types.st",
+        "id": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\types.st:59",
+        "kind": "type",
+        "name": "MotorConfig",
+        "range": {
+          "end": {
+            "col": 16,
+            "line": 1
+          },
+          "start": {
+            "col": 5,
+            "line": 1
+          }
+        }
+      }
+    ],
+    "types": [
+      {
+        "file_path": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\types.st",
+        "kind": "type",
+        "name": "MotorState"
+      },
+      {
+        "file_path": "D:\\ST-graph-rag-mcp\\trust-platform\\fixtures\\100_symbols\\types.st",
+        "kind": "type",
+        "name": "MotorConfig"
+      }
+    ]
+  }
+}

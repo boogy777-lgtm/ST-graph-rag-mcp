@@ -1,0 +1,11 @@
+---
+source: crates/trust-syntax/tests/parser_pous.rs
+expression: "snapshot_parse(\"PROGRAM Test END_PROGRAM\")"
+---
+SourceFile@0..24
+  Program@0..24
+    KwProgram@0..7 "PROGRAM"
+    Name@7..13
+      Ident@8..12 "Test"
+    StmtList@13..13
+    KwEndProgram@13..24 "END_PROGRAM"

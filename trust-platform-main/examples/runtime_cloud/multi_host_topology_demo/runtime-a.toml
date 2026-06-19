@@ -1,0 +1,80 @@
+[bundle]
+version = 1
+
+[resource]
+name = "runtime-a"
+cycle_interval_ms = 100
+
+[runtime.control]
+endpoint = "unix:///tmp/trust-topology-runtime-a.sock"
+mode = "production"
+debug_enabled = false
+
+[runtime.web]
+enabled = true
+listen = "127.0.0.1:19081"
+auth = "local"
+tls = false
+
+[runtime.tls]
+mode = "disabled"
+require_remote = false
+
+[runtime.discovery]
+enabled = true
+service_name = "runtime-a"
+advertise = true
+interfaces = ["lo"]
+host_group = "hq-vm-cluster"
+
+[runtime.mesh]
+enabled = true
+role = "peer"
+listen = "127.0.0.1:5301"
+connect = [
+  "127.0.0.1:5302",
+  "127.0.0.1:5304",
+  "127.0.0.1:5305"
+]
+tls = false
+zenohd_version = "1.7.2"
+plugin_versions = {}
+publish = [
+  "Status.RunState",
+  "Metrics.CycleMs",
+  "LineA.CommandSetpoint"
+]
+
+[runtime.mesh.subscribe]
+"runtime-b:LineA.Telemetry" = "Remote.LineA.Telemetry"
+"runtime-d:LineB.PackMlState" = "Remote.LineB.PackMlState"
+"runtime-e:Remote.AlarmSummary" = "Remote.Site.AlarmSummary"
+
+[runtime.cloud]
+profile = "dev"
+
+[runtime.cloud.wan]
+allow_write = []
+
+[runtime.cloud.links]
+transports = [
+  { source = "runtime-a", target = "runtime-b", transport = "realtime" },
+  { source = "runtime-a", target = "runtime-c", transport = "zenoh" },
+  { source = "runtime-a", target = "runtime-d", transport = "zenoh" },
+  { source = "runtime-a", target = "runtime-e", transport = "zenoh" }
+]
+
+[runtime.log]
+level = "info"
+
+[runtime.retain]
+mode = "none"
+save_interval_ms = 1000
+
+[runtime.watchdog]
+enabled = false
+timeout_ms = 5000
+action = "halt"
+
+[runtime.fault]
+policy = "halt"

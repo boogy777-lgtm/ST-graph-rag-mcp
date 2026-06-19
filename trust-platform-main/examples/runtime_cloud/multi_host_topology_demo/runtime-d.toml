@@ -1,0 +1,70 @@
+[bundle]
+version = 1
+
+[resource]
+name = "runtime-d"
+cycle_interval_ms = 100
+
+[runtime.control]
+endpoint = "unix:///tmp/trust-topology-runtime-d.sock"
+mode = "production"
+debug_enabled = false
+
+[runtime.web]
+enabled = true
+listen = "127.0.0.1:19084"
+auth = "local"
+tls = false
+
+[runtime.tls]
+mode = "disabled"
+require_remote = false
+
+[runtime.discovery]
+enabled = true
+service_name = "runtime-d"
+advertise = true
+interfaces = ["lo"]
+host_group = "line-b-ipc"
+
+[runtime.mesh]
+enabled = true
+role = "peer"
+listen = "127.0.0.1:5304"
+connect = [
+  "127.0.0.1:5301",
+  "127.0.0.1:5303",
+  "127.0.0.1:5305"
+]
+tls = false
+zenohd_version = "1.7.2"
+plugin_versions = {}
+publish = [
+  "Gateway.SiteBridge",
+  "LineD.Diagnostics"
+]
+
+[runtime.mesh.subscribe]
+"runtime-c:LineB.PackMlState" = "Remote.LineB.PackMlState"
+"runtime-e:Remote.AlarmSummary" = "Remote.Site.AlarmSummary"
+
+[runtime.cloud]
+profile = "dev"
+
+[runtime.cloud.wan]
+allow_write = []
+
+[runtime.log]
+level = "info"
+
+[runtime.retain]
+mode = "none"
+save_interval_ms = 1000
+
+[runtime.watchdog]
+enabled = false
+timeout_ms = 5000
+action = "halt"
+
+[runtime.fault]
+policy = "halt"

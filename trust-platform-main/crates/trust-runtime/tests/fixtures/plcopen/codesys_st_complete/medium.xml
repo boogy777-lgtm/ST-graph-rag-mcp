@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://www.plcopen.org/xml/tc6_0200">
+  <fileHeader companyName="3S-Smart Software Solutions" productName="CODESYS Control Win" />
+  <types>
+    <dataTypes>
+      <dataType name="ModeEnum">
+        <baseType>
+          <enum>
+            <values>
+              <value name="Off" value="0" />
+              <value name="Auto" value="1" />
+              <value name="Manual" value="2" />
+            </values>
+          </enum>
+        </baseType>
+      </dataType>
+      <dataType name="MotorConfig">
+        <baseType>
+          <struct>
+            <variable name="SpeedSetpoint">
+              <type>
+                <int />
+              </type>
+              <initialValue>
+                <simpleValue value="1200" />
+              </initialValue>
+            </variable>
+            <variable name="Enabled">
+              <type>
+                <bool />
+              </type>
+              <initialValue>
+                <simpleValue value="TRUE" />
+              </initialValue>
+            </variable>
+          </struct>
+        </baseType>
+      </dataType>
+      <dataType name="AlarmHistory">
+        <baseType>
+          <array>
+            <dimension lower="1" upper="4" />
+            <baseType>
+              <bool />
+            </baseType>
+          </array>
+        </baseType>
+      </dataType>
+      <dataType name="DutyPercent">
+        <baseType>
+          <subrange lower="0" upper="100">
+            <baseType>
+              <int />
+            </baseType>
+          </subrange>
+        </baseType>
+      </dataType>
+    </dataTypes>
+    <pous>
+      <pou name="Main" pouType="program">
+        <body>
+          <ST><![CDATA[
+PROGRAM Main
+VAR
+    Controller : MotorFb;
+END_VAR
+END_PROGRAM
+]]></ST>
+        </body>
+      </pou>
+      <pou name="MotorFb" pouType="functionBlock">
+        <body>
+          <ST><![CDATA[
+FUNCTION_BLOCK MotorFb
+VAR_INPUT
+    Enable : BOOL;
+END_VAR
+VAR
+    Config : MotorConfig;
+END_VAR
+END_FUNCTION_BLOCK
+]]></ST>
+        </body>
+      </pou>
+      <pou name="ComputeDuty" pouType="function">
+        <body>
+          <ST><![CDATA[
+FUNCTION ComputeDuty : INT
+ComputeDuty := 75;
+END_FUNCTION
+]]></ST>
+        </body>
+      </pou>
+    </pous>
+  </types>
+  <instances>
+    <configurations>
+      <configuration name="PlantConfig">
+        <task name="MainTask" interval="PT0.2S" priority="2" />
+        <program name="MainCtl" typeName="Main" task="MainTask" />
+        <resource name="CpuRes" type="RTE">
+          <task name="FastTask" interval="T#50ms" priority="1" />
+          <task name="SlowTask" interval="PT1S" priority="5">
+            <program name="ComputeInst" typeName="ComputeDuty" />
+          </task>
+          <pouInstance name="MotorTaskInst" typeName="MotorFb" task="FastTask" />
+        </resource>
+      </configuration>
+    </configurations>
+  </instances>
+</project>

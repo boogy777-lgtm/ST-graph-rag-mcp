@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 2,
+  "metadata": {
+    "name": "valid-v2",
+    "description": "valid fixture"
+  },
+  "variables": [],
+  "networks": [
+    {
+      "id": "rung_1",
+      "order": 0,
+      "layout": { "y": 100 },
+      "nodes": [
+        {
+          "id": "c1",
+          "type": "contact",
+          "contactType": "NO",
+          "variable": "%IX0.0",
+          "position": { "x": 100, "y": 100 }
+        },
+        {
+          "id": "q1",
+          "type": "coil",
+          "coilType": "NORMAL",
+          "variable": "%QX0.0",
+          "position": { "x": 260, "y": 100 }
+        }
+      ],
+      "edges": []
+    }
+  ]
+}

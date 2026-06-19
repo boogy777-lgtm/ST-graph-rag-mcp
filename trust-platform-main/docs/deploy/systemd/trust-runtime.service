@@ -1,0 +1,13 @@
+[Unit]
+Description=truST PLC Runtime
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/trust/current
+ExecStart=/usr/local/bin/trust-runtime --project /opt/trust/current
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

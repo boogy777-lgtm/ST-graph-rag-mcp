@@ -1,0 +1,19 @@
+NAMESPACE DemoApi
+INTERFACE IMotor
+    METHOD Start : BOOL
+    VAR_INPUT
+        speed : DINT;
+    END_VAR
+    END_METHOD
+
+    METHOD Stop : BOOL
+    END_METHOD
+
+    PROPERTY Speed : DINT
+        GET
+        END_GET
+        SET
+        END_SET
+    END_PROPERTY
+END_INTERFACE
+END_NAMESPACE

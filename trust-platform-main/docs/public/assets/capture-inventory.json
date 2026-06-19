@@ -1,0 +1,226 @@
+{
+  "captures": [
+    {
+      "path": "images/browser/ide-tutorial-loaded.png",
+      "class": "browser-product-surface",
+      "generator": "playwright",
+      "source": "/ide with the tutorial project loaded for examples/tutorials/12_hmi_pid_process_dashboard"
+    },
+    {
+      "path": "images/browser/hmi-home.png",
+      "class": "browser-product-surface",
+      "generator": "playwright",
+      "source": "/hmi for examples/tutorials/12_hmi_pid_process_dashboard"
+    },
+    {
+      "path": "images/browser/hmi-operator-guide-overview.png",
+      "class": "browser-product-surface",
+      "generator": "playwright",
+      "source": "live /hmi overview page capture against running trust-runtime with examples/tutorials/12_hmi_pid_process_dashboard in dark mode"
+    },
+    {
+      "path": "images/browser/hmi-operator-daily-checks.png",
+      "class": "browser-product-surface",
+      "generator": "playwright",
+      "source": "live /hmi overview page capture (same surface operators use for daily checks)"
+    },
+    {
+      "path": "images/browser/hmi-operator-alarm-page.png",
+      "class": "browser-product-surface",
+      "generator": "playwright",
+      "source": "live /hmi Alarms page capture with a raised Pressure Deviation BAR alarm"
+    },
+    {
+      "path": "images/browser/hmi-operator-shift-handover.png",
+      "class": "browser-product-surface",
+      "generator": "playwright",
+      "source": "live /hmi Trends page capture used at shift handover to compare recent values"
+    },
+    {
+      "path": "images/install/marketplace-listing.png",
+      "class": "browser-install-surface",
+      "generator": "playwright",
+      "source": "Visual Studio Marketplace listing for truST LSP"
+    },
+    {
+      "path": "images/install/command-palette-structured-text.png",
+      "class": "vscode-browser-surface",
+      "generator": "playwright+code-server",
+      "source": "code-server command palette filtered to truST Structured Text commands"
+    },
+    {
+      "path": "images/terminal/install-version-checks.gif",
+      "class": "terminal-capture",
+      "generator": "vhs",
+      "source": "local toolchain version and help checks from start/installation.md"
+    },
+    {
+      "path": "images/terminal/build-validate-test.gif",
+      "class": "terminal-capture",
+      "generator": "vhs",
+      "source": "CLI build/validate/test loop from start/automate-with-cli.md"
+    },
+    {
+      "path": "images/terminal/agent-describe.gif",
+      "class": "terminal-capture",
+      "generator": "vhs",
+      "source": "agent.describe JSON-RPC handshake"
+    },
+    {
+      "path": "images/terminal/agent-project-info.gif",
+      "class": "terminal-capture",
+      "generator": "vhs",
+      "source": "workspace.project_info JSON-RPC request"
+    },
+    {
+      "path": "images/terminal/build-failure.gif",
+      "class": "terminal-capture",
+      "generator": "vhs",
+      "source": "real build failure against a temporary broken project copy"
+    },
+    {
+      "path": "images/terminal/validate-success.gif",
+      "class": "terminal-capture",
+      "generator": "vhs",
+      "source": "validate success against examples/memory_marker_counter"
+    },
+    {
+      "path": "images/terminal/test-junit.gif",
+      "class": "terminal-capture",
+      "generator": "vhs",
+      "source": "JUnit output from the unit testing tutorial"
+    },
+    {
+      "path": "images/terminal/deploy.gif",
+      "class": "terminal-capture",
+      "generator": "vhs",
+      "source": "deploy CLI usage surface"
+    },
+    {
+      "path": "images/terminal/rollback.gif",
+      "class": "terminal-capture",
+      "generator": "vhs",
+      "source": "rollback CLI usage surface"
+    },
+    {
+      "path": "images/terminal/ctl-status.gif",
+      "class": "terminal-capture",
+      "generator": "vhs",
+      "source": "ctl status against a running local runtime"
+    },
+    {
+      "path": "images/terminal/ctl-io-read.gif",
+      "class": "terminal-capture",
+      "generator": "vhs",
+      "source": "ctl io-read against a running local runtime"
+    },
+    {
+      "path": "images/terminal/ctl-io-write.gif",
+      "class": "terminal-capture",
+      "generator": "vhs",
+      "source": "ctl io-write against a debug-mode local runtime"
+    },
+    {
+      "path": "images/terminal/runtime-help.gif",
+      "class": "terminal-capture",
+      "generator": "vhs",
+      "source": "trust-runtime top-level help output"
+    },
+    {
+      "path": "images/terminal/ctl-help.gif",
+      "class": "terminal-capture",
+      "generator": "vhs",
+      "source": "trust-runtime ctl help output"
+    },
+    {
+      "path": "images/terminal/agent-serve-help.gif",
+      "class": "terminal-capture",
+      "generator": "vhs",
+      "source": "trust-dev agent serve help output"
+    },
+    {
+      "path": "images/architecture/workflow-overview.svg",
+      "class": "diagram",
+      "generator": "hand-authored",
+      "source": "workflow overview from source files through artifacts into trust-runtime and browser surfaces"
+    },
+    {
+      "path": "images/brand/trust-logo.svg",
+      "class": "brand-asset",
+      "generator": "hand-authored",
+      "source": "truST wordmark used on the docs homepage in light mode"
+    },
+    {
+      "path": "images/brand/trust-logo-dark.svg",
+      "class": "brand-asset",
+      "generator": "hand-authored",
+      "source": "truST wordmark used on the docs homepage in dark mode"
+    },
+    {
+      "path": "images/hero-runtime.png",
+      "class": "vscode-desktop-surface",
+      "generator": "synced-media",
+      "source": "desktop VS Code with Structured Text code, runtime panel, live I/O, memory, and compile diagnostics"
+    },
+    {
+      "path": "images/runtime/ui-overview.png",
+      "class": "browser-product-surface",
+      "generator": "synced-media",
+      "source": "browser runtime overview with health, cycle timing, tasks, controls, and live I/O summary"
+    },
+    {
+      "path": "images/visual-editors/statechart.png",
+      "class": "vscode-desktop-surface",
+      "generator": "synced-media",
+      "source": "desktop VS Code statechart editor screenshot"
+    },
+    {
+      "path": "images/visual-editors/ladder.svg",
+      "class": "diagram",
+      "generator": "hand-authored",
+      "source": "ladder start/stop seal-in circuit diagram used until custom-editor screenshots can be recaptured reliably"
+    },
+    {
+      "path": "images/visual-editors/sfc.svg",
+      "class": "diagram",
+      "generator": "hand-authored",
+      "source": "SFC init, parallel branch, join, and complete sequence diagram"
+    },
+    {
+      "path": "images/visual-editors/blockly.svg",
+      "class": "diagram",
+      "generator": "hand-authored",
+      "source": "Blockly LED blink workspace and generated Structured Text diagram"
+    },
+    {
+      "path": "images/vscode/iec-diagnostics.png",
+      "class": "vscode-desktop-surface",
+      "generator": "synced-media",
+      "source": "desktop VS Code Problems panel showing IEC-aware diagnostics"
+    },
+    {
+      "path": "images/vscode/debugger-stopped-at-breakpoint.png",
+      "class": "vscode-desktop-surface",
+      "generator": "synced-media",
+      "source": "desktop VS Code debugger paused at a breakpoint with locals and runtime panel visible"
+    },
+    {
+      "path": "images/vscode/lsp-rename-across-files.png",
+      "class": "vscode-desktop-surface",
+      "generator": "synced-media",
+      "source": "desktop VS Code rename preview across files for a Structured Text symbol"
+    },
+    {
+      "path": "images/vscode/ai-tools-diagnostics.svg",
+      "class": "vscode-ai-diagram",
+      "generator": "hand-authored",
+      "source": "VS Code-style AI assistance flow showing typed truST diagnostics and edit tools"
+    },
+    {
+      "path": "images/one-project-surface-tour.gif",
+      "class": "composite-surface-tour",
+      "generator": "scripts/captures/generate-one-project-surface-tour.sh",
+      "source": "animated tour generated from checked-in VS Code, diagnostics, debugger, Browser IDE, and Browser HMI captures"
+    }
+  ]
+}

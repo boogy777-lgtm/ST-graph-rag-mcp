@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    .sfc-editor {
+      display: flex;
+      flex-direction: column;
+      width: 100vw;
+      height: 100vh;
+      background: #1e1e1e;
+      color: #fff;
+    }
+
+    .toolbar {
+      background: #2d2d2d;
+      padding: 8px;
+      flex-shrink: 0;
+      border-bottom: 1px solid #454545;
+    }
+
+    .sfc-editor-body {
+      display: flex;
+      flex-direction: row;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .canvas {
+      flex: 1;
+      background: #252526;
+      min-width: 0;
+    }
+
+    .resize-handle {
+      width: 6px;
+      background: transparent;
+      cursor: col-resize;
+      flex: 0 0 6px;
+    }
+
+    .right-panel {
+      background: #2d2d2d;
+      border-left: 1px solid #454545;
+      flex: 0 0 auto;
+      min-width: 280px;
+      width: 360px;
+      max-width: 720px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .tabs {
+      padding: 8px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      border-bottom: 1px solid #454545;
+    }
+
+    .tab {
+      padding: 5px 8px;
+      background: #3c3c3c;
+      border: 1px solid #454545;
+      border-radius: 4px;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .panel-content {
+      flex: 1;
+      padding: 12px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="sfc-editor">
+    <div class="toolbar">Toolbar</div>
+    <div class="sfc-editor-body">
+      <div class="canvas">Canvas</div>
+      <div class="resize-handle"></div>
+      <div class="right-panel">
+        <div class="tabs">
+          <div class="tab">I/O</div>
+          <div class="tab">Settings</div>
+          <div class="tab">Tools</div>
+        </div>
+        <div class="panel-content">
+          Panel Content
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

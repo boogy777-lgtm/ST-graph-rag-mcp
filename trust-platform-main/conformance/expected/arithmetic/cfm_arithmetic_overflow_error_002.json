@@ -1,0 +1,28 @@
+{
+  "case_id": "cfm_arithmetic_overflow_error_002",
+  "category": "arithmetic",
+  "cycles": 1,
+  "description": "Overflow behavior is deterministic and surfaced as runtime error",
+  "kind": "runtime",
+  "trace": [
+    {
+      "cycle": 1,
+      "direct": {},
+      "errors": [
+        "arithmetic overflow"
+      ],
+      "globals": {
+        "a": {
+          "type": "INT",
+          "value": 32767
+        },
+        "b": {
+          "type": "INT",
+          "value": 0
+        }
+      },
+      "runtime_time_nanos": 0
+    }
+  ],
+  "version": 1
+}

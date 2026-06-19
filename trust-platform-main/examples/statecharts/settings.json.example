@@ -1,0 +1,45 @@
+{
+  // StateChart Hardware Execution Configuration
+  // Copy these settings to your .vscode/settings.json or User Settings
+  
+  // ═══════════════════════════════════════════════════════════
+  // Control Endpoint Configuration
+  // ═══════════════════════════════════════════════════════════
+  
+  // Option 1: Unix Domain Socket (Linux/macOS default)
+  "trust-lsp.runtime.controlEndpoint": "unix:///tmp/trust-debug.sock",
+  
+  // Option 2: TCP (for remote runtime or Windows)
+  // "trust-lsp.runtime.controlEndpoint": "tcp://127.0.0.1:9000",
+  // "trust-lsp.runtime.controlAuthToken": "your-secret-token-here",
+  
+  // Option 3: Custom Unix socket path
+  // "trust-lsp.runtime.controlEndpoint": "unix:///var/run/trust-runtime.sock",
+  
+  
+  // ═══════════════════════════════════════════════════════════
+  // EtherCAT Hardware Example
+  // ═══════════════════════════════════════════════════════════
+  // If you're running the EtherCAT snake examples with real hardware:
+  // 1. Ensure your runtime.toml has:
+  //    control_endpoint = "unix:///tmp/trust-debug.sock"
+  // 2. Your io.toml should have EtherCAT driver configured
+  // 3. Hardware connected: EK1100 → EL2008
+  
+  
+  // ═══════════════════════════════════════════════════════════
+  // Troubleshooting
+  // ═══════════════════════════════════════════════════════════
+  // If connection fails:
+  // - Verify trust-runtime is running: ps aux | grep trust-runtime
+  // - Check socket exists: ls -la /tmp/trust-debug.sock
+  // - For TCP, check port: netstat -tuln | grep 9000
+  // - View runtime logs for connection attempts
+  
+  
+  // ═══════════════════════════════════════════════════════════
+  // Additional trust-lsp Settings (Optional)
+  // ═══════════════════════════════════════════════════════════
+  // "trust-lsp.trace.server": "verbose",  // Enable LSP debug logs
+  // "trust-lsp.runtime.autoStart": false, // Don't auto-start runtime
+}

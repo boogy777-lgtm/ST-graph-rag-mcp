@@ -1,0 +1,46 @@
+name: truST Project CI Template
+
+on:
+  push:
+    paths:
+      - "sources/**"
+      - "runtime.toml"
+      - "io.toml"
+      - ".github/workflows/trust-runtime-project-ci.yml"
+  pull_request:
+    paths:
+      - "sources/**"
+      - "runtime.toml"
+      - "io.toml"
+
+env:
+  # Shared project CI runners may not provide sccache; disable the workspace rustc wrapper by default.
+  RUSTC_WRAPPER: ""
+
+jobs:
+  plc-ci:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build truST CLIs
+        run: cargo build -p trust-runtime --bin trust-runtime -p trust-dev --bin trust-dev
+
+      - name: Build project bytecode (CI mode)
+        run: target/debug/trust-runtime build --project . --ci
+
+      - name: Validate project bundle (CI mode)
+        run: target/debug/trust-runtime validate --project . --ci
+
+      - name: Run ST tests (JUnit output)
+        run: target/debug/trust-dev test --project . --ci --output junit > st-tests.junit.xml
+
+      - name: Upload JUnit report
+        uses: actions/upload-artifact@v7
+        with:
+          name: st-tests-junit
+          path: st-tests.junit.xml

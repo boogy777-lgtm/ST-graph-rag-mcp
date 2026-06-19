@@ -1,0 +1,323 @@
+/* truST Web IDE – styles */
+
+:root {
+  --ide-font-ui: "Sora", system-ui, -apple-system, sans-serif;
+  --ide-font-mono: "JetBrains Mono", "Fira Code", "IBM Plex Mono", monospace;
+  --ide-sidebar-bg: rgba(255, 255, 255, 0.92);
+  --ide-transition: 150ms ease;
+  --ide-icon-size: 16px;
+  --ide-accent: #0f766e;
+  --ide-accent-light: #14b8a6;
+  --ide-status-dot: #0f766e;
+}
+
+body[data-theme="dark"] {
+  --ide-sidebar-bg: rgba(23, 26, 33, 0.9);
+  --ide-accent: #14b8a6;
+  --ide-accent-light: #5eead4;
+  --ide-status-dot: #14b8a6;
+}
+
+/* ── Layout ────────────────────────────────────────── */
+
+.ide-layout {
+  display: grid;
+  grid-template-columns: var(--ide-left-width, 290px) 6px minmax(0, 1fr);
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+}
+
+.ide-sidebar {
+  grid-column: 1;
+  border-right: 1px solid var(--border);
+  padding: 24px 18px;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 24px;
+  background: var(--ide-sidebar-bg);
+}
+
+.ide-main {
+  grid-column: 3;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  overflow: hidden;
+  padding: 16px 18px 16px;
+  gap: 10px;
+  position: relative;
+}
+
+.ide-resize-handle {
+  grid-column: 2;
+  width: 6px;
+  cursor: col-resize;
+  background: transparent;
+  position: relative;
+}
+
+.ide-resize-handle::before {
+  content: "";
+  position: absolute;
+  inset: 0 2px;
+  background: color-mix(in srgb, var(--border) 80%, transparent);
+  opacity: 0.35;
+  transition: opacity 120ms ease;
+}
+
+.ide-resize-handle:hover::before,
+.ide-resize-handle.dragging::before {
+  opacity: 1;
+  background: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
+
+/* ── Sidebar ───────────────────────────────────────── */
+
+.ide-brand {
+  display: grid;
+  gap: 6px;
+}
+
+.ide-brand small {
+  color: var(--muted);
+}
+
+.ide-brand .brand-logo {
+  width: 180px;
+  height: 90px;
+}
+
+.ide-files {
+  min-height: 0;
+  overflow: auto;
+  display: grid;
+  align-content: start;
+  gap: 8px;
+}
+
+.ide-file-toolbar {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.ide-policy-note {
+  font-size: 11px;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-family: var(--ide-font-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ide-file-toolbar input {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel-2);
+  color: var(--text);
+  padding: 8px 10px;
+  font-size: 12px;
+}
+
+.ide-file-actions {
+  display: grid;
+  grid-template-columns: repeat(4, 28px);
+  gap: 4px;
+  justify-content: start;
+}
+
+.ide-file-actions button {
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  color: var(--text);
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ide-file-actions button svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ide-file-actions button:hover {
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+  color: var(--accent-strong);
+}
+
+/* ── File Tree ─────────────────────────────────────── */
+
+.ide-tree {
+  display: grid;
+  gap: 3px;
+}
+
+.ide-tree-row {
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  min-height: 30px;
+  padding: 6px 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.ide-tree-row:hover,
+.ide-tree-row[aria-current="true"] {
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+  color: var(--accent-strong);
+  font-weight: 600;
+}
+
+.ide-tree-indent {
+  display: inline-block;
+  width: 12px;
+  flex: 0 0 12px;
+}
+
+.ide-tree-chevron {
+  width: 12px;
+  flex: 0 0 12px;
+  color: var(--muted);
+  font-size: 11px;
+  text-align: center;
+}
+
+.ide-tree-kind {
+  color: var(--muted);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-left: auto;
+}
+
+/* ── Header / Meta ─────────────────────────────────── */
+
+.ide-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 2px 0;
+}
+
+.ide-meta h1 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ide-top-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  position: relative;
+}
+
+.ide-top-actions button {
+  min-height: 36px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.ide-top-actions .btn svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vertical-align: -2px;
+}
+
+.ide-action-label {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.ide-toolbar-separator {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+  align-self: center;
+}
+
+.ide-overflow-actions {
+  position: relative;
+}
+
+.ide-overflow-actions .ide-overflow-trigger {
+  min-width: 94px;
+  justify-content: center;
+}
+
+.ide-overflow-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 45;
+  min-width: 190px;
+  max-width: min(90vw, 260px);
+  display: grid;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.ide-overflow-menu .btn {
+  justify-content: flex-start;
+  width: 100%;
+  padding: 8px 10px;
+  min-height: 34px;
+}
+
+.ide-overflow-menu .btn svg {
+  flex-shrink: 0;
+}
+
+/* ── Breadcrumbs ───────────────────────────────────── */
+
+.ide-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 24px;
+  overflow: auto;
+  white-space: nowrap;
+  color: var(--muted);
+  font: 12px/1.2 var(--ide-font-ui);
+}
+
+.ide-breadcrumbs .sep {
+  color: var(--muted);
+  opacity: 0.8;

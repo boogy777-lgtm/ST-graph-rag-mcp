@@ -1,0 +1,23 @@
+---
+source: crates/trust-syntax/tests/parser_error_recovery.rs
+assertion_line: 16
+expression: "snapshot_parse(r#\"PROGRAM Test\n    x := 1;\n\"#)"
+---
+SourceFile@0..25
+  Program@0..25
+    KwProgram@0..7 "PROGRAM"
+    Name@7..17
+      Ident@8..12 "Test"
+    StmtList@17..25
+      AssignStmt@17..25
+        BinaryExpr@17..23
+          NameRef@17..19
+            Ident@17..18 "x"
+          Assign@19..21 ":="
+          Literal@21..23
+            IntLiteral@22..23 "1"
+        Semicolon@23..24 ";"
+
+---
+Errors:
+  - expected END_PROGRAM at 0..0

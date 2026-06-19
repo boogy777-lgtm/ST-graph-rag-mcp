@@ -1,0 +1,41 @@
+[package]
+name = "trust-benches"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+description = "Benchmarks for the trust-platform (IEC 61131-3 ST)"
+
+[[bench]]
+name = "lexer_bench"
+path = "lexer_bench.rs"
+harness = false
+
+[[bench]]
+name = "parser_bench"
+path = "parser_bench.rs"
+harness = false
+
+[[bench]]
+name = "hir_bench"
+path = "hir_bench.rs"
+harness = false
+
+[[bench]]
+name = "ide_bench"
+path = "ide_bench.rs"
+harness = false
+
+[[bench]]
+name = "runtime_bench"
+path = "runtime_bench.rs"
+harness = false
+
+[dependencies]
+trust-syntax.workspace = true
+trust-hir.workspace = true
+trust-ide.workspace = true
+trust-runtime = { workspace = true }
+criterion.workspace = true
+text-size.workspace = true

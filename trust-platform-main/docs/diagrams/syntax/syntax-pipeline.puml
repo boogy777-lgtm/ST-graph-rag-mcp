@@ -1,0 +1,243 @@
+@startuml syntax-pipeline
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam componentStyle uml2
+skinparam activityFontSize 11
+
+title truST Syntax: Lexer → Parser → CST Pipeline
+
+' ============================================================
+' PIPELINE OVERVIEW
+' ============================================================
+
+|Source|
+start
+:Source Text;
+note right
+    Raw IEC 61131-3
+    Structured Text
+end note
+
+|Lexer|
+:Lexer (logos);
+note right
+    **lexer/mod.rs:lex()**
+    Uses logos derive macro
+    for zero-copy tokenization
+end note
+
+:Token[];
+note right
+    **Token struct (lexer/mod.rs:14-19)**
+    • kind: TokenKind
+    • range: TextRange
+
+    **TokenKind enum (lexer/tokens.rs:53-56)**
+    <<TOKEN_STATS>>
+    TokenKind variants: 202
+    Sections:
+    • Trivia: 4
+    • Punctuation: 12
+    • Operators: 15
+    • Keywords: 156
+    • Literals: 12
+    • Identifiers: 1
+    • Special: 2
+    
+    Keywords (156) in docs/diagrams/generated/syntax-stats.md
+    <<TOKEN_STATS_END>>
+end note
+
+|Parser|
+:Source wrapper;
+note right
+    **Source struct (parser/source.rs:8-14)**
+    Wraps token stream with:
+    • peek_kind() - skip trivia
+    • current_token()
+    • peek_kind_n(n)
+end note
+
+:Parser;
+note right
+    **Parser struct (parser/parser.rs:30-34)**
+    • source: Source<'t, 'src>
+    • events: Vec<Event>
+    • errors: Vec<ParseError>
+
+    **Key methods:**
+    • start() → Marker
+    • bump() - consume token
+    • at(kind) - check current
+    • error(msg) - report error
+end note
+
+note right
+    **Error Recovery:**
+    • recover_statement() skips to next
+      statement or block end
+    • sync points include END_*,
+      POU starts, VAR blocks
+    • expect_semicolon() inserts on
+      unambiguous boundaries
+    • errors stored separately; CST
+      preserves original tokens
+end note
+
+:Recursive Descent + Pratt;
+note right
+    **Grammar modules (parser/grammar/)**
+    • pou.rs - PROGRAM, FUNCTION, FB, CLASS
+    • declarations.rs - VAR blocks, types
+    • statements.rs - IF, FOR, CASE, etc.
+    • expressions.rs - Pratt parser
+    • declarations.rs owns initializer-position
+      parsing through parse_var_initializer()
+end note
+
+note left
+    **Initializer-position gate**
+    parse_var_initializer() has six code-derived
+    call sites:
+    • parse_type_decl() after parse_type_def()
+    • parse_var_decl()
+    • VAR_CONFIG init declarations
+    • nested aggregate fields
+    • array initializer elements
+    • array repetition elements
+
+    It is not called from parse_arg_list(),
+    enum value assignments, subranges,
+    string-length expressions, statements,
+    or ordinary Pratt expression parsing.
+
+    `(` Name `:=` emits InitializerList.
+    Array defaults emit ArrayInitializer.
+    Malformed aggregate recovery stays local
+    to the declaration initializer.
+end note
+
+|Pratt Parser|
+:Expression Parsing;
+note right
+    **Binding Powers (tokens.rs:1308-1333)**
+    <<PRECEDENCE_TABLE>>
+    Precedence (low → high):
+    1-2:   OR
+    3-4:   XOR
+    5-6:   AND, &
+    7-8:   =, <>, <, <=, >, >=
+    9-10:   +, -
+    11-12:   *, /, MOD
+    14-13:   ** (right assoc)
+    15:    prefix NOT, +, -
+    <<PRECEDENCE_TABLE_END>>
+end note
+
+|Parser|
+:Marker Pattern;
+note right
+    **Marker (parser/parser.rs:37-39)**
+    • pos: usize (event index)
+    • bomb: DropBomb (safety)
+
+    **CompletedMarker (parser/parser.rs:69-71)**
+    • pos: usize
+    • precede() for left recursion
+end note
+
+:Event[];
+note right
+    **Event enum (parser/event.rs:9-28)**
+    • Start { kind, forward_parent }
+    • Token { kind, n_tokens }
+    • Finish
+    • Placeholder
+end note
+
+|Sink|
+:Sink;
+note right
+    **Sink struct (parser/sink.rs:10-17)**
+    • tokens: &'t [Token]
+    • source: &'src str
+    • events: Vec<Event>
+    • cursor: usize
+    • builder: GreenNodeBuilder
+    • errors: Vec<ParseError>
+end note
+
+:Process Events;
+note right
+    **sink.finish() (parser/sink.rs:33-79)**
+    1. Handle forward_parent chains
+    2. eat_trivia() for whitespace
+    3. Build green nodes
+end note
+
+|Output|
+:GreenNode;
+note right
+    **rowan::GreenNode**
+    Immutable, thread-safe
+    green tree (interned)
+end note
+
+:Parse { green_node, errors };
+note right
+    **Parse struct (parser/mod.rs)**
+    • green_node: GreenNode
+    • errors: Vec<ParseError>
+    • syntax() → SyntaxNode
+end note
+
+:SyntaxNode;
+note right
+    **rowan::SyntaxNode**
+    Lossless CST with:
+    • Full source preservation
+    • O(1) parent access
+    • Lazy red node creation
+end note
+
+stop
+
+' ============================================================
+' SYNTAX KIND SUMMARY
+' ============================================================
+
+legend right
+    **SyntaxKind (syntax/mod.rs:17-19)**
+
+    **Token Kinds (202 from TokenKind):**
+    • Trivia: Whitespace, LineComment, BlockComment
+    • Punctuation: Semicolon, Colon, Dot, Comma
+    • Operators: Plus, Minus, Star, Slash, Eq, Neq
+    • Keywords: KwProgram, KwFunction, KwIf, etc.
+    • Literals: IntLiteral, RealLiteral, StringLiteral
+
+    **Composite Nodes (~65):**
+    • SourceFile - Root node
+    • Program, Function, FunctionBlock, Class
+    • Method, Property, Interface, Namespace
+    • VarBlock, VarDecl, TypeSpec
+    • IfStmt, ForStmt, WhileStmt, CaseStmt
+    • BinaryExpr, UnaryExpr, CallExpr, FieldExpr
+    • InitializerList, ArrayInitializer
+
+    **Initializer Context Contract:**
+    • TYPE-level defaults and VAR defaults may
+      contain aggregate initializer nodes.
+    • Function-call named arguments remain CallExpr/Arg.
+    • Enum explicit values remain ordinary expressions.
+
+    **Key Files:**
+    • lexer/tokens.rs:44 - TokenKind enum
+    • lexer/mod.rs:14 - Token struct
+    • syntax/mod.rs:9 - SyntaxKind macro
+    • parser/parser.rs:30 - Parser struct
+    • parser/event.rs:9 - Event enum
+    • parser/sink.rs:10 - Sink struct
+end legend
+
+@enduml

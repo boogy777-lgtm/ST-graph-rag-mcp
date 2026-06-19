@@ -1,0 +1,25 @@
+[package]
+name = "trust-wasm-analysis"
+description = "Browser/WASM analysis adapter for truST diagnostics, hover, and completion"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = []
+wasm = ["dep:wasm-bindgen"]
+
+[dependencies]
+trust-hir.workspace = true
+trust-ide.workspace = true
+trust-syntax.workspace = true
+rowan.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+text-size.workspace = true
+wasm-bindgen = { workspace = true, optional = true }

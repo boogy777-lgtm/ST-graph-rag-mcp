@@ -1,0 +1,18 @@
+id = "cfm_init_reset_retain_warm_cold_002"
+category = "init_reset"
+description = "Warm restart retains RETAIN and cold restart reinitializes"
+cycles = 3
+watch_globals = ["r", "n", "u"]
+
+[input_series]
+r = ["INT:10", "SKIP", "SKIP"]
+n = ["INT:20", "SKIP", "SKIP"]
+u = ["INT:30", "SKIP", "SKIP"]
+
+[[restarts]]
+before_cycle = 2
+mode = "warm"
+
+[[restarts]]
+before_cycle = 3
+mode = "cold"

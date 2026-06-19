@@ -1,0 +1,28 @@
+---
+source: crates/trust-syntax/tests/parser_literals.rs
+assertion_line: 44
+expression: "snapshot_parse(r#\"PROGRAM Test\n    a := TRUE;\n    b := FALSE;\nEND_PROGRAM\"#)"
+---
+SourceFile@0..55
+  Program@0..55
+    KwProgram@0..7 "PROGRAM"
+    Name@7..17
+      Ident@8..12 "Test"
+    StmtList@17..44
+      AssignStmt@17..32
+        BinaryExpr@17..26
+          NameRef@17..19
+            Ident@17..18 "a"
+          Assign@19..21 ":="
+          Literal@21..26
+            KwTrue@22..26 "TRUE"
+        Semicolon@26..27 ";"
+      AssignStmt@32..44
+        BinaryExpr@32..42
+          NameRef@32..34
+            Ident@32..33 "b"
+          Assign@34..36 ":="
+          Literal@36..42
+            KwFalse@37..42 "FALSE"
+        Semicolon@42..43 ";"
+    KwEndProgram@44..55 "END_PROGRAM"

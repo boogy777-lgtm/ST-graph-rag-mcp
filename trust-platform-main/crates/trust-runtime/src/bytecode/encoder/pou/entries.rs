@@ -1,0 +1,148 @@
+impl<'a> BytecodeEncoder<'a> {
+    fn pou_entry_program(
+        &mut self,
+        program: &crate::task::ProgramDef,
+        id: u32,
+    ) -> Result<PouEntry, BytecodeError> {
+        let name_idx = self.strings.intern(program.name.clone());
+        Ok(PouEntry {
+            id,
+            name_idx,
+            kind: PouKind::Program,
+            code_offset: 0,
+            code_length: 0,
+            local_ref_start: 0,
+            local_ref_count: 0,
+            return_type_id: None,
+            owner_pou_id: None,
+            params: Vec::new(),
+            class_meta: None,
+        })
+    }
+
+    fn pou_entry_function(
+        &mut self,
+        func: &FunctionDef,
+        id: u32,
+    ) -> Result<PouEntry, BytecodeError> {
+        let name_idx = self.strings.intern(func.name.clone());
+        let return_type_id = Some(self.type_index(func.return_type)?);
+        let params = self.encode_params(&func.params)?;
+        Ok(PouEntry {
+            id,
+            name_idx,
+            kind: PouKind::Function,
+            code_offset: 0,
+            code_length: 0,
+            local_ref_start: 0,
+            local_ref_count: 0,
+            return_type_id,
+            owner_pou_id: None,
+            params,
+            class_meta: None,
+        })
+    }
+
+    fn pou_entry_function_block(
+        &mut self,
+        fb: &FunctionBlockDef,
+        id: u32,
+        emit_params: bool,
+    ) -> Result<PouEntry, BytecodeError> {
+        let name_idx = self.strings.intern(fb.name.clone());
+        let params = if emit_params {
+            self.encode_params(&fb.params)?
+        } else {
+            Vec::new()
+        };
+        let class_meta = Some(self.class_meta(fb, None)?);
+        Ok(PouEntry {
+            id,
+            name_idx,
+            kind: PouKind::FunctionBlock,
+            code_offset: 0,
+            code_length: 0,
+            local_ref_start: 0,
+            local_ref_count: 0,
+            return_type_id: None,
+            owner_pou_id: None,
+            params,
+            class_meta,
+        })
+    }
+
+    fn pou_entry_class(&mut self, class: &ClassDef, id: u32) -> Result<PouEntry, BytecodeError> {
+        let name_idx = self.strings.intern(class.name.clone());
+        let class_meta = Some(self.class_meta(class, None)?);
+        Ok(PouEntry {
+            id,
+            name_idx,
+            kind: PouKind::Class,
+            code_offset: 0,
+            code_length: 0,
+            local_ref_start: 0,
+            local_ref_count: 0,
+            return_type_id: None,
+            owner_pou_id: None,
+            params: Vec::new(),
+            class_meta,
+        })
+    }
+
+    fn pou_entry_method(
+        &mut self,
+        method: &MethodDef,
+        owner_id: u32,
+        id: u32,
+    ) -> Result<PouEntry, BytecodeError> {
+        let name_idx = self.strings.intern(method.name.clone());
+        let params = self.encode_params(&method.params)?;
+        let return_type_id = method
+            .return_type
+            .map(|type_id| self.type_index(type_id))
+            .transpose()?;
+        Ok(PouEntry {
+            id,
+            name_idx,
+            kind: PouKind::Method,
+            code_offset: 0,
+            code_length: 0,
+            local_ref_start: 0,
+            local_ref_count: 0,
+            return_type_id,
+            owner_pou_id: Some(owner_id),
+            params,
+            class_meta: None,
+        })
+    }
+
+    pub(super) fn encode_params(
+        &mut self,
+        params: &[Param],
+    ) -> Result<Vec<ParamEntry>, BytecodeError> {
+        let mut out = Vec::with_capacity(params.len());
+        for param in params {
+            let name_idx = self.strings.intern(param.name.clone());
+            let type_id = self.type_index(param.type_id)?;
+            let direction = match param.direction {
+                ParamDirection::In => 0,
+                ParamDirection::Out => 1,
+                ParamDirection::InOut => 2,
+            };
+            let default_const_idx = match (&param.default, param.direction) {
+                (Some(expr), ParamDirection::In) => {
+                    let value = self.const_value_from_expr(expr)?;
+                    Some(self.const_index_for(&value)?)
+                }
+                _ => None,
+            };
+            out.push(ParamEntry {
+                name_idx,
+                type_id,
+                direction,
+                default_const_idx,
+            });
+        }
+        Ok(out)
+    }
+}

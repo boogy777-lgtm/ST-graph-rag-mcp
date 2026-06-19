@@ -1,0 +1,74 @@
+{
+  "case_id": "cfm_timers_ton_sequence_001",
+  "category": "timers",
+  "cycles": 4,
+  "description": "TON deterministic sequence at 10ms preset",
+  "kind": "runtime",
+  "trace": [
+    {
+      "cycle": 1,
+      "direct": {},
+      "errors": [],
+      "globals": {
+        "et_ton": {
+          "nanos": 0,
+          "type": "TIME"
+        },
+        "q_ton": {
+          "type": "BOOL",
+          "value": false
+        }
+      },
+      "runtime_time_nanos": 0
+    },
+    {
+      "cycle": 2,
+      "direct": {},
+      "errors": [],
+      "globals": {
+        "et_ton": {
+          "nanos": 5000000,
+          "type": "TIME"
+        },
+        "q_ton": {
+          "type": "BOOL",
+          "value": false
+        }
+      },
+      "runtime_time_nanos": 5000000
+    },
+    {
+      "cycle": 3,
+      "direct": {},
+      "errors": [],
+      "globals": {
+        "et_ton": {
+          "nanos": 10000000,
+          "type": "TIME"
+        },
+        "q_ton": {
+          "type": "BOOL",
+          "value": true
+        }
+      },
+      "runtime_time_nanos": 10000000
+    },
+    {
+      "cycle": 4,
+      "direct": {},
+      "errors": [],
+      "globals": {
+        "et_ton": {
+          "nanos": 0,
+          "type": "TIME"
+        },
+        "q_ton": {
+          "type": "BOOL",
+          "value": false
+        }
+      },
+      "runtime_time_nanos": 15000000
+    }
+  ],
+  "version": 1
+}

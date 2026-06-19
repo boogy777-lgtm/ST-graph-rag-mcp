@@ -1,0 +1,55 @@
+---
+source: crates/trust-syntax/tests/parser_statements.rs
+expression: "snapshot_parse(r#\"PROGRAM Test\nFOR i := 0 TO 10 DO\n    IF i = 5 THEN\n        CONTINUE;\n    END_IF;\n    IF i = 8 THEN\n        EXIT;\n    END_IF;\nEND_FOR;\nEND_PROGRAM\"#)"
+---
+SourceFile@0..145
+  Program@0..145
+    KwProgram@0..7 "PROGRAM"
+    Name@7..13
+      Ident@8..12 "Test"
+    StmtList@13..134
+      ForStmt@13..132
+        KwFor@13..16 "FOR"
+        Name@16..19
+          Ident@17..18 "i"
+        Assign@19..21 ":="
+        Literal@21..24
+          IntLiteral@22..23 "0"
+        KwTo@24..26 "TO"
+        Literal@26..30
+          IntLiteral@27..29 "10"
+        KwDo@30..32 "DO"
+        IfStmt@32..79
+          KwIf@37..39 "IF"
+          BinaryExpr@39..46
+            NameRef@39..42
+              Ident@40..41 "i"
+            Eq@42..43 "="
+            Literal@43..46
+              IntLiteral@44..45 "5"
+          KwThen@46..50 "THEN"
+          ContinueStmt@50..73
+            KwContinue@59..67 "CONTINUE"
+            Semicolon@67..68 ";"
+          KwEndIf@73..79 "END_IF"
+        EmptyStmt@79..85
+          Semicolon@79..80 ";"
+        IfStmt@85..123
+          KwIf@85..87 "IF"
+          BinaryExpr@87..94
+            NameRef@87..90
+              Ident@88..89 "i"
+            Eq@90..91 "="
+            Literal@91..94
+              IntLiteral@92..93 "8"
+          KwThen@94..98 "THEN"
+          ExitStmt@98..117
+            KwExit@107..111 "EXIT"
+            Semicolon@111..112 ";"
+          KwEndIf@117..123 "END_IF"
+        EmptyStmt@123..125
+          Semicolon@123..124 ";"
+        KwEndFor@125..132 "END_FOR"
+      EmptyStmt@132..134
+        Semicolon@132..133 ";"
+    KwEndProgram@134..145 "END_PROGRAM"

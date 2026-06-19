@@ -1,0 +1,81 @@
+[package]
+name = "tiverse-mmap"
+version = "1.0.0"
+edition = "2021"
+rust-version = "1.70"
+authors = ["Vedanth HQ <vedanthq@tiverse.org>"]
+license = "MIT OR Apache-2.0"
+description = "Modern, safe, and ergonomic memory-mapped file I/O library with zero unsafe in public API"
+documentation = "https://docs.rs/tiverse-mmap"
+repository = "https://github.com/TIVerse/mmap-rs"
+homepage = "https://github.com/TIVerse/mmap-rs"
+readme = "README.md"
+keywords = ["mmap", "memory-map", "io", "performance", "zero-copy"]
+categories = ["filesystem", "memory-management", "os", "api-bindings"]
+exclude = [
+    ".github/*",
+    ".idea/*",
+    "fuzz/*",
+    "benches/*",
+    "*.md",
+    "!README.md",
+    "!CHANGELOG.md",
+    "!SECURITY.md",
+    "!CODE_OF_CONDUCT.md",
+    "!CONTRIBUTING.md",
+    "*.sh",
+    "windsurfrules",
+    "V1_*.md",
+    "QUICK_*.md",
+    "GAP_*.md",
+    "Cargo.lock",
+]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+targets = ["x86_64-unknown-linux-gnu", "x86_64-pc-windows-msvc", "x86_64-apple-darwin"]
+
+[dependencies]
+thiserror = "1.0"
+cfg-if = "1.0"
+zerocopy = { version = "0.7", optional = true }
+bytemuck = { version = "1.14", optional = true }
+serde = { version = "1.0", features = ["derive"], optional = true }
+tokio = { version = "1.35", features = ["rt", "fs", "io-util"], optional = true }
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.52", features = ["Win32_Foundation", "Win32_System_Memory"] }
+
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+tempfile = "3.8"
+rand = "0.8"
+tokio = { version = "1.35", features = ["rt", "fs", "io-util", "macros"] }
+
+[features]
+default = []
+huge-pages = []
+numa = []
+async = ["tokio"]
+zerocopy-views = ["zerocopy", "bytemuck"]
+serde-support = ["serde"]
+
+[profile.release]
+lto = "fat"
+codegen-units = 1
+opt-level = 3
+
+[profile.bench]
+inherits = "release"
+
+[[bench]]
+name = "sequential"
+harness = false
+
+[[bench]]
+name = "random"
+harness = false

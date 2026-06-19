@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>truST Browser IDE Demo</title>
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  <link rel="stylesheet" href="./runtime-styles.css" />
+  <style>
+    .content {
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    .content main {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .overview-grid {
+      display: grid;
+      grid-template-columns: minmax(520px, 1fr) minmax(360px, 460px);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .editor-card {
+      min-height: 0;
+    }
+
+    .editor-wrap {
+      position: relative;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      background: var(--panel-2);
+    }
+
+    .editor-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .editor-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .editor-status {
+      font-weight: 600;
+      color: var(--muted-strong);
+    }
+
+    #source {
+      width: 100%;
+      min-height: 560px;
+      border: 0;
+      resize: vertical;
+      padding: 14px;
+      margin: 0;
+      outline: none;
+      background: transparent;
+      color: var(--text);
+      font: 14px/1.45 "JetBrains Mono", "Fira Code", monospace;
+    }
+
+    .ide-popover {
+      position: absolute;
+      z-index: 30;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      max-width: 540px;
+    }
+
+    .ide-popover.is-hidden {
+      display: none;
+    }
+
+    #hoverPopover {
+      pointer-events: none;
+      padding: 8px 10px;
+      font: 12px/1.4 "JetBrains Mono", "Fira Code", monospace;
+      white-space: pre-wrap;
+    }
+
+    #completionPopover {
+      width: 360px;
+      padding: 6px;
+    }
+
+    .completion-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 8px;
+      border-radius: 8px;
+      padding: 7px 8px;
+      cursor: pointer;
+    }
+
+    .completion-item:hover,
+    .completion-item.active {
+      background: var(--accent-soft);
+    }
+
+    .completion-item p {
+      margin: 0;
+    }
+
+    .completion-label {
+      font: 600 13px/1.35 "JetBrains Mono", "Fira Code", monospace;
+    }
+
+    .completion-detail {
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .completion-kind {
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 11px;
+      color: var(--muted-strong);
+      white-space: nowrap;
+    }
+
+    .analysis-stack {
+      display: grid;
+      gap: 14px;
+    }
+
+    .diag-item,
+    .completion-summary-item {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 9px;
+      background: var(--panel-2);
+    }
+
+    .diag-item {
+      cursor: pointer;
+    }
+
+    .diag-item:hover {
+      border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+    }
+
+    .diag-title {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .diag-meta {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font: 11px/1.35 "JetBrains Mono", "Fira Code", monospace;
+    }
+
+    .sev {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 1px 8px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: #fff;
+    }
+
+    .sev-error {
+      background: var(--danger);
+    }
+
+    .sev-warning {
+      background: #b7791f;
+    }
+
+    .hover-pre {
+      margin: 0;
+      white-space: pre-wrap;
+      font: 12px/1.35 "JetBrains Mono", "Fira Code", monospace;
+      color: var(--muted-strong);
+    }
+
+    .hint {
+      color: var(--muted);
+      font-style: italic;
+      font-size: 12px;
+    }
+
+    .doc-chip {
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 11px;
+      color: var(--muted-strong);
+      background: var(--panel-2);
+      max-width: 280px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 1180px) {
+      .overview-grid {
+        grid-template-columns: 1fr;
+      }
+
+      #source {
+        min-height: 380px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#mainContent">Skip to content</a>
+  <div class="app">
+    <aside class="sidebar" aria-label="Primary">
+      <div class="brand">
+        <svg class="brand-logo" viewBox="0 0 160 80" role="img" aria-label="truST logo">
+          <text x="20" y="50" class="logo-text">tru<tspan class="logo-accent">ST</tspan></text>
+          <text x="20" y="70" class="logo-tagline">open source plc toolchain</text>
+        </svg>
+      </div>
+      <nav class="nav" aria-label="Main navigation">
+        <button class="active" aria-current="page">Browser IDE Demo</button>
+        <button disabled>Diagnostics</button>
+        <button disabled>Hover</button>
+        <button disabled>Completion</button>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="pill" id="statusPill" data-state="loading">booting</div>
+        <div class="muted" id="statusMeta">starting web worker</div>
+        <div class="connection" id="connectionBadge" data-state="offline">offline</div>
+        <div class="muted" id="statusUpdated">Last update: --</div>
+        <button class="toggle" id="themeToggle" type="button">Dark mode</button>
+      </div>
+    </aside>
+
+    <div class="content" id="mainContent">
+      <header class="topbar">
+        <div>
+          <div class="eyebrow">Browser Integration</div>
+          <h1>In-Browser Structured Text Analysis</h1>
+          <div class="meta">Hover with mouse and get autocomplete while typing. No analysis server required.</div>
+        </div>
+        <div class="actions">
+          <span class="doc-chip" id="documentChip">memory:///main.st</span>
+        </div>
+      </header>
+
+      <main>
+        <section class="page" data-page="overview">
+          <div class="overview-grid">
+            <article class="card editor-card">
+              <div class="editor-header">
+                <h3>Editor</h3>
+                <div class="editor-status" id="cursorLabel">Ln 1, Col 1</div>
+              </div>
+              <div class="editor-wrap" id="editorWrap">
+                <textarea id="source" spellcheck="false" wrap="off" aria-label="Structured Text editor"></textarea>
+                <div id="hoverPopover" class="ide-popover is-hidden"></div>
+                <div id="completionPopover" class="ide-popover is-hidden"></div>
+              </div>
+              <div class="editor-meta">
+                <span>Hover any symbol to inspect inferred type information.</span>
+                <span>Autocomplete: Arrow Up/Down, Enter, Tab</span>
+              </div>
+            </article>
+
+            <aside class="analysis-stack">
+              <article class="card">
+                <h3>Diagnostics</h3>
+                <div id="diagList" class="list"></div>
+              </article>
+              <article class="card">
+                <h3>Hover</h3>
+                <pre id="hoverCard" class="hover-pre">Hover over a symbol to inspect details.</pre>
+                <div class="muted" id="hoverRange" style="margin-top:8px;"></div>
+              </article>
+              <article class="card">
+                <h3>Completion</h3>
+                <div id="completionSummary" class="list"></div>
+              </article>
+            </aside>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

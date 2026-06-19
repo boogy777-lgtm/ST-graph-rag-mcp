@@ -1,0 +1,396 @@
+@startuml trust-debug-architecture
+!theme plain
+allowmixing
+skinparam backgroundColor #FEFEFE
+skinparam componentStyle uml2
+skinparam linetype ortho
+skinparam nodesep 60
+skinparam ranksep 40
+
+title IEC 61131-3 ST Debug System Architecture
+
+' ============================================================
+' VS CODE EXTENSION LAYER
+' ============================================================
+package "VS Code Extension" as vscode #LightBlue {
+    component "DebugConfigurationProvider" as configProvider <<debug/configuration.ts>>
+    component "DebugAdapterDescriptorFactory" as adapterFactory <<debug.ts>>
+    component "DebugAdapterTrackerFactory" as tracker <<debug.ts>>
+    component "Runtime Panel\n(Webview)" as runtimePanel <<ioPanel.ts + io-panel/*>>
+
+    configProvider --> adapterFactory : resolves config
+    adapterFactory --> tracker : creates tracker
+}
+
+note right of runtimePanel
+    Runtime panel issues custom
+    DAP requests (stIoState, stIoWrite, stReload)
+    and writes workspace settings
+    for runtime control overrides.
+end note
+
+' ============================================================
+' DAP PROTOCOL LAYER
+' ============================================================
+package "DAP Protocol (stdio)" as dap #LightYellow {
+    component "stdin" as stdin
+    component "stdout" as stdout
+
+    note right of stdin
+        Content-Length: n
+        CRLF
+        JSON payload
+        Requests include: LaunchRequest, AttachRequest
+    end note
+}
+
+vscode -down-> stdin : DAP Requests
+stdout -up-> vscode : DAP Responses/Events
+runtimePanel -down-> stdin : custom DAP\n(stIoState/stIoWrite/stReload)
+
+' ============================================================
+' truST Debug CRATE
+' ============================================================
+package "trust-debug crate" as stdebug #LightGreen {
+
+    ' Main entry and protocol IO
+    component "main.rs" as main
+    component "protocol_io.rs" as protocolIo <<read/write messages>>
+
+    ' Session management
+    component "DebugSession" as session <<session.rs + session/*>> {
+        portin sources
+        portin breakpoints
+        portin metadata
+    }
+
+    ' Debug Adapter
+    package "DebugAdapter" as adapter <<mod.rs + core.rs>> {
+        component "run_stdio()" as runStdio <<core.rs>>
+        component "dispatch_request()" as dispatch <<core.rs>>
+        component "LaunchState" as launchState <<mod.rs>>
+        component "SessionMode\n(launch/attach)" as sessionMode
+        component "RemoteSession\n(control client)" as remoteSession
+        component "RemoteStopPoller" as remoteStop
+        component "VariableHandles" as varHandles <<mod.rs>>
+        component "ThreadMapper" as threadMap <<threads.rs>>
+        component "StopCoordinator" as stopCoord
+        component "BreakpointManager" as bpManager
+        component "PausedStateView" as pausedView
+        component "ControlServerBridge" as controlBridge <<control_bridge.rs>>
+    }
+
+    ' Background Threads
+    package "Background Threads" as threads #PaleGreen {
+        component "Log Thread" as logThread <<core.rs>>
+        component "IO Thread" as ioThread <<core.rs>>
+        component "Stop Thread" as stopThread <<core.rs>>
+        component "Runner Thread" as runnerThread <<core.rs>>
+    }
+
+    ' Handlers
+    package "Handlers" as handlers {
+        component "initialize.rs" as initHandler
+        component "breakpoints.rs" as bpHandler
+        component "run_control.rs" as runHandler
+        component "stack_trace.rs" as stackHandler
+        component "scopes.rs" as scopesHandler
+        component "threads.rs" as threadsHandler
+        component "lifecycle.rs" as lifecycleHandler
+    }
+
+    ' Variables
+    package "Variables" as variables {
+        component "list.rs" as varList
+        component "eval.rs" as varEval
+        component "set/" as varSet
+        component "format.rs" as varFormat
+    }
+
+    ' IO
+    component "io.rs" as ioHandler <<stIoState, stIoWrite>>
+
+    main --> protocolIo
+    protocolIo --> runStdio
+    runStdio --> dispatch
+    dispatch --> handlers
+    dispatch --> variables
+    dispatch --> ioHandler
+    dispatch --> stopCoord
+    dispatch --> bpManager
+    dispatch --> pausedView
+    dispatch --> sessionMode
+    dispatch --> controlBridge : launch creates IPC
+    sessionMode --> remoteSession : attach
+    remoteSession --> remoteStop : stop polling
+
+    handlers --> session
+    variables --> session
+}
+
+' ============================================================
+' truST Runtime CRATE
+' ============================================================
+package "trust-runtime crate" as struntime #LightCoral {
+
+    ' Debug Control Hub
+    package "DebugControl" as debugControl <<debug/control/api.rs>> {
+        component "DebugState" as debugState {
+            portin mode
+            portin breakpoints
+            portin step
+            portin snapshot
+            portin pending_stop
+            portin stop_queue
+            portin breakpoint_generation
+        }
+        component "Mutex + Condvar" as sync
+        component "apply_action()" as applyAction <<api/lifecycle_actions.rs>>
+        component "FrameLocationMap" as frameLocs
+    }
+
+    ' Debug Hook
+    component "DebugHook trait" as debugHook <<hook.rs>>
+    component "on_statement_inner()" as onStatement <<debug/control/hook.rs>>
+
+    ' Breakpoint Logic
+    component "matches_breakpoint()" as matchBp <<breakpoints.rs>>
+
+    ' Snapshot
+    component "DebugSnapshot" as snapshot <<debug/control/types.rs>> {
+        portin storage
+        portin timestamp
+    }
+
+    ' Runtime Core
+    package "Runtime" as runtime {
+        component "execute_cycle()" as execCycle <<cycle.rs:18>>
+        component "VariableStorage" as varStorage
+        component "DebugRuntimeContext" as debugCtx <<debug/hook.rs>>
+        component "helper_eval::storage_lvalue" as debugWrite <<helper_eval/storage_lvalue.rs>>
+        component "Task Registry" as taskRegistry
+    }
+
+    ' Channels
+    package "Channels" as channels {
+        component "stop_tx/rx" as stopChannel
+        component "log_tx/rx" as logChannel
+        component "io_tx/rx" as ioChannel
+    }
+
+    debugControl --> sync
+    debugControl --> debugState
+    debugHook <|.. debugControl : implements
+    onStatement --> matchBp
+    onStatement --> snapshot : captures
+    onStatement --> frameLocs : per-frame location
+
+    execCycle --> debugWrite : pending debug writes
+    debugCtx --> debugHook : storage-native statement context
+
+    onStatement --> stopChannel : emit DebugStop
+}
+
+' ============================================================
+' CONTROL SERVER (IPC)
+' ============================================================
+package "ControlServer (IPC)" as controlServer #LightCoral {
+    component "control/transport.rs" as controlCore
+    component "debug.* endpoints" as debugEndpoints
+    controlCore --> debugEndpoints
+}
+
+remoteSession -down-> controlServer : JSON IPC (debug.*)
+controlBridge -down-> controlServer : JSON IPC (debug.*)
+
+note right of remoteSession
+    Attach mode bypasses DebugRuntime and
+    uses the control IPC (debug.*) directly.
+end note
+
+note right of controlBridge
+    Launch mode spins up a local
+    control IPC for inline values
+    and tooling integration.
+end note
+
+' ============================================================
+' RUNTIME FACADE
+' ============================================================
+package "Runtime Bridge" as runtimeBridge #Wheat {
+    interface "DebugRuntime" as debugRuntime {
+        +compile()
+        +control()
+        +snapshot()
+        +io_state()
+        +reload()
+    }
+}
+
+' ============================================================
+' CONNECTIONS BETWEEN CRATES
+' ============================================================
+
+' Session to Runtime
+session -down-> debugControl : debug_control()
+session -down-> runtime : runtime_handle()
+session -down-> debugRuntime : facade
+debugRuntime <|.. session : implements
+
+' Threads to Channels
+stopThread <-left- stopChannel : receives DebugStop
+stopThread --> stopCoord : ordered stop events
+logThread <-left- logChannel : receives DebugLog
+ioThread <-left- ioChannel : receives IoSnapshot
+
+' Runner to Runtime
+runnerThread -down-> execCycle : calls
+
+' Handler connections
+runHandler -down-> debugControl : continue/pause/step
+bpHandler -down-> bpManager : resolve + generation
+bpManager -down-> debugControl : set_breakpoints_for_file()
+stackHandler -down-> pausedView : frames
+varList -down-> pausedView : variables
+varEval -down-> pausedView : evaluate expression
+threadsHandler -down-> threadMap : tasks -> DAP threads
+
+' ============================================================
+' REQUEST FLOW ANNOTATIONS
+' ============================================================
+
+note bottom of dispatch
+    **Request Routing:**
+    initialize → initHandler
+    launch → initHandler
+    configurationDone → initHandler
+    setBreakpoints → bpHandler
+    continue/pause/next/stepIn/stepOut → runHandler
+    threads → threadsHandler
+    stackTrace → stackHandler
+    scopes → scopesHandler
+    variables → varList
+    evaluate → varEval
+    setVariable → varSet
+    disconnect/terminate/stReload → lifecycleHandler
+    stIoState/stIoWrite → ioHandler
+end note
+
+note right of launchState
+    **State Machine:**
+    AwaitingConfig → Configured → PostLaunch
+
+    Deferred launch pattern handles
+    race between client init and
+    breakpoint setup
+end note
+
+note right of debugState
+    **Debug Modes:**
+    - Running
+    - Paused
+
+    **Step Types:**
+    - StepInto (next statement)
+    - StepOver (same depth)
+    - StepOut (lower depth)
+end note
+
+note right of debugState
+    Stop reason integrity:
+    only emit breakpoint stops
+    if current breakpoints apply.
+end note
+
+note right of runHandler
+    Pause is idempotent.
+    Continue clears pending stop.
+end note
+
+note right of session
+    Breakpoint generation guards
+    prevent stale stops after clear.
+end note
+
+note right of frameLocs
+    Per-frame source mapping
+    for multi-file stepping.
+end note
+
+note right of threadMap
+    IEC tasks map to DAP threadId.
+    step/pause apply per thread.
+end note
+
+note right of stopThread
+    DAP ordering:
+    response first, then stopped event.
+end note
+
+note right of lifecycleHandler
+    stReload preserves paused/running
+    state and revalidates breakpoints.
+end note
+
+note right of launchState
+    stopOnEntry emits reason=entry.
+end note
+
+note bottom of onStatement
+    **Called at every statement boundary:**
+    1. Update last location
+    2. Check breakpoint match
+    3. Check step condition
+    4. Capture snapshot if pausing
+    5. Emit stop event
+    6. Wait on condvar if paused
+end note
+
+note left of matchBp
+    Cyclic task safety:
+    cleared breakpoints must
+    not re-trigger stale stops.
+end note
+
+note right of stopCoord
+    Centralizes stop ordering,
+    breakpoint generation checks,
+    invalidated events, and
+    StopGate sequencing.
+end note
+
+note right of bpManager
+    Centralizes breakpoint resolve
+    + generation tracking (single owner).
+end note
+
+note right of pausedView
+    Single source of truth for
+    paused state (stack/vars/expr).
+end note
+
+' ============================================================
+' LIFECYCLE SEQUENCE
+' ============================================================
+
+legend right
+    **Debug Session Lifecycle:**
+
+    1. VS Code spawns trust-debug process
+    2. Initialize: Negotiate capabilities
+    3. Launch: Load & compile program
+    4. ConfigurationDone: Start runner
+    5. SetBreakpoints: Register breakpoints
+    6. Continue/Step: Control execution
+    7. Stopped event: Hit breakpoint/step
+    8. StackTrace/Variables: Inspect state
+    9. Disconnect: Cleanup & exit
+
+    **Key Files:**
+    • trust-debug/src/adapter/core.rs
+    • trust-debug/src/session.rs + trust-debug/src/session/*
+    • trust-runtime/src/debug/control/api.rs
+    • trust-runtime/src/debug/control/hook.rs
+end legend
+
+@enduml

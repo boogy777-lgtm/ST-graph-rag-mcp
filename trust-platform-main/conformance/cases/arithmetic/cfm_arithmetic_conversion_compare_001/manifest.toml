@@ -1,0 +1,5 @@
+id = "cfm_arithmetic_conversion_compare_001"
+category = "arithmetic"
+description = "Conversion boundaries and comparison corner cases"
+cycles = 1
+watch_globals = ["rounded_even_low", "rounded_even_high", "cmp_lt", "cmp_eq", "near_max"]
