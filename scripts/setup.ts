@@ -35,101 +35,113 @@ async function main() {
 
 	if (!existsSync(destDir)) mkdirSync(destDir);
 
-	let releaseUrl = "";
-	let versionTag = "latest";
-	const assetName = `trust-lsp-${process.platform === "win32" ? "win32-x64" : "linux-x64"}.zip`;
+	if (existsSync(destPath)) {
+		console.log(`   ✅ Rust LSP Server binary already exists at ${destPath}. Skipping download/build.`);
+	} else {
+		let releaseUrl = "";
+		let versionTag = "latest";
+		const assetName = `trust-lsp-${process.platform === "win32" ? "win32-x64" : "linux-x64"}.zip`;
 
-	try {
-		console.log(`   Fetching latest release info from GitHub API...`);
-		const apiRes = await fetch(
-			"https://api.github.com/repos/boogy777-lgtm/trust-platform/releases/latest",
-			{ headers: { "User-Agent": "ST-graph-rag-setup-script" } }
-		);
-		
-		if (apiRes.ok) {
-			const releaseData = await apiRes.json();
-			versionTag = releaseData.tag_name;
-			const asset = releaseData.assets.find((a: any) => a.name === assetName);
-			if (asset) {
-				releaseUrl = asset.browser_download_url;
-			} else {
-				// Constructed fallback
-				releaseUrl = `https://github.com/boogy777-lgtm/trust-platform/releases/download/${versionTag}/${assetName}`;
-			}
-		} else {
-			throw new Error(`API returned ${apiRes.status}`);
-		}
-	} catch (err) {
-		console.warn(`   ⚠️ Could not fetch latest tag via API (${err}). Using fallback URL...`);
-		// Hard fallback if API fails (e.g. rate limit or release not marked as latest yet)
-		releaseUrl = `https://github.com/boogy777-lgtm/trust-platform/releases/download/v1.0.2/${assetName}`;
-		versionTag = "v1.0.2";
-	}
-
-	if (releaseUrl) {
-		console.log(`   Attempting to download pre-built binary from GitHub Releases (${versionTag})...`);
 		try {
-			const response = await fetch(releaseUrl);
-			if (response.ok) {
-				console.log("   ✅ Successfully downloaded pre-built binary archive.");
-				const arrayBuffer = await response.arrayBuffer();
-				const zipPath = join(destDir, "trust-lsp.zip");
-				await Bun.write(zipPath, arrayBuffer);
+			console.log(`   Fetching latest release info from GitHub API...`);
+			const apiRes = await fetch(
+				"https://api.github.com/repos/boogy777-lgtm/trust-platform/releases/latest",
+				{ headers: { "User-Agent": "ST-graph-rag-setup-script" } }
+			);
+			
+			if (apiRes.ok) {
+				const releaseData = await apiRes.json();
+				versionTag = releaseData.tag_name;
+				const asset = releaseData.assets.find((a: any) => a.name === assetName);
+				if (asset) {
+					releaseUrl = asset.browser_download_url;
+				} else {
+					// Constructed fallback
+					releaseUrl = `https://github.com/boogy777-lgtm/trust-platform/releases/download/${versionTag}/${assetName}`;
+				}
+			} else {
+				throw new Error(`API returned ${apiRes.status}`);
+			}
+		} catch (err) {
+			console.warn(`   ⚠️ Could not fetch latest tag via API (${err}). Using fallback URL...`);
+			// Hard fallback if API fails (e.g. rate limit or release not marked as latest yet)
+			releaseUrl = `https://github.com/boogy777-lgtm/trust-platform/releases/download/v1.0.2/${assetName}`;
+			versionTag = "v1.0.2";
+		}
+
+		if (releaseUrl) {
+			console.log(`   Attempting to download pre-built binary from GitHub Releases (${versionTag})...`);
+			try {
+				const response = await fetch(releaseUrl);
+				if (response.ok) {
+					console.log("   ✅ Successfully downloaded pre-built binary archive.");
+					const arrayBuffer = await response.arrayBuffer();
+					const zipPath = join(destDir, "trust-lsp.zip");
+					await Bun.write(zipPath, arrayBuffer);
+					
+					if (existsSync(destPath)) {
+						try { rmSync(destPath); } catch (e) { console.warn(`   ⚠️ Could not delete old binary: ${e}`); }
+					}
+
+					// Unzip using PowerShell on Windows or tar on Unix
+					if (process.platform === "win32") {
+						spawnSync("powershell", ["-Command", `Expand-Archive -Path '${zipPath}' -DestinationPath '${destDir}' -Force`], { stdio: "inherit" });
+					} else {
+						spawnSync("tar", ["-xzf", zipPath, "-C", destDir], { stdio: "inherit" });
+					}
+					rmSync(zipPath);
+					console.log(`\n✅ Extracted LSP binary to ${destPath}`);
+				} else {
+					throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+				}
+			} catch (downloadError) {
+				console.log(`   ⚠️ Could not download pre-built binary (${downloadError}). Falling back to local compilation...`);
+				console.log("   This may take a few minutes.");
 				
-				if (existsSync(destPath)) {
-					try { rmSync(destPath); } catch (e) { console.warn(`   ⚠️ Could not delete old binary: ${e}`); }
+				// Init submodule only if we actually need to compile locally
+				const cargoCheck = spawnSync("cargo", ["--version"]);
+				if (cargoCheck.error || cargoCheck.status !== 0) {
+					console.error("\n❌ Rust/Cargo is not installed.");
+					console.error("   Since the pre-built binary could not be downloaded, you MUST install Rust");
+					console.error("   to compile it locally: https://rustup.rs/");
+					process.exit(1);
 				}
 
-				// Unzip using PowerShell on Windows or tar on Unix
-				if (process.platform === "win32") {
-					spawnSync("powershell", ["-Command", `Expand-Archive -Path '${zipPath}' -DestinationPath '${destDir}' -Force`], { stdio: "inherit" });
-				} else {
-					spawnSync("tar", ["-xzf", zipPath, "-C", destDir], { stdio: "inherit" });
+				if (!existsSync(join("trust-platform", "Cargo.toml"))) {
+					console.log("   📦 Initializing trust-platform submodule for local build...");
+					const gitResult = spawnSync("git", ["submodule", "update", "--init", "--recursive"], { stdio: "inherit" });
+					if (gitResult.status !== 0 || gitResult.error) {
+						console.error("❌ Failed to initialize git submodule. If you downloaded this repository as a ZIP, you must use 'git clone' instead to build from source.");
+						process.exit(1);
+					}
 				}
-				rmSync(zipPath);
-				console.log(`\n✅ Extracted LSP binary to ${destPath}`);
-			} else {
-				throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-			}
-		} catch (downloadError) {
-			console.log(`   ⚠️ Could not download pre-built binary (${downloadError}). Falling back to local compilation...`);
-			console.log("   This may take a few minutes.");
-			
-			// Init submodule only if we actually need to compile locally
-			if (!existsSync(join("trust-platform", "Cargo.toml"))) {
-				console.log("   📦 Initializing trust-platform submodule for local build...");
-				const gitResult = spawnSync("git", ["submodule", "update", "--init", "--recursive"], { stdio: "inherit" });
-				if (gitResult.status !== 0 || gitResult.error) {
-					console.error("❌ Failed to initialize git submodule. If you downloaded this repository as a ZIP, you must use 'git clone' instead to build from source.");
+				
+				const cargoBuild = spawnSync(
+					"cargo",
+					["build", "--release", "-p", "trust-lsp"],
+					{
+						cwd: "trust-platform",
+						stdio: "inherit",
+					},
+				);
+
+				if (cargoBuild.status !== 0) {
+					console.error("❌ Failed to build Rust LSP.");
+					process.exit(1);
+				}
+
+				const sourcePath = join("trust-platform", "target", "release", exeName);
+				if (existsSync(sourcePath)) {
+					copyFileSync(sourcePath, destPath);
+					console.log(`\n✅ Copied compiled LSP binary to ${destPath}`);
+				} else {
+					console.error(`❌ Could not find compiled binary at ${sourcePath}`);
 					process.exit(1);
 				}
 			}
-			
-			const cargoBuild = spawnSync(
-				"cargo",
-				["build", "--release", "-p", "trust-lsp"],
-				{
-					cwd: "trust-platform",
-					stdio: "inherit",
-				},
-			);
-
-			if (cargoBuild.status !== 0) {
-				console.error("❌ Failed to build Rust LSP.");
-				process.exit(1);
-			}
-
-			const sourcePath = join("trust-platform", "target", "release", exeName);
-			if (existsSync(sourcePath)) {
-				copyFileSync(sourcePath, destPath);
-				console.log(`\n✅ Copied compiled LSP binary to ${destPath}`);
-			} else {
-				console.error(`❌ Could not find compiled binary at ${sourcePath}`);
-				process.exit(1);
-			}
+		} else {
+			console.warn("   ⚠️ No valid release URL found. Please compile manually.");
 		}
-	} else {
-		console.warn("   ⚠️ No valid release URL found. Please compile manually.");
 	}
 
 	// 6. Prompt for Cleanup
