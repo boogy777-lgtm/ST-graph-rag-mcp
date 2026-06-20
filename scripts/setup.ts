@@ -141,7 +141,14 @@ async function main() {
 
 	if (answer.toLowerCase() === "y" || answer.toLowerCase() === "yes") {
 		console.log("\n🗑️ Cleaning up source files...");
-		const dirsToDelete = ["src", "trust-platform", "test", "docs"];
+		const dirsToDelete = [
+			"src",
+			"trust-platform",
+			"test",
+			"docs",
+			"node_modules",
+			"obsidian-vault"
+		];
 		for (const dir of dirsToDelete) {
 			if (existsSync(dir)) {
 				try {
