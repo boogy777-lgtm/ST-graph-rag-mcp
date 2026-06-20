@@ -42,8 +42,8 @@ async function main() {
 	console.log("\n🦀 Setting up Rust LSP Server (trust-lsp)...");
 	
 	// Try downloading pre-built binary from GitHub Releases first
-	const releaseUrl = `https://github.com/boogy777-lgtm/trust-platform/releases/download/v1.0.0/trust-lsp-${process.platform === "win32" ? "win32-x64" : "linux-x64"}.zip`;
-	console.log(`   Attempting to download pre-built binary from GitHub Releases (v1.0.0)...`);
+	const releaseUrl = `https://github.com/boogy777-lgtm/trust-platform/releases/download/v1.0.1/trust-lsp-${process.platform === "win32" ? "win32-x64" : "linux-x64"}.zip`;
+	console.log(`   Attempting to download pre-built binary from GitHub Releases (v1.0.1)...`);
 	
 	try {
 		const response = await fetch(releaseUrl);
