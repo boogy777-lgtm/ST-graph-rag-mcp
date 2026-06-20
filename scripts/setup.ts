@@ -17,13 +17,7 @@ async function main() {
 		process.exit(1);
 	}
 
-	// 2. Initialize submodules
-	console.log("\n📦 Initializing submodules (trust-platform)...");
-	spawnSync("git", ["submodule", "update", "--init", "--recursive"], {
-		stdio: "inherit",
-	});
-
-	// 3. Build TS MCP Server
+	// 2. Build TS MCP Server
 	console.log("\n⚡ Building TypeScript MCP Server...");
 	spawnSync("bun", ["install"], { stdio: "inherit" });
 	const buildResult = spawnSync("bun", ["run", "build"], { stdio: "inherit" });
@@ -32,13 +26,7 @@ async function main() {
 		process.exit(1);
 	}
 
-	// 4. Download or Build Rust LSP
-	const exeName = process.platform === "win32" ? "trust-lsp.exe" : "trust-lsp";
-	const destDir = join(process.cwd(), "bin");
-	const destPath = join(destDir, exeName);
-
-	if (!existsSync(destDir)) mkdirSync(destDir);
-
+	// 3. Setup Rust LSP
 	console.log("\n🦀 Setting up Rust LSP Server (trust-lsp)...");
 
 	let releaseUrl = "";
@@ -96,6 +84,16 @@ async function main() {
 		} catch (downloadError) {
 			console.log(`   ⚠️ Could not download pre-built binary (${downloadError}). Falling back to local compilation...`);
 			console.log("   This may take a few minutes.");
+			
+			// Init submodule only if we actually need to compile locally
+			if (!existsSync(join("trust-platform", "Cargo.toml"))) {
+				console.log("   📦 Initializing trust-platform submodule for local build...");
+				const gitResult = spawnSync("git", ["submodule", "update", "--init", "--recursive"], { stdio: "inherit" });
+				if (gitResult.status !== 0 || gitResult.error) {
+					console.error("❌ Failed to initialize git submodule. If you downloaded this repository as a ZIP, you must use 'git clone' instead to build from source.");
+					process.exit(1);
+				}
+			}
 			
 			const cargoBuild = spawnSync(
 				"cargo",
