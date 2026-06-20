@@ -41,6 +41,7 @@
 		"CHANGELOG.md"
 	],
 	"scripts": {
+		"setup": "bun run scripts/setup.ts",
 		"build": "bun run scripts/build.ts",
 		"build:watch": "bun run --watch scripts/build.ts",
 		"typecheck": "tsc --noEmit",

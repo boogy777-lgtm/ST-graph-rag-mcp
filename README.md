@@ -61,20 +61,20 @@ graph LR
 
 ### 1. Requirements
 - **[Bun](https://bun.sh/)** >= 1.1 installed on your system.
+- **Rust/Cargo** (https://rustup.rs/) to build the LSP server.
 - **Windows OS** (The underlying `trust-lsp.exe` is currently compiled for Windows x64).
 
-### 2. Installation
+### 2. Installation & Setup
 
-Clone the repository and build the server:
+Clone the repository and run the setup script. The setup script will download submodules, build the TypeScript MCP server, build the Rust LSP binary, and optionally clean up source files to leave you with a lightweight installation:
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/boogy777-lgtm/ST-graph-rag-mcp.git
 cd ST-graph-rag-mcp
-bun install
-bun run build
+bun run setup
 ```
 
-This will compile the server into `dist/index.js` and the standalone CLI into `dist/cli/obsidian-export.js`.
+*During setup, you will be asked if you want to delete source code and keep only the compiled binaries. If you just want to use the extension, type `y`.*
 
 ### 3. Configuration (OpenCode / Claude Desktop)
 
