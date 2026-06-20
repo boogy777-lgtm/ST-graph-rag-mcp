@@ -159,7 +159,8 @@ async function main() {
 			"test",
 			"docs",
 			"node_modules",
-			"obsidian-vault"
+			"obsidian-vault",
+			"scripts"
 		];
 		for (const dir of dirsToDelete) {
 			if (existsSync(dir)) {
@@ -175,7 +176,7 @@ async function main() {
 			"\n✨ Cleanup complete! You now have a minimal standalone installation.",
 		);
 		console.log(
-			"📁 Remaining core files: /dist, /bin, opencode.json, package.json",
+			"📁 Remaining core files: /bin, opencode.json, package.json, README.md",
 		);
 	} else {
 		console.log("\n👍 Keeping all source files intact.");

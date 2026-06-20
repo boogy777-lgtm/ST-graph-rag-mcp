@@ -30,9 +30,10 @@
 		"bun"
 	],
 	"type": "module",
-	"main": "dist/index.js",
+	"main": "bin/st-graph-rag-mcp.exe",
 	"bin": {
-		"st-graph-rag-mcp": "dist/index.js"
+		"st-graph-rag-mcp": "bin/st-graph-rag-mcp.exe",
+		"obsidian-export": "bin/obsidian-export.exe"
 	},
 	"files": [
 		"dist",

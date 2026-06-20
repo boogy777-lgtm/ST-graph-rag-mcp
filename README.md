@@ -85,7 +85,7 @@ Add the server to your `opencode.json` (or `claude_desktop_config.json`):
   "mcp": {
     "code-graph-rag-st": {
       "type": "local",
-      "command": ["bun", "D:\\path\\to\\ST-graph-rag-mcp\\dist\\index.js"],
+      "command": "D:\\path\\to\\ST-graph-rag-mcp\\bin\\st-graph-rag-mcp.exe",
       "environment": {
         "TRUST_LSP_PATH": "D:\\path\\to\\ST-graph-rag-mcp\\bin\\trust-lsp.exe"
       }
@@ -93,6 +93,8 @@ Add the server to your `opencode.json` (or `claude_desktop_config.json`):
   }
 }
 ```
+
+*Note: For Linux/macOS, remove the `.exe` extension.*
 
 ## 🛠️ Available MCP Tools
 
@@ -113,7 +115,7 @@ Turn your PLC codebase into a navigable knowledge base. You can trigger this via
 
 ```bash
 # Export the indexed workspace to a local vault folder
-bun run obsidian:export "D:\My_PLC_Project" "D:\Obsidian\My_Vault"
+.\bin\obsidian-export.exe "D:\My_PLC_Project" "D:\Obsidian\My_Vault"
 ```
 
 The exporter generates:
