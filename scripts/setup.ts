@@ -29,6 +29,12 @@ async function main() {
 	// 3. Setup Rust LSP
 	console.log("\n🦀 Setting up Rust LSP Server (trust-lsp)...");
 
+	const exeName = process.platform === "win32" ? "trust-lsp.exe" : "trust-lsp";
+	const destDir = join(process.cwd(), "bin");
+	const destPath = join(destDir, exeName);
+
+	if (!existsSync(destDir)) mkdirSync(destDir);
+
 	let releaseUrl = "";
 	let versionTag = "latest";
 	const assetName = `trust-lsp-${process.platform === "win32" ? "win32-x64" : "linux-x64"}.zip`;
@@ -68,8 +74,12 @@ async function main() {
 				console.log("   ✅ Successfully downloaded pre-built binary archive.");
 				const arrayBuffer = await response.arrayBuffer();
 				const zipPath = join(destDir, "trust-lsp.zip");
-				Bun.write(zipPath, arrayBuffer);
+				await Bun.write(zipPath, arrayBuffer);
 				
+				if (existsSync(destPath)) {
+					try { rmSync(destPath); } catch (e) { console.warn(`   ⚠️ Could not delete old binary: ${e}`); }
+				}
+
 				// Unzip using PowerShell on Windows or tar on Unix
 				if (process.platform === "win32") {
 					spawnSync("powershell", ["-Command", `Expand-Archive -Path '${zipPath}' -DestinationPath '${destDir}' -Force`], { stdio: "inherit" });
