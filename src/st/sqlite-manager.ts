@@ -256,8 +256,9 @@ export class STSQLiteManager {
 		}
 	}
 
-	getDatabase(): BunSQLiteDatabase | null {
-		return this.db?.raw ?? null;
+	getDb(): any {
+		if (!this.db) throw new Error("Database not initialized");
+		return this.db.raw;
 	}
 
 	transaction(fn: () => void): void {

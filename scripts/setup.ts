@@ -32,36 +32,64 @@ async function main() {
 		process.exit(1);
 	}
 
-	// 4. Build Rust LSP
-	console.log(
-		"\n🦀 Building Rust LSP Server (trust-lsp)... This may take a few minutes.",
-	);
-	const cargoBuild = spawnSync(
-		"cargo",
-		["build", "--release", "-p", "trust-lsp"],
-		{
-			cwd: "trust-platform",
-			stdio: "inherit",
-		},
-	);
-
-	if (cargoBuild.status !== 0) {
-		console.error("❌ Failed to build Rust LSP.");
-		process.exit(1);
-	}
-
-	// 5. Copy Binary
-	if (!existsSync("bin")) mkdirSync("bin");
+	// 4. Download or Build Rust LSP
 	const exeName = process.platform === "win32" ? "trust-lsp.exe" : "trust-lsp";
-	const sourcePath = join("trust-platform", "target", "release", exeName);
-	const destPath = join("bin", exeName);
+	const destDir = join(process.cwd(), "bin");
+	const destPath = join(destDir, exeName);
 
-	if (existsSync(sourcePath)) {
-		copyFileSync(sourcePath, destPath);
-		console.log(`\n✅ Copied LSP binary to ${destPath}`);
-	} else {
-		console.error(`❌ Could not find compiled binary at ${sourcePath}`);
-		process.exit(1);
+	if (!existsSync(destDir)) mkdirSync(destDir);
+
+	console.log("\n🦀 Setting up Rust LSP Server (trust-lsp)...");
+	
+	// Try downloading pre-built binary from GitHub Releases first
+	const releaseUrl = `https://github.com/boogy777-lgtm/trust-platform/releases/download/v1.0.0/trust-lsp-${process.platform === "win32" ? "win32-x64" : "linux-x64"}.zip`;
+	console.log(`   Attempting to download pre-built binary from GitHub Releases (v1.0.0)...`);
+	
+	try {
+		const response = await fetch(releaseUrl);
+		if (response.ok) {
+			console.log("   ✅ Successfully downloaded pre-built binary archive.");
+			const arrayBuffer = await response.arrayBuffer();
+			const zipPath = join(destDir, "trust-lsp.zip");
+			Bun.write(zipPath, arrayBuffer);
+			
+			// Unzip using PowerShell on Windows or tar on Unix
+			if (process.platform === "win32") {
+				spawnSync("powershell", ["-Command", `Expand-Archive -Path '${zipPath}' -DestinationPath '${destDir}' -Force`], { stdio: "inherit" });
+			} else {
+				spawnSync("tar", ["-xzf", zipPath, "-C", destDir], { stdio: "inherit" });
+			}
+			rmSync(zipPath);
+			console.log(`\n✅ Extracted LSP binary to ${destPath}`);
+		} else {
+			throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+		}
+	} catch (downloadError) {
+		console.log(`   ⚠️ Could not download pre-built binary (${downloadError}). Falling back to local compilation...`);
+		console.log("   This may take a few minutes.");
+		
+		const cargoBuild = spawnSync(
+			"cargo",
+			["build", "--release", "-p", "trust-lsp"],
+			{
+				cwd: "trust-platform",
+				stdio: "inherit",
+			},
+		);
+
+		if (cargoBuild.status !== 0) {
+			console.error("❌ Failed to build Rust LSP.");
+			process.exit(1);
+		}
+
+		const sourcePath = join("trust-platform", "target", "release", exeName);
+		if (existsSync(sourcePath)) {
+			copyFileSync(sourcePath, destPath);
+			console.log(`\n✅ Copied compiled LSP binary to ${destPath}`);
+		} else {
+			console.error(`❌ Could not find compiled binary at ${sourcePath}`);
+			process.exit(1);
+		}
 	}
 
 	// 6. Prompt for Cleanup

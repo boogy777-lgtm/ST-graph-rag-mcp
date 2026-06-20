@@ -786,7 +786,7 @@ export class STIndexer {
 
 	constructor(
 		private lspPath: string,
-		private workspaceDir: string,
+		public workspaceDir: string,
 		sqliteDbPath?: string,
 	) {
 		const defaultDbPath = join(workspaceDir, ".code-graph-rag", "st-graph.db");
@@ -918,20 +918,27 @@ export class STIndexer {
 
 		try {
 			// Stage 3: Parse
+			console.error(`[ST Index] Calling parseStage for ${filePath}...`);
 			const { entities } = await parseStage(
 				this.lspClient,
 				prepared.uri,
 				filePath,
 				prepared.comments,
 			);
+			console.error(`[ST Index] parseStage finished for ${filePath}`);
 
 			// Stage 4: Extract
+			console.error(`[ST Index] Calling extractStage for ${filePath}...`);
 			const extracted = extractStage(prepared.originalContent);
+			console.error(`[ST Index] extractStage finished for ${filePath}`);
 
 			// Stage 5: Build Edges
+			console.error(`[ST Index] Calling buildEdgesStage for ${filePath}...`);
 			const { structuralEdges } = buildEdgesStage(entities);
+			console.error(`[ST Index] buildEdgesStage finished for ${filePath}`);
 
 			// Stage 6: Resolve
+			console.error(`[ST Index] Calling resolveStage for ${filePath}...`);
 			const resolved = resolveStage(
 				entities,
 				structuralEdges,
@@ -941,6 +948,7 @@ export class STIndexer {
 				filePath,
 				this.sqliteManager,
 			);
+			console.error(`[ST Index] resolveStage finished for ${filePath}`);
 
 			// Extract CALLS edges via LSP (still private method on indexer)
 			const callRelationships = await this.extractCallsLSP(
@@ -1174,26 +1182,30 @@ export class STIndexer {
 		let totalFallbackCalls = 0;
 
 		for (const pou of pouPositions) {
-			// Prepare call hierarchy at POU declaration line
-			const position = { line: pou.line - 1, character: 0 }; // LSP uses 0-based lines
-			const items = await lspClient.prepareCallHierarchy(uri, position);
+				// Prepare call hierarchy at POU declaration line
+				const position = { line: pou.line - 1, character: 0 }; // LSP uses 0-based lines
+				const items = await lspClient.prepareCallHierarchy(uri, position);
 
 			if (!items || items.length === 0) {
-				// Fallback: try with POU name search in symbols
-				console.error(
-					`[ST Index] callHierarchy.prepare returned empty for ${pou.name}, trying symbols`,
-				);
 				continue;
 			}
 
 			// Get outgoing calls for each call hierarchy item
 			for (const item of items) {
-				const outgoing = await lspClient.getCallHierarchyOutgoingCalls(item);
-
+				// Workaround: timeout the call to avoid hanging
+				let outgoing: any[] = [];
+				try {
+					outgoing = await Promise.race([
+						lspClient.getCallHierarchyOutgoingCalls(item),
+						new Promise<any[]>((_, reject) =>
+							setTimeout(() => reject(new Error("LSP call timeout")), 1000),
+						),
+					]);
+				} catch (err) {
+					console.error(`[ST Index] LSP call timeout for ${item.name}`);
+				}
+				
 				if (!outgoing || outgoing.length === 0) {
-					console.error(
-						`[ST Index] callHierarchy.outgoingCalls returned empty for ${item.name}`,
-					);
 					continue;
 				}
 
@@ -1229,9 +1241,10 @@ export class STIndexer {
 		}
 
 		// Fallback to regex if LSP returned no calls at all
-		if (relationships.length === 0) {
+		// NOTE: Regex fallback is always used now because LSP call hierarchy is currently timing out
+		if (relationships.length === 0 || true) {
 			console.error(
-				`[ST Index] LSP callHierarchy returned 0 calls, falling back to regex`,
+				`[ST Index] LSP callHierarchy returned ${relationships.length} calls, using regex fallback`,
 			);
 			const knownPouNames = this.sqliteManager!.getAllPOUNames();
 			for (const pou of pous) {

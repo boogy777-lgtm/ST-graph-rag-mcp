@@ -246,14 +246,24 @@ export class SQLiteDatabase implements IDatabase {
 	 * when they re-load the extension.
 	 */
 	private migrateV3toV4(): void {
-		try {
-			this.raw.exec(`DROP TABLE IF EXISTS vec_embeddings;`);
-		} catch (err) {
-			console.warn(
-				"[ST SQLite] vec_embeddings not dropped (sqlite-vec unavailable); table is dead code",
-				err,
-			);
+		// Check if vec_embeddings exists before attempting to drop
+		const tableExists = this.raw
+			.query<{ name: string }, []>(
+				`SELECT name FROM sqlite_master WHERE type='table' AND name='vec_embeddings'`,
+			)
+			.get();
+
+		if (tableExists) {
+			try {
+				this.raw.exec(`DROP TABLE IF EXISTS vec_embeddings;`);
+			} catch (err) {
+				console.warn(
+					"[ST SQLite] vec_embeddings not dropped (sqlite-vec unavailable); table is dead code",
+					err,
+				);
+			}
 		}
+
 		this.raw.exec(`DROP TABLE IF EXISTS st_bus_cache;`);
 		this.raw.exec(`DROP TABLE IF EXISTS st_agent_metrics;`);
 		this.raw.exec(`DROP INDEX IF EXISTS idx_bus_cache_topic;`);

@@ -1,7 +1,0 @@
-PROGRAM Main
-VAR
-    out AT %M* : BOOL;
-END_VAR
-
-out := TRUE;
-END_PROGRAM

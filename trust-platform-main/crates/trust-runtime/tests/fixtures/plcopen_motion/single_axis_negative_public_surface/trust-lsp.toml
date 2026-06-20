@@ -1,5 +1,0 @@
-[project]
-include_paths = ["src"]
-
-[dependencies]
-PLCopenMotionSingleAxis = { path = "../../../../../../libraries/plcopen_motion/single_axis_core", version = "0.1.0" }

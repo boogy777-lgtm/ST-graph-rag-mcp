@@ -1,8 +1,0 @@
-[project]
-vendor_profile = "siemens"
-include_paths = ["src"]
-stdlib = "iec"
-
-[workspace]
-priority = 100
-visibility = "public"
