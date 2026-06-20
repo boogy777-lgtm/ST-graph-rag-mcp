@@ -1,0 +1,9 @@
+FUNCTION_BLOCK FB_Helper
+VAR_INPUT
+  Data : INT;
+END_VAR
+VAR_OUTPUT
+  Result : BOOL;
+END_VAR
+  Result := Data > 0;
+END_FUNCTION_BLOCK

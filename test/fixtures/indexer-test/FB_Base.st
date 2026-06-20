@@ -1,0 +1,12 @@
+FUNCTION_BLOCK FB_Base
+VAR_INPUT
+  Enable : BOOL;
+END_VAR
+VAR_OUTPUT
+  Status : INT;
+END_VAR
+VAR
+  Internal : INT;
+END_VAR
+  Internal := 0;
+END_FUNCTION_BLOCK

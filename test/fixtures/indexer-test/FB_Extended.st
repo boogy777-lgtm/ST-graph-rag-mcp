@@ -1,0 +1,12 @@
+FUNCTION_BLOCK FB_Extended EXTENDS FB_Base IMPLEMENTS I_Ctrl
+VAR_INPUT
+  SetPoint : REAL;
+END_VAR
+VAR_OUTPUT
+  Output : REAL;
+END_VAR
+VAR
+  Helper : FB_Helper;
+END_VAR
+  Helper();
+END_FUNCTION_BLOCK
