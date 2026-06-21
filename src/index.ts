@@ -119,7 +119,7 @@ async function main() {
 			if (!wsDir) return null;
 			const mgr = workspaceManager.getSQLiteManager(wsDir);
 			return mgr ? mgr.getDb() : null;
-		}
+		},
 	});
 
 	// Wire the telemetry sink for the AI-Radar middleware.

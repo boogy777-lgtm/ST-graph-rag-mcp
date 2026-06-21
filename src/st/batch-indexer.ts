@@ -459,7 +459,7 @@ export class BatchIndexer {
 					const { entityCount, edgeCount } = await this.indexer.indexFile(
 						file,
 						batchStart + i,
-						totalFiles
+						totalFiles,
 					);
 					indexedFiles++;
 					totalEntities += entityCount;
@@ -479,7 +479,7 @@ export class BatchIndexer {
 					);
 				} catch (error) {
 					errors++;
-					
+
 					const errMsg = error instanceof Error ? error.message : String(error);
 					this.indexer.hooks.onIndexFileFailed({
 						file: relativePath,
