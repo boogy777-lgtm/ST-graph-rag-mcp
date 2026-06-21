@@ -96,6 +96,14 @@ Add the server to your `opencode.json` (or `claude_desktop_config.json`):
 
 *Note: For Linux/macOS, remove the `.exe` extension.*
 
+## 🖥️ Live Telemetry Dashboard (v3.0)
+
+Once the server is running, open your browser to **http://127.0.0.1:61131**. The server embeds a modern React/Vite dashboard directly into the `.exe` file without external assets.
+
+- **AI Radar:** Real-time stream of MCP tool calls (see exactly what the AI is querying).
+- **Code Graph:** Interactive 2D visualization of your POU call graph (powered by React Flow).
+- **Analytics:** Live metrics, health scores, and complexity hotspots (powered by Recharts).
+
 ## 🛠️ Available MCP Tools
 
 The server exposes 21 granular tools for the LLM to explore your codebase:

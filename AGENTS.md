@@ -29,29 +29,31 @@
 | Field | Value |
 |-------|-------|
 | Runtime | **Bun ≥ 1.3.0** (single runtime: ESM, TS, SQLite, bundler, test runner) |
-| Bundler | **`bun build`** via `bun run scripts/build.ts` |
+| UI Stack | **Vite + React + Tailwind + React Flow + Recharts** (`src/ui`) |
+| Bundler | **`bun build`** via `bun run scripts/build.ts` (Builds UI, then embeds as strings into `.exe`) |
 | TypeCheck | `tsc --noEmit` (`bun run typecheck`) |
 | Lint/Format | `biome` (`bun run lint`, `bun run format`) |
 | Smoke | `bun run scripts/smoke.js` (`bun run smoke`) |
-| Output | `dist/index.js` (~782 KB) + `dist/cli/obsidian-export.js`, ESM |
+| Output | `bin/st-graph-rag-mcp.exe` (~95 MB) + `bin/obsidian-export.exe` |
 | Driver | `bun:sqlite` (built-in, native, ~3× faster than `better-sqlite3`) |
 
 ```bash
-bun run build      # bun build → dist/ (correct)
-bun run typecheck  # tsc --noEmit (lint only, does NOT build)
+bun run build      # Builds React UI and compiles to bin/*.exe
+bun run typecheck  # tsc --noEmit
 bun run lint       # biome check .
-bun run smoke      # validates 21 tools registered in bundle
-bun test           # bun test via scripts/run-tests.js (empty test/ is a valid success)
+bun run smoke      # validates binary size and basic execution
+bun test           # bun test via scripts/run-tests.js
 ```
 
 ## MCP Server
 
 | Field | Value |
 |-------|-------|
-| Entry | `dist/index.js` (bundled by `bun build`) |
+| Entry | `bin/st-graph-rag-mcp.exe` (Standalone Bun binary) |
 | Transport | stdio |
+| Dashboard | `http://127.0.0.1:61131` (Live telemetry, graph, analytics) |
 | Config | `opencode.json` → `mcp.code-graph-rag-st` |
-| Command | `bun D:\ST-graph-rag-mcp\dist\index.js` |
+| Command | `D:\ST-graph-rag-mcp\bin\st-graph-rag-mcp.exe` |
 | Env | `TRUST_LSP_PATH=bin/trust-lsp.exe` (only env var) |
 | Tools | **21 total** (Core 6 + Analysis 6 + Advanced 2 + SQL-Graph 4 + Utility 2 + Export 1) |
 
@@ -90,9 +92,20 @@ bun test           # bun test via scripts/run-tests.js (empty test/ is a valid s
 4. SHA256 incremental cache skips unchanged entities
 5. Atomic write: temp file + `fs.renameSync` to final path
 
+## Cognitive Asymmetry (Когнитивная асимметрия)
+
+**Внимание всем агентам (включая code-engineer и ts-architect):**
+ИИ-агенты не держат в контексте весь проект целиком. Из-за этой "когнитивной асимметрии" возникает соблазн писать "бетонный" код, срезать углы и ломать архитектуру ради того, чтобы быстрее получить "зеленые тесты".
+
+**Строгие правила противодействия:**
+1. **НИКОГДА** не обходите архитектурные слои проекта ради быстрого локального фикса (например, прямого доступа к БД из хендлеров). Все модули общаются строго через публичные `index.ts`.
+2. Внимательно следите за историями ошибок. Мы уже сталкивались с падением бинарника из-за использования динамического `require()` и потерей файлов из-за слепого `git checkout .`.
+3. Мы используем **`bun build --compile`** для создания единого монолитного бинарника (`st-graph-rag-mcp.exe`). Все статические ассеты UI зашиваются прямо в код в виде строк (`UI_ASSETS`).
+4. Вы обязаны учитывать этот паттерн поведения при каждом изменении кода.
+
 ## Restart opencode After
 
-- Rebuilding `dist/index.js` (`bun run build`)
+- Rebuilding `bin/*.exe` (`bun run build`)
 - Replacing `bin/trust-lsp.exe`
 - Changing `opencode.json` (mcp/lsp/agent/instructions sections)
 - Creating/editing `.opencode/rules/*.md`

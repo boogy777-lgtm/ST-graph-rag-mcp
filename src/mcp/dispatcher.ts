@@ -7,6 +7,7 @@
  */
 
 import type { ProgressReporter } from "../types/progress";
+import { withTelemetry } from "./middleware/telemetry-middleware";
 import {
 	createHelpers,
 	type ToolHandler,
@@ -76,9 +77,12 @@ export class ToolDispatcher {
 		this.handlers = new Map();
 		this.helpers = createHelpers(workspaceManager);
 
-		// Копируем все handlers из registry
+		// Копируем все handlers из registry, оборачивая их в withTelemetry
+		// (Decorator). Это даёт три события на вызов: tool_started →
+		// tool_completed/tool_failed, c общим callId для группировки в UI.
+		// Если telemetry sink ещё не установлен, withTelemetry — no-op.
 		for (const [name, def] of registry) {
-			this.handlers.set(name, def.handler);
+			this.handlers.set(name, withTelemetry(name, def.handler));
 		}
 	}
 

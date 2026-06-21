@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, copyFileSync, rmSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { createInterface } from "node:readline/promises";
 
@@ -36,7 +36,9 @@ async function main() {
 	if (!existsSync(destDir)) mkdirSync(destDir);
 
 	if (existsSync(destPath)) {
-		console.log(`   ✅ Rust LSP Server binary already exists at ${destPath}. Skipping download/build.`);
+		console.log(
+			`   ✅ Rust LSP Server binary already exists at ${destPath}. Skipping download/build.`,
+		);
 	} else {
 		let releaseUrl = "";
 		let versionTag = "latest";
@@ -46,9 +48,9 @@ async function main() {
 			console.log(`   Fetching latest release info from GitHub API...`);
 			const apiRes = await fetch(
 				"https://api.github.com/repos/boogy777-lgtm/trust-platform/releases/latest",
-				{ headers: { "User-Agent": "ST-graph-rag-setup-script" } }
+				{ headers: { "User-Agent": "ST-graph-rag-setup-script" } },
 			);
-			
+
 			if (apiRes.ok) {
 				const releaseData = await apiRes.json();
 				versionTag = releaseData.tag_name;
@@ -63,31 +65,50 @@ async function main() {
 				throw new Error(`API returned ${apiRes.status}`);
 			}
 		} catch (err) {
-			console.warn(`   ⚠️ Could not fetch latest tag via API (${err}). Using fallback URL...`);
+			console.warn(
+				`   ⚠️ Could not fetch latest tag via API (${err}). Using fallback URL...`,
+			);
 			// Hard fallback if API fails (e.g. rate limit or release not marked as latest yet)
 			releaseUrl = `https://github.com/boogy777-lgtm/trust-platform/releases/download/v1.0.2/${assetName}`;
 			versionTag = "v1.0.2";
 		}
 
 		if (releaseUrl) {
-			console.log(`   Attempting to download pre-built binary from GitHub Releases (${versionTag})...`);
+			console.log(
+				`   Attempting to download pre-built binary from GitHub Releases (${versionTag})...`,
+			);
 			try {
 				const response = await fetch(releaseUrl);
 				if (response.ok) {
-					console.log("   ✅ Successfully downloaded pre-built binary archive.");
+					console.log(
+						"   ✅ Successfully downloaded pre-built binary archive.",
+					);
 					const arrayBuffer = await response.arrayBuffer();
 					const zipPath = join(destDir, "trust-lsp.zip");
 					await Bun.write(zipPath, arrayBuffer);
-					
+
 					if (existsSync(destPath)) {
-						try { rmSync(destPath); } catch (e) { console.warn(`   ⚠️ Could not delete old binary: ${e}`); }
+						try {
+							rmSync(destPath);
+						} catch (e) {
+							console.warn(`   ⚠️ Could not delete old binary: ${e}`);
+						}
 					}
 
 					// Unzip using PowerShell on Windows or tar on Unix
 					if (process.platform === "win32") {
-						spawnSync("powershell", ["-Command", `Expand-Archive -Path '${zipPath}' -DestinationPath '${destDir}' -Force`], { stdio: "inherit" });
+						spawnSync(
+							"powershell",
+							[
+								"-Command",
+								`Expand-Archive -Path '${zipPath}' -DestinationPath '${destDir}' -Force`,
+							],
+							{ stdio: "inherit" },
+						);
 					} else {
-						spawnSync("tar", ["-xzf", zipPath, "-C", destDir], { stdio: "inherit" });
+						spawnSync("tar", ["-xzf", zipPath, "-C", destDir], {
+							stdio: "inherit",
+						});
 					}
 					rmSync(zipPath);
 					console.log(`\n✅ Extracted LSP binary to ${destPath}`);
@@ -95,27 +116,39 @@ async function main() {
 					throw new Error(`HTTP ${response.status}: ${response.statusText}`);
 				}
 			} catch (downloadError) {
-				console.log(`   ⚠️ Could not download pre-built binary (${downloadError}). Falling back to local compilation...`);
+				console.log(
+					`   ⚠️ Could not download pre-built binary (${downloadError}). Falling back to local compilation...`,
+				);
 				console.log("   This may take a few minutes.");
-				
+
 				// Init submodule only if we actually need to compile locally
 				const cargoCheck = spawnSync("cargo", ["--version"]);
 				if (cargoCheck.error || cargoCheck.status !== 0) {
 					console.error("\n❌ Rust/Cargo is not installed.");
-					console.error("   Since the pre-built binary could not be downloaded, you MUST install Rust");
+					console.error(
+						"   Since the pre-built binary could not be downloaded, you MUST install Rust",
+					);
 					console.error("   to compile it locally: https://rustup.rs/");
 					process.exit(1);
 				}
 
 				if (!existsSync(join("trust-platform", "Cargo.toml"))) {
-					console.log("   📦 Initializing trust-platform submodule for local build...");
-					const gitResult = spawnSync("git", ["submodule", "update", "--init", "--recursive"], { stdio: "inherit" });
+					console.log(
+						"   📦 Initializing trust-platform submodule for local build...",
+					);
+					const gitResult = spawnSync(
+						"git",
+						["submodule", "update", "--init", "--recursive"],
+						{ stdio: "inherit" },
+					);
 					if (gitResult.status !== 0 || gitResult.error) {
-						console.error("❌ Failed to initialize git submodule. If you downloaded this repository as a ZIP, you must use 'git clone' instead to build from source.");
+						console.error(
+							"❌ Failed to initialize git submodule. If you downloaded this repository as a ZIP, you must use 'git clone' instead to build from source.",
+						);
 						process.exit(1);
 					}
 				}
-				
+
 				const cargoBuild = spawnSync(
 					"cargo",
 					["build", "--release", "-p", "trust-lsp"],
@@ -160,7 +193,7 @@ async function main() {
 			"docs",
 			"node_modules",
 			"obsidian-vault",
-			"scripts"
+			"scripts",
 		];
 		for (const dir of dirsToDelete) {
 			if (existsSync(dir)) {

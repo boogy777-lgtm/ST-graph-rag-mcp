@@ -387,7 +387,14 @@ export class BatchIndexer {
 
 		let indexedFiles = 0;
 		let errors = 0;
+		let totalEntities = 0;
+		let totalEdges = 0;
 		const totalFiles = session.files.length;
+
+		this.indexer.hooks.onIndexStarted({
+			workspace: this.workspaceDir,
+			totalFiles,
+		});
 
 		// Process in batches
 		for (
@@ -441,14 +448,46 @@ export class BatchIndexer {
 						? Math.round(((batchStart + i) / totalFiles) * 100)
 						: 0;
 
+				this.indexer.hooks.onIndexFileStarted({
+					file: relativePath,
+					index: batchStart + i + 1,
+					total: totalFiles,
+				});
+
 				try {
-					await this.indexer.indexFile(file);
+					const startMs = Date.now();
+					const { entityCount, edgeCount } = await this.indexer.indexFile(
+						file,
+						batchStart + i,
+						totalFiles
+					);
 					indexedFiles++;
+					totalEntities += entityCount;
+					totalEdges += edgeCount;
+
+					this.indexer.hooks.onIndexFileDone({
+						file: relativePath,
+						index: batchStart + i + 1,
+						total: totalFiles,
+						entities: entityCount,
+						edges: edgeCount,
+						durationMs: Date.now() - startMs,
+					});
+
 					console.error(
 						`[BatchIndexer] [${session.sessionId}] [${batchStart + i + 1}/${totalFiles}] INDEX ${relativePath}`,
 					);
 				} catch (error) {
 					errors++;
+					
+					const errMsg = error instanceof Error ? error.message : String(error);
+					this.indexer.hooks.onIndexFileFailed({
+						file: relativePath,
+						index: batchStart + i + 1,
+						total: totalFiles,
+						error: errMsg,
+					});
+
 					console.error(
 						`[BatchIndexer] [${session.sessionId}] [${batchStart + i + 1}/${totalFiles}] FAILED ${relativePath}:`,
 						error,
@@ -469,6 +508,32 @@ export class BatchIndexer {
 			errors,
 			duration: Date.now() - session.startTime,
 		};
+
+		this.indexer.hooks.onIndexDone({
+			workspace: this.workspaceDir,
+			indexedFiles,
+			skippedFiles: session.result.skippedFiles,
+			totalEntities,
+			totalEdges,
+			totalTimeMs: session.result.duration,
+		});
+
+		try {
+			const mgr = this.indexer.getSQLiteManager();
+			if (mgr) {
+				const health = mgr.getGraphHealth();
+				this.indexer.hooks.onSqliteStats({
+					pous: health.entities.total,
+					variables: 0,
+					types: 0,
+					relationships: health.edges.total,
+					files: health.files.total,
+					dbBytes: 0,
+				});
+			}
+		} catch (err) {
+			// ignore stats errors
+		}
 
 		console.error(
 			`[BatchIndexer] [${session.sessionId}] Complete: ${indexedFiles}/${totalFiles} indexed, ${session.result.skippedFiles} skipped, ${errors} errors (${session.result.duration}ms)`,

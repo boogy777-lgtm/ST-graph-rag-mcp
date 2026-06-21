@@ -25,7 +25,10 @@ export type EventKind =
 	| "ws_client_disconnected"
 	| "server_started"
 	| "server_stopped"
-	| "bus_overflow";
+	| "bus_overflow"
+	| "tool_started"
+	| "tool_completed"
+	| "tool_failed";
 
 interface BaseEvent {
 	readonly id: number;
@@ -136,6 +139,40 @@ export interface BusOverflowEvent extends BaseEvent {
 	readonly capacity: number;
 }
 
+/**
+ * Correlation id shared across the three tool_* events for a single call.
+ * Allows the UI to group `tool_started` → `tool_completed`/`tool_failed`
+ * into one logical "AI call" row, even though they arrive as 2-3 separate events.
+ */
+export type ToolCallId = string & { readonly __brand: "ToolCallId" };
+
+export interface ToolStartedEvent extends BaseEvent {
+	readonly kind: "tool_started";
+	readonly callId: ToolCallId;
+	readonly tool: string;
+	/** Sanitized args preview (strings truncated to 200 chars). */
+	readonly argsPreview: string;
+}
+
+export interface ToolCompletedEvent extends BaseEvent {
+	readonly kind: "tool_completed";
+	readonly callId: ToolCallId;
+	readonly tool: string;
+	readonly durationMs: number;
+	readonly ok: true;
+}
+
+export interface ToolFailedEvent extends BaseEvent {
+	readonly kind: "tool_failed";
+	readonly callId: ToolCallId;
+	readonly tool: string;
+	readonly durationMs: number;
+	readonly ok: false;
+	readonly error: string;
+}
+
+export type ToolEvent = ToolStartedEvent | ToolCompletedEvent | ToolFailedEvent;
+
 export type TelemetryEvent =
 	| LspProgressEvent
 	| LspDiagnosticEvent
@@ -149,7 +186,10 @@ export type TelemetryEvent =
 	| WsClientDisconnectedEvent
 	| ServerStartedEvent
 	| ServerStoppedEvent
-	| BusOverflowEvent;
+	| BusOverflowEvent
+	| ToolStartedEvent
+	| ToolCompletedEvent
+	| ToolFailedEvent;
 
 /**
  * Producer-side payload type: what callers pass to the bus BEFORE the bus
@@ -195,5 +235,11 @@ export function eventLabel(event: TelemetryEvent): string {
 			return `[SRV] stopped reason=${event.reason}`;
 		case "bus_overflow":
 			return `[BUS] overflow: dropped ${event.dropped}/${event.capacity}`;
+		case "tool_started":
+			return `[TOOL] ⟶ ${event.tool} (${event.callId})`;
+		case "tool_completed":
+			return `[TOOL] ✓ ${event.tool} (${event.callId}) in ${event.durationMs}ms`;
+		case "tool_failed":
+			return `[TOOL] ✗ ${event.tool} (${event.callId}) in ${event.durationMs}ms: ${event.error}`;
 	}
 }

@@ -18,9 +18,9 @@ import { LSPCallHierarchyItem, LSPClient } from "../lsp/client";
 import { LSPReadyPoller, LSPTimeoutError } from "../lsp/poller";
 import { extractComments, stripComments } from "../st/comment-stripper";
 import { type Entity, symbolsToEntities } from "../st/entity-extractor";
-import type { ProgressReporter } from "../types/progress.js";
 import type { IndexerHooks } from "../telemetry/domain/ports.js";
 import { noopHooks } from "../telemetry/domain/ports.js";
+import type { ProgressReporter } from "../types/progress.js";
 import {
 	buildEdgesStage,
 	cleanupStage,
@@ -787,7 +787,7 @@ export class STIndexer {
 	private forceReindex = false;
 
 	// Telemetry hooks (default no-op; injected by workspaceManager after startTelemetry).
-	private readonly hooks: IndexerHooks;
+	public readonly hooks: IndexerHooks;
 
 	constructor(
 		private lspPath: string,
@@ -907,16 +907,18 @@ export class STIndexer {
 			throw new Error("Indexer not started");
 		}
 
-		const stageEmit = (stage:
-			| "preparing"
-			| "lsp_open"
-			| "parsing"
-			| "extracting"
-			| "building_edges"
-			| "resolving"
-			| "persisting"
-			| "cleanup"
-			| "done"): void => {
+		const stageEmit = (
+			stage:
+				| "preparing"
+				| "lsp_open"
+				| "parsing"
+				| "extracting"
+				| "building_edges"
+				| "resolving"
+				| "persisting"
+				| "cleanup"
+				| "done",
+		): void => {
 			if (fileIndex === undefined || totalFiles === undefined) return;
 			const rel = relative(this.workspaceDir, filePath);
 			this.hooks.onLspProgress({
@@ -1288,9 +1290,9 @@ export class STIndexer {
 		let totalFallbackCalls = 0;
 
 		for (const pou of pouPositions) {
-				// Prepare call hierarchy at POU declaration line
-				const position = { line: pou.line - 1, character: 0 }; // LSP uses 0-based lines
-				const items = await lspClient.prepareCallHierarchy(uri, position);
+			// Prepare call hierarchy at POU declaration line
+			const position = { line: pou.line - 1, character: 0 }; // LSP uses 0-based lines
+			const items = await lspClient.prepareCallHierarchy(uri, position);
 
 			if (!items || items.length === 0) {
 				continue;
@@ -1310,7 +1312,7 @@ export class STIndexer {
 				} catch (err) {
 					console.error(`[ST Index] LSP call timeout for ${item.name}`);
 				}
-				
+
 				if (!outgoing || outgoing.length === 0) {
 					continue;
 				}
@@ -1348,6 +1350,7 @@ export class STIndexer {
 
 		// Fallback to regex if LSP returned no calls at all
 		// NOTE: Regex fallback is always used now because LSP call hierarchy is currently timing out
+		// biome-ignore lint/correctness/noConstantCondition: intentional fallback
 		if (relationships.length === 0 || true) {
 			console.error(
 				`[ST Index] LSP callHierarchy returned ${relationships.length} calls, using regex fallback`,
@@ -1402,7 +1405,9 @@ export class STIndexer {
  *   1 = Error, 2 = Warning, 3 = Information, 4 = Hint
  * Defensive: anything else → "info".
  */
-function severityToString(s: number | undefined): "error" | "warning" | "info" | "hint" {
+function severityToString(
+	s: number | undefined,
+): "error" | "warning" | "info" | "hint" {
 	switch (s) {
 		case 1:
 			return "error";

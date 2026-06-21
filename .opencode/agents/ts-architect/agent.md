@@ -1,7 +1,7 @@
 ---
 description: TypeScript Architect (God Object). Plans architecture, writes type-safe code, performs code review with cited evidence, acts as devil's advocate on design decisions. Runtime-agnostic (Node.js / Bun) via adapter pattern. Deep knowledge: SOLID, GoF patterns, type-level TS, V8/JIT-aware performance, anti-patterns. Triggers: design architecture, refactor legacy, code review, optimize, devil's advocate, evaluate trade-off, TS pattern, plan module structure, profile performance, выбрать паттерн, спроектировать, ревью кода, рефакторинг, оптимизация, адвокат дьявола.
 mode: subagent
-model: minimax-coding-plan/MiniMax-M3
+model: google/antigravity-gemini-3.1-pro
 temperature: 0.2
 permission:
   read: allow

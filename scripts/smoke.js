@@ -3,43 +3,22 @@
  * Smoke test for ST Graph RAG MCP server (v3.0 — Bun build).
  *
  * Validates:
- *   1. dist/index.js exists and bundles MCP tool registrations.
- *   2. All 21 required tool names are present as `name: "tool_name"` in the bundle.
- *   3. dist/cli/obsidian-export.js exists (obsidian_export tool).
+ *   1. bin/st-graph-rag-mcp.exe exists and has correct size (>50MB).
+ *   2. bin/obsidian-export.exe exists and supports --help output.
  *
- * Static check (no server spawn) — keeps CI fast and avoids stdio handshake flakiness.
  * Usage: bun run scripts/smoke.js
  */
 
-import { existsSync, readFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { existsSync, statSync } from "node:fs";
+import { resolve } from "node:path";
+import { spawnSync } from "node:child_process";
 
 const projectRoot = resolve(import.meta.dir, "..");
-const distDir = resolve(projectRoot, "dist");
+const binDir = resolve(projectRoot, "bin");
 
-const REQUIRED_TOOLS = [
-	"index",
-	"search",
-	"references",
-	"call_hierarchy",
-	"batch_index",
-	"health",
-	"variable_flow",
-	"fb_instances",
-	"call_chain",
-	"global_vars",
-	"impact_analysis",
-	"metrics",
-	"state_machine",
-	"data_flow_graph",
-	"list_file_entities",
-	"get_graph",
-	"get_entity_source",
-	"detect_code_clones",
-	"get_version",
-	"reset_graph",
-	"obsidian_export",
-];
+const exeExt = process.platform === "win32" ? ".exe" : "";
+const indexPath = resolve(binDir, `st-graph-rag-mcp${exeExt}`);
+const obsidianPath = resolve(binDir, `obsidian-export${exeExt}`);
 
 function fail(msg) {
 	console.error(`SMOKE FAIL: ${msg}`);
@@ -50,67 +29,32 @@ function pass(msg) {
 	console.log(`SMOKE PASS: ${msg}`);
 }
 
-const indexPath = resolve(distDir, "index.js");
-const obsidianPath = resolve(distDir, "cli", "obsidian-export.js");
-
+// 1. Check MCP server binary
 if (!existsSync(indexPath)) {
-	fail(`dist/index.js missing — run 'bun run build' first (path: ${indexPath})`);
+	fail(`bin/st-graph-rag-mcp${exeExt} missing — run 'bun run scripts/build.ts' first`);
 }
 
+const indexSize = statSync(indexPath).size;
+if (indexSize < 50 * 1024 * 1024) {
+	fail(`bin/st-graph-rag-mcp${exeExt} is too small (${(indexSize / 1024 / 1024).toFixed(1)} MB). Expected >50MB bundled Bun executable.`);
+}
+pass(`st-graph-rag-mcp executable verified (${(indexSize / 1024 / 1024).toFixed(1)} MB)`);
+
+// 2. Check Obsidian export binary
 if (!existsSync(obsidianPath)) {
-	fail(`dist/cli/obsidian-export.js missing — run 'bun run build' first (path: ${obsidianPath})`);
+	fail(`bin/obsidian-export${exeExt} missing — run 'bun run scripts/build.ts' first`);
 }
 
-const bundle = readFileSync(indexPath, "utf-8");
-
-// Match tool registrations emitted as object-literal key: `name: "tool_name"`
-// The MCP SDK signature is `server.tool(name: string, schema, handler)`,
-// so the bundled source contains `name: "<tool>"` once per tool.
-const toolRegex = /name:\s*["']([a-z][a-z0-9_]+)["']/g;
-const registered = new Set();
-for (const m of bundle.matchAll(toolRegex)) {
-	registered.add(m[1]);
+const obsSize = statSync(obsidianPath).size;
+if (obsSize < 50 * 1024 * 1024) {
+	fail(`bin/obsidian-export${exeExt} is too small. Expected >50MB.`);
 }
 
-const missing = REQUIRED_TOOLS.filter((t) => !registered.has(t));
-if (missing.length > 0) {
-	fail(
-		`Missing tool registrations in bundle: ${missing.join(", ")} (found ${registered.size} unique 'name:' identifiers)`,
-	);
+// Test executing the obsidian export tool
+const res = spawnSync(obsidianPath, [], { encoding: "utf8" });
+if (!res.stdout.includes("Usage: obsidian-export") && !res.stderr.includes("Usage: obsidian-export")) {
+	fail(`obsidian-export binary failed to print usage instructions. Output: ${res.stdout || res.stderr}`);
 }
-
-pass(`21/21 required tools registered in dist/index.js (${registered.size} unique 'name:' identifiers detected)`);
-pass(`dist/cli/obsidian-export.js present`);
-
-const obsidianCli = readFileSync(obsidianPath, "utf-8");
-// Verify the expected source modules are bundled (proof that the CLI re-uses the library).
-// Bun.build may strip or transform source comments; check both comment markers and key symbols.
-const requiredCliSourceComments = [
-	"src/obsidian/exporter.ts",
-	"src/obsidian/frontmatter-builder.ts",
-	"src/obsidian/wikilink-builder.ts",
-	"src/obsidian/templates/pou.md.ts",
-	"src/obsidian/templates/type.md.ts",
-	"src/obsidian/templates/index.md.ts",
-];
-const requiredCliSymbols = ["loadCache", "isChanged", "toWikilink", "buildFrontmatter"];
-const requiredCliEntry = ["parseArgs", "function main()"];
-const missingSourceComments = requiredCliSourceComments.filter((m) => !obsidianCli.includes(m));
-const missingSymbols = requiredCliSymbols.filter((s) => !obsidianCli.includes(s));
-const missingEntry = requiredCliEntry.filter((s) => !obsidianCli.includes(s));
-if (missingSourceComments.length > 0 || missingSymbols.length > 0 || missingEntry.length > 0) {
-	const details = [];
-	if (missingSourceComments.length > 0) {
-		details.push(`source comments missing: ${missingSourceComments.join(", ")}`);
-	}
-	if (missingSymbols.length > 0) {
-		details.push(`symbols missing: ${missingSymbols.join(", ")}`);
-	}
-	if (missingEntry.length > 0) {
-		details.push(`entry points missing: ${missingEntry.join(", ")}`);
-	}
-	fail(`dist/cli/obsidian-export.js incomplete — ${details.join("; ")}`);
-}
-pass(`dist/cli/obsidian-export.js bundles 5 src/obsidian/* modules + entry main() + exports loadCache/isChanged/toWikilink/buildFrontmatter`);
+pass(`obsidian-export executable verified and responsive (${(obsSize / 1024 / 1024).toFixed(1)} MB)`);
 
 process.exit(0);

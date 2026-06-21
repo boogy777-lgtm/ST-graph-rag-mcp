@@ -46,7 +46,7 @@
       "mode": "all",
       "hidden": false,
       "prompt": "{file:./.opencode/agents/ts-architect/agent.md}",
-      "model": "minimax-coding-plan/MiniMax-M3",
+      "model": "google/antigravity-gemini-3.1-pro",
       "variant": "high"
     }
   }

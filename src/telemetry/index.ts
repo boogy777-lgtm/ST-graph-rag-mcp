@@ -25,10 +25,14 @@ import {
 	type WsServerHandle,
 } from "./infrastructure/ws-server.js";
 
+export type { IndexerHooks };
+
 export interface TelemetryHandle {
 	readonly port: number;
 	readonly url: string;
 	readonly hooks: IndexerHooks;
+	/** Direct access to the bus for in-process publishers (e.g. middleware). */
+	readonly bus: TelemetryBus;
 	stop(): void;
 }
 
@@ -37,6 +41,8 @@ export interface StartTelemetryOptions {
 	readonly batchIntervalMs?: number;
 	readonly portFilePath?: string;
 	readonly now?: () => number;
+	readonly getDb?: () => any;
+	readonly getActiveWorkspace?: () => string | null;
 }
 
 export function startTelemetry(
@@ -50,6 +56,8 @@ export function startTelemetry(
 	let busRef: TelemetryBus | null = null;
 
 	const ws: WsServerHandle = startWsServer({
+		getDb: opts.getDb ?? (() => null),
+		getActiveWorkspace: opts.getActiveWorkspace ?? (() => null),
 		get bus(): TelemetryBus {
 			if (!busRef) throw new Error("[Telemetry] bus not yet constructed");
 			return busRef;
@@ -93,6 +101,7 @@ export function startTelemetry(
 		port: ws.port,
 		url: ws.url,
 		hooks,
+		bus,
 		stop(): void {
 			bus.publish({ kind: "server_stopped", reason: "manual" });
 			bus.stop();

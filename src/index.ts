@@ -21,12 +21,20 @@ import {
 	ListToolsRequestSchema,
 	ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { getResourceCount, registerResources } from "./mcp/resources/index.js";
-import { getSTToolDefinitions, handleSTToolCall } from "./mcp/st-tools.js";
-import { workspaceManager } from "./mcp/workspace-manager.js";
+import {
+	getResourceCount,
+	getSTToolDefinitions,
+	handleSTToolCall,
+	registerResources,
+	setTelemetrySink,
+	workspaceManager,
+} from "./mcp/index.js";
 import { buildCompositeReporter } from "./reporters/index.js";
-import { startTelemetry, type TelemetryHandle } from "./telemetry/index.js";
-import type { IndexerHooks } from "./telemetry/domain/ports.js";
+import {
+	type IndexerHooks,
+	startTelemetry,
+	type TelemetryHandle,
+} from "./telemetry/index.js";
 
 // === MCP Server ===
 
@@ -104,7 +112,24 @@ async function main() {
 	// Boot the telemetry dashboard (WS server on 127.0.0.1, random port).
 	// This must happen BEFORE connecting stdio, so any startup failures
 	// surface before we block on the MCP transport.
-	telemetry = startTelemetry();
+	telemetry = startTelemetry({
+		getActiveWorkspace: () => workspaceManager.getActiveWorkspace() || null,
+		getDb: () => {
+			const wsDir = workspaceManager.getActiveWorkspace();
+			if (!wsDir) return null;
+			const mgr = workspaceManager.getSQLiteManager(wsDir);
+			return mgr ? mgr.getDb() : null;
+		}
+	});
+
+	// Wire the telemetry sink for the AI-Radar middleware.
+	// Tool registrations are static (st-tools.ts → ToolDispatcher wraps each
+	// handler with `withTelemetry`), but the bus instance is created here.
+	// Setting the sink now means every subsequent tool call emits
+	// tool_started → tool_completed/tool_failed events onto the bus.
+	setTelemetrySink((draft) => {
+		telemetry?.bus.publish(draft);
+	});
 
 	// Make the hooks available to the indexer. WorkspaceManager will pass them
 	// into every STIndexer it constructs (cold-path reconstruction included).

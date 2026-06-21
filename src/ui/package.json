@@ -1,0 +1,32 @@
+{
+	"name": "@st-graph-rag-mcp/ui",
+	"version": "3.0.0",
+	"private": true,
+	"type": "module",
+	"description": "Vite + React + Tailwind dashboard for ST-Graph-RAG-MCP. Built into the bundled MCP binary via `bun build --compile --asset`.",
+	"scripts": {
+		"dev": "vite",
+		"build": "tsc -p tsconfig.json --noEmit && vite build",
+		"preview": "vite preview",
+		"typecheck": "tsc -p tsconfig.json --noEmit"
+	},
+	"dependencies": {
+		"@xyflow/react": "^12.11.0",
+		"fast-json-patch": "^3.1.1",
+		"react": "^18.3.1",
+		"react-dom": "^18.3.1",
+		"recharts": "^3.8.1",
+		"zustand": "^5.0.14"
+	},
+	"devDependencies": {
+		"@tailwindcss/postcss": "^4.1.11",
+		"@types/react": "^18.3.12",
+		"@types/react-dom": "^18.3.1",
+		"@vitejs/plugin-react": "^4.3.4",
+		"autoprefixer": "^10.4.20",
+		"postcss": "^8.4.49",
+		"tailwindcss": "^4.1.11",
+		"typescript": "^5.9.2",
+		"vite": "^5.4.11"
+	}
+}

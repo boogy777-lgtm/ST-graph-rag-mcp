@@ -27,9 +27,18 @@
 				"noUselessSwitchCase": "off"
 			},
 			"style": {
+				"noCommonJs": "error",
 				"useNodejsImportProtocol": "off",
 				"noNonNullAssertion": "off",
-				"useTemplate": "off"
+				"useTemplate": "off",
+				"noRestrictedImports": {
+					"level": "error",
+					"options": {
+						"paths": {
+							"better-sqlite3": "Используй bun:sqlite вместо better-sqlite3"
+						}
+					}
+				}
 			},
 			"correctness": {
 				"noUnusedVariables": "off",
