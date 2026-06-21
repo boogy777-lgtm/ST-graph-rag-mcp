@@ -46,3 +46,4 @@ obsidian-vault/
 
 # External trust-platform copies (not part of our test suite)
 trust-platform-main/
+.*.bun-build
