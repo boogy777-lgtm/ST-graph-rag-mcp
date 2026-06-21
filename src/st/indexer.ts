@@ -19,6 +19,8 @@ import { LSPReadyPoller, LSPTimeoutError } from "../lsp/poller";
 import { extractComments, stripComments } from "../st/comment-stripper";
 import { type Entity, symbolsToEntities } from "../st/entity-extractor";
 import type { ProgressReporter } from "../types/progress.js";
+import type { IndexerHooks } from "../telemetry/domain/ports.js";
+import { noopHooks } from "../telemetry/domain/ports.js";
 import {
 	buildEdgesStage,
 	cleanupStage,
@@ -784,13 +786,18 @@ export class STIndexer {
 	// Force reindex all files (ignore hash check)
 	private forceReindex = false;
 
+	// Telemetry hooks (default no-op; injected by workspaceManager after startTelemetry).
+	private readonly hooks: IndexerHooks;
+
 	constructor(
 		private lspPath: string,
 		public workspaceDir: string,
 		sqliteDbPath?: string,
+		hooks?: IndexerHooks,
 	) {
 		const defaultDbPath = join(workspaceDir, ".code-graph-rag", "st-graph.db");
 		this.sqliteManager = new STSQLiteManager(sqliteDbPath || defaultDbPath);
+		this.hooks = hooks ?? noopHooks;
 	}
 
 	async start(): Promise<void> {
@@ -900,7 +907,28 @@ export class STIndexer {
 			throw new Error("Indexer not started");
 		}
 
+		const stageEmit = (stage:
+			| "preparing"
+			| "lsp_open"
+			| "parsing"
+			| "extracting"
+			| "building_edges"
+			| "resolving"
+			| "persisting"
+			| "cleanup"
+			| "done"): void => {
+			if (fileIndex === undefined || totalFiles === undefined) return;
+			const rel = relative(this.workspaceDir, filePath);
+			this.hooks.onLspProgress({
+				file: rel,
+				current: fileIndex + 1,
+				total: totalFiles,
+				stage,
+			});
+		};
+
 		// Stage 1: Prepare
+		stageEmit("preparing");
 		const prepared = prepareStage(filePath, this.workspaceDir);
 
 		// Progress
@@ -914,11 +942,13 @@ export class STIndexer {
 		}
 
 		// Stage 2: LSP Open
+		stageEmit("lsp_open");
 		await lspOpenStage(this.lspClient, prepared.uri, prepared.strippedContent);
 
 		try {
 			// Stage 3: Parse
 			console.error(`[ST Index] Calling parseStage for ${filePath}...`);
+			stageEmit("parsing");
 			const { entities } = await parseStage(
 				this.lspClient,
 				prepared.uri,
@@ -929,16 +959,19 @@ export class STIndexer {
 
 			// Stage 4: Extract
 			console.error(`[ST Index] Calling extractStage for ${filePath}...`);
+			stageEmit("extracting");
 			const extracted = extractStage(prepared.originalContent);
 			console.error(`[ST Index] extractStage finished for ${filePath}`);
 
 			// Stage 5: Build Edges
 			console.error(`[ST Index] Calling buildEdgesStage for ${filePath}...`);
+			stageEmit("building_edges");
 			const { structuralEdges } = buildEdgesStage(entities);
 			console.error(`[ST Index] buildEdgesStage finished for ${filePath}`);
 
 			// Stage 6: Resolve
 			console.error(`[ST Index] Calling resolveStage for ${filePath}...`);
+			stageEmit("resolving");
 			const resolved = resolveStage(
 				entities,
 				structuralEdges,
@@ -960,6 +993,7 @@ export class STIndexer {
 			resolved.relationships.push(...callRelationships);
 
 			// Stage 7: Persist
+			stageEmit("persisting");
 			const persistResult = persistStage(
 				{
 					filePath,
@@ -979,6 +1013,18 @@ export class STIndexer {
 				filePath,
 				this.sqliteManager,
 			);
+			const diags = this.lspClient.getDiagnostics(prepared.uri);
+			if (diags && diags.length > 0) {
+				const rel = relative(this.workspaceDir, filePath);
+				for (const d of diags) {
+					this.hooks.onLspDiagnostic({
+						file: rel,
+						line: d.range.start.line + 1,
+						severity: severityToString(d.severity),
+						message: d.message,
+					});
+				}
+			}
 
 			// Update file record
 			this.fileRecords.set(filePath, {
@@ -990,6 +1036,7 @@ export class STIndexer {
 
 			// Progress done
 			if (fileIndex !== undefined && totalFiles !== undefined) {
+				stageEmit("done");
 				reporter?.report({
 					current: fileIndex + 1,
 					total: totalFiles,
@@ -1003,6 +1050,7 @@ export class STIndexer {
 			return persistResult;
 		} finally {
 			// Stage 8: Cleanup (always, even on error)
+			stageEmit("cleanup");
 			await cleanupStage(this.lspClient, prepared.uri);
 		}
 	}
@@ -1097,6 +1145,11 @@ export class STIndexer {
 			`[ST Index] Found ${files.length} ST files in ${this.workspaceDir}`,
 		);
 
+		this.hooks.onIndexStarted({
+			workspace: this.workspaceDir,
+			totalFiles: files.length,
+		});
+
 		let indexedFiles = 0;
 		let skippedFiles = 0;
 		let totalEntities = 0;
@@ -1118,14 +1171,34 @@ export class STIndexer {
 				console.error(
 					`[ST Index] [${i + 1}/${files.length}] INDEX ${relativePath}...`,
 				);
+				this.hooks.onIndexFileStarted({
+					file: relativePath,
+					index: i + 1,
+					total: files.length,
+				});
 				const { entityCount, edgeCount } = await this.indexFile(file);
 				totalEntities += entityCount;
 				totalEdges += edgeCount;
 				indexedFiles++;
+				this.hooks.onIndexFileDone({
+					file: relativePath,
+					index: i + 1,
+					total: files.length,
+					entities: entityCount,
+					edges: edgeCount,
+					durationMs: Date.now() - startTime,
+				});
 				console.error(
 					`[ST Index] [${i + 1}/${files.length}] DONE ${relativePath} (${entityCount} entities, ${edgeCount} edges)`,
 				);
 			} catch (error) {
+				const errMsg = error instanceof Error ? error.message : String(error);
+				this.hooks.onIndexFileFailed({
+					file: relativePath,
+					index: i + 1,
+					total: files.length,
+					error: errMsg,
+				});
 				console.error(
 					`[ST Index] [${i + 1}/${files.length}] FAILED ${relativePath}:`,
 					error,
@@ -1133,7 +1206,7 @@ export class STIndexer {
 			}
 		}
 
-		const stats = {
+		const stats: IndexStats = {
 			totalFiles: files.length,
 			indexedFiles,
 			skippedFiles,
@@ -1142,11 +1215,44 @@ export class STIndexer {
 			totalTime: Date.now() - startTime,
 		};
 
+		this.hooks.onIndexDone({
+			workspace: this.workspaceDir,
+			indexedFiles: stats.indexedFiles,
+			skippedFiles: stats.skippedFiles,
+			totalEntities: stats.totalEntities,
+			totalEdges: stats.totalEdges,
+			totalTimeMs: stats.totalTime,
+		});
+
+		// Final SQLite snapshot for the dashboard.
+		this.emitSqliteStats();
+
 		console.error(
 			`[ST Index] Complete: ${stats.indexedFiles}/${stats.totalFiles} indexed, ${stats.skippedFiles} skipped, ${stats.totalEntities} entities, ${stats.totalEdges} edges (${stats.totalTime}ms)`,
 		);
 
 		return stats;
+	}
+
+	/**
+	 * Emit current SQLite graph stats. Safe to call when manager is null.
+	 */
+	private emitSqliteStats(): void {
+		const mgr = this.sqliteManager;
+		if (!mgr) return;
+		try {
+			const health = mgr.getGraphHealth();
+			this.hooks.onSqliteStats({
+				pous: health.entities.total,
+				variables: 0, // not exposed via getGraphHealth; dashboard can derive
+				types: 0,
+				relationships: health.edges.total,
+				files: health.files.total,
+				dbBytes: 0,
+			});
+		} catch {
+			// never let telemetry crash the indexer
+		}
 	}
 
 	/**
@@ -1288,5 +1394,25 @@ export class STIndexer {
 			`[ST Index] CALLS edges: ${totalLspCalls} from LSP, ${totalFallbackCalls} from regex fallback`,
 		);
 		return relationships;
+	}
+}
+
+/**
+ * LSP severity values per the spec:
+ *   1 = Error, 2 = Warning, 3 = Information, 4 = Hint
+ * Defensive: anything else → "info".
+ */
+function severityToString(s: number | undefined): "error" | "warning" | "info" | "hint" {
+	switch (s) {
+		case 1:
+			return "error";
+		case 2:
+			return "warning";
+		case 3:
+			return "info";
+		case 4:
+			return "hint";
+		default:
+			return "info";
 	}
 }

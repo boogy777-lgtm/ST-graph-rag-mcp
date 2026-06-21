@@ -25,6 +25,8 @@ import { getResourceCount, registerResources } from "./mcp/resources/index.js";
 import { getSTToolDefinitions, handleSTToolCall } from "./mcp/st-tools.js";
 import { workspaceManager } from "./mcp/workspace-manager.js";
 import { buildCompositeReporter } from "./reporters/index.js";
+import { startTelemetry, type TelemetryHandle } from "./telemetry/index.js";
+import type { IndexerHooks } from "./telemetry/domain/ports.js";
 
 // === MCP Server ===
 
@@ -87,6 +89,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
 // === Startup ===
 
+// Telemetry handle lives at module scope so SIGINT/SIGTERM handlers can stop it.
+let telemetry: TelemetryHandle | null = null;
+
 async function main() {
 	const toolCount = toolDefinitions.length;
 	const resourceCount = getResourceCount();
@@ -96,6 +101,17 @@ async function main() {
 		`Resources available: ${resourceCount.total} total (${resourceCount.static} static, ${resourceCount.templates} templates)`,
 	);
 
+	// Boot the telemetry dashboard (WS server on 127.0.0.1, random port).
+	// This must happen BEFORE connecting stdio, so any startup failures
+	// surface before we block on the MCP transport.
+	telemetry = startTelemetry();
+
+	// Make the hooks available to the indexer. WorkspaceManager will pass them
+	// into every STIndexer it constructs (cold-path reconstruction included).
+	workspaceManager.setIndexerHooks(telemetry.hooks);
+
+	console.error(`Telemetry UI available at: ${telemetry.url}`);
+
 	const transport = new StdioServerTransport();
 	await server.connect(transport);
 
@@ -103,19 +119,30 @@ async function main() {
 }
 
 // Graceful shutdown
-process.on("SIGINT", async () => {
-	console.error("\nShutting down ST MCP server...");
-	await workspaceManager.shutdownAll();
+async function shutdown(reason: "sigint" | "sigterm" | "error"): Promise<void> {
+	console.error(`\nShutting down ST MCP server (${reason})...`);
+	try {
+		telemetry?.stop();
+	} catch (err) {
+		console.error("[Shutdown] telemetry stop failed:", err);
+	}
+	try {
+		await workspaceManager.shutdownAll();
+	} catch (err) {
+		console.error("[Shutdown] workspace shutdown failed:", err);
+	}
 	process.exit(0);
+}
+
+process.on("SIGINT", () => {
+	void shutdown("sigint");
 });
 
-process.on("SIGTERM", async () => {
-	console.error("\nShutting down ST MCP server...");
-	await workspaceManager.shutdownAll();
-	process.exit(0);
+process.on("SIGTERM", () => {
+	void shutdown("sigterm");
 });
 
 main().catch((error) => {
 	console.error("Failed to start ST MCP server:", error);
-	process.exit(1);
+	void shutdown("error");
 });

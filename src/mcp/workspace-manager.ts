@@ -14,6 +14,8 @@ import type { BatchIndexer } from "../st/batch-indexer";
 import type { IndexStats } from "../st/indexer";
 import { STIndexer } from "../st/indexer";
 import { STSQLiteManager } from "../st/sqlite-manager";
+import type { IndexerHooks } from "../telemetry/domain/ports";
+import { noopHooks } from "../telemetry/domain/ports";
 
 /**
  * Per-workspace context — всё состояние для одной директории.
@@ -36,6 +38,15 @@ class WorkspaceContext {
 export class WorkspaceManager {
 	private readonly contexts = new Map<string, WorkspaceContext>();
 	private activeWorkspace: string = process.cwd();
+	private indexerHooks: IndexerHooks = noopHooks;
+
+	/**
+	 * Inject telemetry hooks. Defaults to no-op (no telemetry).
+	 * Called once at boot from src/index.ts after startTelemetry().
+	 */
+	setIndexerHooks(hooks: IndexerHooks): void {
+		this.indexerHooks = hooks;
+	}
 
 	// === Workspace management ===
 
@@ -129,7 +140,7 @@ export class WorkspaceManager {
 				return null;
 			}
 
-			const indexer = new STIndexer(lspPath, ws);
+			const indexer = new STIndexer(lspPath, ws, undefined, this.indexerHooks);
 			await indexer.start();
 			const newCtx = this.getOrCreateContext(ws);
 			newCtx.indexer = indexer;

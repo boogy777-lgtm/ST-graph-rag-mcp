@@ -14,7 +14,7 @@
     "mcp": {
       "code-graph-rag-st": {
         "type": "local",
-        "command": ["bun", "D:\\ST-graph-rag-mcp\\dist\\index.js"],
+        "command": ["D:\\ST-graph-rag-mcp\\bin\\st-graph-rag-mcp.exe"],
         "environment": {
           "TRUST_LSP_PATH": "D:\\ST-graph-rag-mcp\\bin\\trust-lsp.exe"
         },
