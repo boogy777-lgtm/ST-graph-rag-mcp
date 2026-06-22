@@ -30,6 +30,10 @@ import {
 	workspaceManager,
 } from "./mcp/index.js";
 import { buildCompositeReporter } from "./reporters/index.js";
+import { BatchIndexer } from "./st/batch-indexer.js";
+import { exportObsidianVault } from "./obsidian/exporter.js";
+import path from "node:path";
+import { STIndexer } from "./st/indexer.js";
 import {
 	type IndexerHooks,
 	startTelemetry,
@@ -120,6 +124,49 @@ async function main() {
 			const mgr = workspaceManager.getSQLiteManager(wsDir);
 			return mgr ? mgr.getDb() : null;
 		},
+		onIndexAction: async (mode) => {
+			const wsDir = workspaceManager.getActiveWorkspace();
+			if (!wsDir) throw new Error("No active workspace to index");
+			const sqliteManager = workspaceManager.getSQLiteManager(wsDir);
+			if (!sqliteManager) throw new Error("SQLite DB not initialized for workspace");
+
+			if (mode === "wipe") {
+				sqliteManager.resetGraph();
+			}
+
+			let indexer = await workspaceManager.getIndexer(wsDir);
+			if (!indexer) {
+				// We don't have an indexer yet, let's create one.
+				// This assumes TRUST_LSP_PATH is set or 'bin/trust-lsp.exe' exists relative to cwd.
+				const lspPathResolved = process.env.TRUST_LSP_PATH || "bin/trust-lsp.exe";
+				indexer = new STIndexer(lspPathResolved, wsDir, undefined, telemetry?.hooks);
+				await indexer.start();
+				workspaceManager.setIndexer(indexer, wsDir);
+			}
+
+			const batchIndexer = new BatchIndexer(wsDir, indexer);
+			workspaceManager.setBatchIndexer(batchIndexer, wsDir);
+
+			await batchIndexer.startSession({
+				directory: wsDir,
+				incremental: mode === "incremental",
+				fullScan: mode === "full",
+				reset: mode === "wipe"
+			});
+		},
+		onObsidianExport: async () => {
+			const wsDir = workspaceManager.getActiveWorkspace();
+			if (!wsDir) throw new Error("No active workspace for export");
+			const sqliteManager = workspaceManager.getSQLiteManager(wsDir);
+			if (!sqliteManager) throw new Error("SQLite DB not initialized");
+
+			const outDir = path.resolve(wsDir, "obsidian-vault");
+			return exportObsidianVault(sqliteManager, {
+				vaultPath: outDir,
+				mode: "incremental",
+				includeMermaid: true,
+			});
+		}
 	});
 
 	// Wire the telemetry sink for the AI-Radar middleware.

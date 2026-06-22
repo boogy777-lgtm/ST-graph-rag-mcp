@@ -22,6 +22,8 @@ interface WsServerOptions {
 	readonly getActiveWorkspace: () => string | null;
 	readonly onClientConnected?: (remote: string) => void;
 	readonly onClientDisconnected?: (remote: string) => void;
+	readonly onIndexAction?: (mode: "incremental" | "full" | "wipe") => Promise<void>;
+	readonly onObsidianExport?: () => Promise<any>;
 }
 
 type EmbeddedAsset = { readonly contentType: string; readonly content: string };
@@ -51,22 +53,29 @@ function buildAssetIndex(): {
 export function startWsServer(opts: WsServerOptions): WsServerHandle {
 	const assets = buildAssetIndex();
 
-	const server = Bun.serve({
-		port: 61131,
-		hostname: "127.0.0.1",
+	let server: ReturnType<typeof Bun.serve> | null = null;
+	let port = 61131;
+	const maxPort = 61200;
 
-		fetch(req, server): Response | undefined {
-			const url = new URL(req.url);
+	while (port <= maxPort) {
+		try {
+			server = Bun.serve({
+				port,
+				hostname: "127.0.0.1",
 
-			if (url.pathname === "/ws") {
-				const upgraded = server.upgrade(req);
-				if (upgraded) return undefined;
-				return new Response("WebSocket upgrade failed", { status: 400 });
-			}
+				async fetch(req, srv): Promise<Response | undefined> {
+					const url = new URL(req.url);
 
-			if (url.pathname === "/healthz") {
-				return new Response(
-					JSON.stringify({ ok: true, clients: server.pendingWebSockets }),
+					if (url.pathname === "/ws") {
+						// @ts-expect-error TS wants 2 arguments in newer bun types, but 1 works
+						const upgraded = srv.upgrade(req);
+						if (upgraded) return undefined;
+						return new Response("WebSocket upgrade failed", { status: 400 });
+					}
+
+					if (url.pathname === "/healthz") {
+						return new Response(
+							JSON.stringify({ ok: true, clients: srv.pendingWebSockets }),
 					{
 						headers: { "content-type": "application/json" },
 					},
@@ -210,6 +219,35 @@ export function startWsServer(opts: WsServerOptions): WsServerHandle {
 				}
 			}
 
+			if (url.pathname === "/api/actions/index" && req.method === "POST") {
+				try {
+					if (!opts.onIndexAction) {
+						return new Response(JSON.stringify({ error: "onIndexAction not configured" }), { status: 501, headers: { "content-type": "application/json" } });
+					}
+					let mode = "incremental";
+					try {
+						const body = (await req.json()) as { mode?: string };
+						mode = body.mode || "incremental";
+					} catch { /* empty body */ }
+					await opts.onIndexAction(mode as "incremental" | "full" | "wipe");
+					return new Response(JSON.stringify({ ok: true }), { headers: { "content-type": "application/json" } });
+				} catch (err: any) {
+					return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { "content-type": "application/json" } });
+				}
+			}
+
+			if (url.pathname === "/api/actions/obsidian" && req.method === "POST") {
+				try {
+					if (!opts.onObsidianExport) {
+						return new Response(JSON.stringify({ error: "onObsidianExport not configured" }), { status: 501, headers: { "content-type": "application/json" } });
+					}
+					const result = await opts.onObsidianExport();
+					return new Response(JSON.stringify({ ok: true, ...result }), { headers: { "content-type": "application/json" } });
+				} catch (err: any) {
+					return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { "content-type": "application/json" } });
+				}
+			}
+
 			if (url.pathname === "/api/graph/snapshot") {
 				try {
 					const wsDir = opts.getActiveWorkspace();
@@ -328,6 +366,19 @@ export function startWsServer(opts: WsServerOptions): WsServerHandle {
 			},
 		},
 	});
+			break;
+		} catch (e: any) {
+			if (e.code === "EADDRINUSE") {
+				port++;
+			} else {
+				throw e;
+			}
+		}
+	}
+
+	if (!server) {
+		throw new Error(`Failed to start telemetry server: all ports from 61131 to ${maxPort} are in use.`);
+	}
 
 	return {
 		port: server.port ?? 0,

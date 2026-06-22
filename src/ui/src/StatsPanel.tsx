@@ -161,34 +161,42 @@ export function deriveIndexRun(
 	let elapsed = 0;
 
 	for (const ev of events) {
-		if (ev.kind === "index_started" && started === null) {
+		if (ev.kind === "index_started") {
 			started = ev;
+			done = null;
+			indexed = 0;
+			skipped = 0;
+			entities = 0;
+			edges = 0;
+			failed = 0;
+			elapsed = 0;
 			continue;
 		}
 		if (ev.kind === "index_done") {
 			done = ev;
 			elapsed = typeof ev.totalTimeMs === "number" ? ev.totalTimeMs : 0;
 			indexed = typeof ev.indexedFiles === "number" ? ev.indexedFiles : indexed;
-			skipped =
-				typeof ev.skippedFiles === "number" ? ev.skippedFiles : skipped;
-			entities =
-				typeof ev.totalEntities === "number" ? ev.totalEntities : entities;
+			skipped = typeof ev.skippedFiles === "number" ? ev.skippedFiles : skipped;
+			entities = typeof ev.totalEntities === "number" ? ev.totalEntities : entities;
 			edges = typeof ev.totalEdges === "number" ? ev.totalEdges : edges;
 			continue;
 		}
-		if (ev.kind === "index_file_done") {
+		if (ev.kind === "index_file_done" && done === null) {
 			indexed++;
 			if (typeof ev.entities === "number") entities += ev.entities;
 			if (typeof ev.edges === "number") edges += ev.edges;
 			continue;
 		}
-		if (ev.kind === "index_file_failed") {
+		if (ev.kind === "index_file_failed" && done === null) {
 			failed++;
 			continue;
 		}
 		// Legacy kind aliases.
-		if (ev.kind === "index_completed") indexed++;
-		if (ev.kind === "index_failed") failed++;
+		if (ev.kind === "index_completed") {
+			done = ev;
+			elapsed = typeof ev.duration === "number" ? ev.duration : 0;
+			continue;
+		}
 	}
 
 	if (started === null && done === null && indexed === 0) return null;

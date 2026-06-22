@@ -43,6 +43,8 @@ export interface StartTelemetryOptions {
 	readonly now?: () => number;
 	readonly getDb?: () => any;
 	readonly getActiveWorkspace?: () => string | null;
+	readonly onIndexAction?: (mode: "incremental" | "full" | "wipe") => Promise<void>;
+	readonly onObsidianExport?: () => Promise<any>;
 }
 
 export function startTelemetry(
@@ -58,6 +60,8 @@ export function startTelemetry(
 	const ws: WsServerHandle = startWsServer({
 		getDb: opts.getDb ?? (() => null),
 		getActiveWorkspace: opts.getActiveWorkspace ?? (() => null),
+		onIndexAction: opts.onIndexAction,
+		onObsidianExport: opts.onObsidianExport,
 		get bus(): TelemetryBus {
 			if (!busRef) throw new Error("[Telemetry] bus not yet constructed");
 			return busRef;

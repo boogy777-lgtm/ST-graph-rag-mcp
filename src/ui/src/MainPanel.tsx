@@ -145,6 +145,42 @@ function AnalyticsView({ events }: AnalyticsViewProps): ReactElement {
 	const lspStage = useMemo(() => deriveLspStage(events), [events]);
 	const failedFiles = useMemo(() => countFailedFiles(events), [events]);
 
+	const isIndexing = indexRun?.status === "running";
+	const [isExporting, setIsExporting] = useState(false);
+
+	const handleIndex = async (mode: "incremental" | "full" | "wipe") => {
+		if (isIndexing) return;
+		try {
+			await fetch("/api/actions/index", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ mode })
+			});
+		} catch (err) {
+			console.error("Index action failed:", err);
+		}
+	};
+
+	const handleExport = async () => {
+		if (isExporting) return;
+		setIsExporting(true);
+		try {
+			const res = await fetch("/api/actions/obsidian", { method: "POST" });
+			if (res.ok) {
+				const data = await res.json();
+				alert(`Export complete: ${data.written || 0} written, ${data.skipped || 0} skipped.`);
+			} else {
+				const err = await res.json();
+				alert(`Export failed: ${err.error}`);
+			}
+		} catch (err) {
+			console.error("Obsidian export failed:", err);
+			alert("Failed to export Obsidian vault");
+		} finally {
+			setIsExporting(false);
+		}
+	};
+
 	return (
 		<div className="h-full overflow-y-auto">
 			<StatsPanel
@@ -154,6 +190,55 @@ function AnalyticsView({ events }: AnalyticsViewProps): ReactElement {
 				totalEvents={events.length}
 				failedFiles={failedFiles}
 			/>
+			
+			<div className="px-6 pb-6">
+				<div className="rounded-lg border border-border bg-panel p-4 flex flex-wrap gap-3 items-center">
+					<div className="text-[11px] uppercase tracking-wider text-fg-dim mr-2 w-full sm:w-auto mb-2 sm:mb-0">
+						Actions
+					</div>
+					<button
+						type="button"
+						disabled={isIndexing}
+						onClick={() => handleIndex("incremental")}
+						className="rounded bg-accent/10 px-3 py-1.5 text-xs font-medium text-accent hover:bg-accent/20 disabled:opacity-50 transition-colors"
+					>
+						Incremental Sync
+					</button>
+					<button
+						type="button"
+						disabled={isIndexing}
+						onClick={() => handleIndex("full")}
+						className="rounded bg-panel-2 px-3 py-1.5 text-xs font-medium text-fg hover:bg-panel-2/80 disabled:opacity-50 transition-colors"
+					>
+						Full Re-Index
+					</button>
+					<button
+						type="button"
+						disabled={isIndexing}
+						onClick={() => handleIndex("wipe")}
+						className="rounded bg-danger/10 px-3 py-1.5 text-xs font-medium text-danger hover:bg-danger/20 disabled:opacity-50 transition-colors"
+					>
+						Wipe & Rebuild
+					</button>
+					<div className="flex-1 min-w-[20px]"></div>
+					<button
+						type="button"
+						disabled={isExporting}
+						onClick={handleExport}
+						className="rounded border border-border bg-bg px-3 py-1.5 text-xs font-medium text-fg-muted hover:border-fg hover:text-fg disabled:opacity-50 transition-colors flex items-center gap-2"
+					>
+						{isExporting ? (
+							<span className="w-2 h-2 rounded-full bg-accent animate-pulse"></span>
+						) : (
+							<svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+								<path d="M6 1V8M6 8L3.5 5.5M6 8L8.5 5.5M2 11H10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+							</svg>
+						)}
+						{isExporting ? "Exporting..." : "Export to Obsidian"}
+					</button>
+				</div>
+			</div>
+
 			<div className="px-6 pb-6 grid grid-cols-1 md:grid-cols-2 gap-6">
 				<HealthScore />
 				<HotspotsPanel />

@@ -47,3 +47,11 @@ obsidian-vault/
 # External trust-platform copies (not part of our test suite)
 trust-platform-main/
 .*.bun-build
+
+# Built binaries (assembled from sources via `bun run build` and `cargo build -p trust-lsp`)
+bin/*.exe
+bin/*.bin
+
+# Workspace untracked dirs (local drafts)
+.opencode/architecture/
+pipeline_app/

@@ -128,28 +128,24 @@ def step_copy_binaries() -> bool:
     return True
 
 
-def step_npm() -> bool:
-    """Step 5: Verify Node.js, npm install + build."""
-    # Check Node.js
+def step_bun() -> bool:
+    """Step 5: Verify Bun, bun install + build."""
+    # Check Bun
     try:
-        node = subprocess.run(["node", "--version"], capture_output=True, text=True, timeout=10)
-        npm_v = subprocess.run(["npm", "--version"], capture_output=True, text=True, timeout=10)
-        print(f"  node: {node.stdout.strip()}")
-        print(f"  npm:  {npm_v.stdout.strip()}")
+        bun = subprocess.run(["bun", "--version"], capture_output=True, text=True, timeout=10)
+        print(f"  bun:  {bun.stdout.strip()}")
     except FileNotFoundError:
-        print("  ERROR: Node.js not found.")
-        print("  Install from https://nodejs.org/ (v24+ recommended)")
+        print("  ERROR: Bun not found.")
+        if os.name == "nt":
+            print("  Install on Windows via PowerShell:")
+            print('    powershell -c "irm bun.sh/install.ps1|iex"')
+        else:
+            print("  Install on Linux/macOS:")
+            print('    curl -fsSL https://bun.sh/install | bash')
         return False
 
-    if not (ROOT / "node_modules").exists():
-        run(["npm", "install"])
-    else:
-        print("  node_modules/ already exists.")
-        if confirm("Run npm install (update dependencies)?"):
-            run(["npm", "install"])
-        else:
-            print("  Skipped.")
-    run(["npm", "run", "build"])
+    run(["bun", "install"])
+    run(["bun", "run", "build"])
     return True
 
 
@@ -164,7 +160,7 @@ def main():
         ("Init/update trust-platform submodule", step_submodule),
         ("cargo build --release", step_cargo_build),
         ("Copy binaries to bin/", step_copy_binaries),
-        ("Check Node.js + npm install + build", step_npm),
+        ("Check Bun + bun install + build", step_bun),
     ]
 
     results = {}

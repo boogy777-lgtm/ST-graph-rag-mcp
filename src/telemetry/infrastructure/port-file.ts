@@ -46,6 +46,9 @@ export class PortFile {
 			mkdirSync(dir, { recursive: true });
 		}
 		writeFileSync(this.#path, JSON.stringify(info), "utf8");
+
+		const urlPath = resolve(dir, "ui.url.txt");
+		writeFileSync(urlPath, `http://127.0.0.1:${info.port}\n`, "utf8");
 	}
 
 	remove(): void {
@@ -57,6 +60,17 @@ export class PortFile {
 			const code = (err as NodeJS.ErrnoException).code;
 			if (code !== "ENOENT") {
 				console.error(`[PortFile] failed to remove ${this.#path}:`, err);
+			}
+		}
+
+		try {
+			const dir = dirname(this.#path);
+			const urlPath = resolve(dir, "ui.url.txt");
+			unlinkSync(urlPath);
+		} catch (err) {
+			const code = (err as NodeJS.ErrnoException).code;
+			if (code !== "ENOENT") {
+				console.error(`[PortFile] failed to remove ui.url.txt:`, err);
 			}
 		}
 	}

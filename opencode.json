@@ -18,7 +18,7 @@
         "environment": {
           "TRUST_LSP_PATH": "D:\\ST-graph-rag-mcp\\bin\\trust-lsp.exe"
         },
-        "enabled": true
+        "enabled": false
       }
     },
   "lsp": {
@@ -46,7 +46,7 @@
       "mode": "all",
       "hidden": false,
       "prompt": "{file:./.opencode/agents/ts-architect/agent.md}",
-      "model": "google/antigravity-gemini-3.1-pro",
+      "model": "minimax-coding-plan/MiniMax-M3",
       "variant": "high"
     }
   }
