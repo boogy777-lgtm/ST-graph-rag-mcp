@@ -1,0 +1,228 @@
+name: release
+
+# Triggers:
+#   1. Push tag matching v* (e.g. v3.0.0, v3.0.1-rc.1)
+#   2. Manual run via workflow_dispatch (testing only — does NOT publish)
+#
+# Builds release binaries and attaches them to a GitHub Release.
+# External Rust LSP dependency (trust-lsp.exe) is pulled from
+# boogy777-lgtm/trust-platform/releases/latest as a pre-built artifact.
+# See docs/release-pipeline.md for the cross-repo dependency contract.
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      skip_publish:
+        description: "Skip release publication (run-only mode)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────
+  # Job 1: Validate (lint + typecheck + tests) — early fail cheap
+  # ─────────────────────────────────────────────────────────────────
+  validate:
+    name: validate (lint + typecheck + tests)
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Typecheck
+        run: bun run typecheck
+
+      - name: Lint
+        run: bun run lint
+
+      - name: Test
+        run: bun test
+
+  # ─────────────────────────────────────────────────────────────────
+  # Job 2: Build bun binaries + fetch LSP dependency + publish
+  # ─────────────────────────────────────────────────────────────────
+  build-and-publish:
+    name: build & publish release
+    needs: validate
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # trust-platform submodule is intentionally NOT initialized.
+          # The Rust LSP is built and versioned in a separate repository
+          # (boogy777-lgtm/trust-platform) and consumed as a GitHub
+          # Release artifact here. See docs/release-pipeline.md.
+          submodules: false
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      # ---- External dependency: trust-lsp.exe ----------------------
+      # Pulled from trust-platform release artifacts (built in a
+      # dedicated workflow inside boogy777-lgtm/trust-platform).
+      - name: Resolve trust-lsp release version
+        id: lsp-resolve
+        shell: pwsh
+        run: |
+          $apiUrl = "https://api.github.com/repos/boogy777-lgtm/trust-platform/releases/latest"
+          $headers = @{ "User-Agent" = "st-graph-rag-mcp-release" }
+          if ($env:GITHUB_TOKEN) { $headers["Authorization"] = "token $env:GITHUB_TOKEN" }
+          $release = Invoke-RestMethod -Uri $apiUrl -Headers $headers
+          $tag = $release.tag_name
+          $asset = $release.assets | Where-Object { $_.name -eq "trust-lsp-win32-x64.zip" } | Select-Object -First 1
+          if (-not $asset) {
+            Write-Error "trust-lsp-win32-x64.zip not found in release $tag"
+            exit 1
+          }
+          "tag=$tag"          | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "url=$($asset.browser_download_url)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          Write-Host "Resolved trust-lsp tag: $tag"
+          Write-Host "Asset URL: $($asset.browser_download_url)"
+
+      - name: Download trust-lsp.exe
+        shell: pwsh
+        run: |
+          $url = "${{ steps.lsp-resolve.outputs.url }}"
+          $tag = "${{ steps.lsp-resolve.outputs.tag }}"
+          $zipPath = "bin/trust-lsp.zip"
+          New-Item -ItemType Directory -Force -Path bin | Out-Null
+          Write-Host "Downloading trust-lsp ($tag) from $url"
+          Invoke-WebRequest -Uri $url -OutFile $zipPath -UseBasicParsing
+          Expand-Archive -Path $zipPath -DestinationPath bin -Force
+          Remove-Item $zipPath
+          if (-not (Test-Path "bin/trust-lsp.exe")) {
+            Write-Error "trust-lsp.exe not found after extraction"
+            exit 1
+          }
+          Get-Item "bin/trust-lsp.exe" | Format-List Name, Length
+
+      - name: Verify trust-lsp.exe
+        shell: pwsh
+        run: |
+          & bin/trust-lsp.exe --version 2>&1 || Write-Host "LSP --version returned non-zero (acceptable for some LSPs)"
+
+      # ---- Build TS binaries (st-graph-rag-mcp.exe + obsidian-export.exe) ----
+      - name: Build release binaries (bun --compile)
+        run: bun run build
+
+      # ---- Smoke verification (binary size + executable) ----
+      - name: Smoke test
+        run: bun run smoke
+
+      # ---- Package release artifact ----
+      - name: Compute version
+        id: version
+        shell: pwsh
+        run: |
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            $tag = "preview-${{ github.run_number }}"
+          } else {
+            $tag = "${{ github.ref_name }}"   # e.g. v3.0.1
+          }
+          "version=$tag" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          Write-Host "Release version: $tag"
+
+      - name: Stage release files
+        shell: pwsh
+        run: |
+          $staging = "dist-release"
+          if (Test-Path $staging) { Remove-Item -Recurse -Force $staging }
+          New-Item -ItemType Directory -Force -Path $staging | Out-Null
+
+          # Binaries
+          Copy-Item "bin/st-graph-rag-mcp.exe"     $staging
+          Copy-Item "bin/obsidian-export.exe"      $staging
+          Copy-Item "bin/trust-lsp.exe"            $staging
+
+          # Configuration & metadata
+          foreach ($f in @("opencode.json", "README.md", "LICENSE", "CHANGELOG.md")) {
+            if (Test-Path $f) { Copy-Item $f $staging }
+          }
+
+          # Lightweight smoke manifest
+          @"
+          # ST-Graph-RAG-MCP release artifact
+          # Generated by .github/workflows/release.yml
+          # Trust-LSP version: ${{ steps.lsp-resolve.outputs.tag }}
+          "@ | Out-File "$staging/RELEASE.txt" -Encoding utf8
+
+          Get-ChildItem $staging -Recurse | Format-Table Name, Length -AutoSize
+
+      - name: Create release archive
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.version }}"
+          $staging = "dist-release"
+          $archive = "st-graph-rag-mcp-$version-win-x64.zip"
+          if (Test-Path $archive) { Remove-Item $archive -Force }
+          Compress-Archive -Path "$staging/*" -DestinationPath $archive -CompressionLevel Optimal
+          Get-Item $archive | Format-List Name, Length
+
+      - name: Upload release asset
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "ST-Graph-RAG-MCP ${{ github.ref_name }}"
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: |
+            st-graph-rag-mcp-${{ steps.version.outputs.version }}-win-x64.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Manual run — skip publish
+        if: github.event_name == 'workflow_dispatch' && inputs.skip_publish == true
+        shell: pwsh
+        run: |
+          Write-Host "Manual run with skip_publish=true — no release created."
+          Write-Host "Artifact remains in workspace for inspection."
+
+      - name: Manual run — publish as prerelease
+        if: github.event_name == 'workflow_dispatch' && inputs.skip_publish == false
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: preview-${{ github.run_number }}
+          name: "Preview build #${{ github.run_number }}"
+          prerelease: true
+          generate_release_notes: true
+          fail_on_unmatched_files: false
+          files: |
+            st-graph-rag-mcp-${{ steps.version.outputs.version }}-win-x64.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Summary
+        if: always()
+        shell: pwsh
+        run: |
+          Write-Host "────── Pipeline Summary ──────"
+          Write-Host "Version:        ${{ steps.version.outputs.version }}"
+          Write-Host "Trust-LSP tag:  ${{ steps.lsp-resolve.outputs.tag }}"
+          Write-Host "Event:          ${{ github.event_name }}"
+          Write-Host "Ref:            ${{ github.ref }}"
